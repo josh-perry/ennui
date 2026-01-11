@@ -32,9 +32,6 @@ function Window.new()
 
     self:addProperty("title", "Window")
     self:addProperty("content", nil)
-    self:addProperty("isDragging", false)
-    self:addProperty("dragOffsetX", 0)
-    self:addProperty("dragOffsetY", 0)
     self:addProperty("titleBarHeight", 30)
     self:addProperty("titleBarColor", {0.2, 0.2, 0.2, 1})
     self:addProperty("titleTextColor", {1, 1, 1, 1})
@@ -43,6 +40,10 @@ function Window.new()
     self:addProperty("font", love.graphics.getFont())
     self:addProperty("showCloseButton", true)
     self:addProperty("closeButtonHovered", false)
+    self:addProperty("showTitleBar", true)
+
+    self:setDraggable(true)
+    self:setDragHandle({x = 0, y = 0, width = 0, height = self.props.titleBarHeight})
 
     self.__lastFocusedWidget = nil
     self.isTabContext = true
@@ -71,14 +72,12 @@ end
 ---@param widget Widget? Content widget (nil to clear)
 ---@return Window self
 function Window:setContent(widget)
-    -- Remove old content
     if self.props.content then
         self:removeChild(self.props.content)
     end
 
     self.props.content = widget
 
-    -- Add new content
     if widget then
         self:addChild(widget)
         self:invalidateLayout()
@@ -93,9 +92,9 @@ end
 ---@return number desiredWidth
 ---@return number desiredHeight
 function Window:measure(availableWidth, availableHeight)
-    -- Calculate space available for content (after padding, title bar, etc)
     local contentWidth = availableWidth - self.padding.left - self.padding.right
-    local contentHeight = availableHeight - self.padding.top - self.padding.bottom - self.props.titleBarHeight
+    local titleBarSpace = self.props.showTitleBar and self.props.titleBarHeight or 0
+    local contentHeight = availableHeight - self.padding.top - self.padding.bottom - titleBarSpace
 
     if self.props.content then
         self.props.content:measure(contentWidth, contentHeight)
@@ -230,7 +229,6 @@ function Window:__getHost()
     local current = self.parent
     while current do
         if not current.parent then
-            -- The topmost ancestor should always be a Host
             ---@diagnostic disable-next-line: return-type-mismatch
             return current
         end
@@ -246,19 +244,13 @@ end
 function Window:onMousePressed(event)
     self:bringToFront()
 
-    -- Check if clicked on close button first
     if self:isOnCloseButton(event.x, event.y) then
         self:close()
         event:consume()
         return
     end
 
-    -- Check if clicked on title bar (start dragging)
     if self:isInTitleBar(event.x, event.y) then
-        self.props.isDragging = true
-        self.props.dragOffsetX = event.x - self.x
-        self.props.dragOffsetY = event.y - self.y
-
         local host = self:__getHost()
         if host then
             if not (host.focusedWidget and self:__isDescendant(host.focusedWidget)) then
@@ -272,8 +264,6 @@ function Window:onMousePressed(event)
                 end
             end
         end
-
-        event:consume()
         return
     end
 
@@ -282,7 +272,6 @@ function Window:onMousePressed(event)
     local host = self:__getHost()
     if host and host.__focusSetDuringEvent then
         if host.focusedWidget and self:__isDescendant(host.focusedWidget) then
-            -- The correct widget was already focused, don't override it
             return
         end
     end
@@ -315,22 +304,6 @@ function Window:onMouseMoved(event)
     if wasHovered ~= self.props.closeButtonHovered then
         self:invalidateRender()
     end
-
-    if self.props.isDragging then
-        local newX = event.x - self.props.dragOffsetX
-        local newY = event.y - self.props.dragOffsetY
-        self:setPosition(newX, newY)
-        event:consume()
-    end
-end
-
----Handle mouse released
----@param event MouseEvent Mouse event
-function Window:onMouseReleased(event)
-    if self.props.isDragging then
-        self.props.isDragging = false
-        event:consume()
-    end
 end
 
 ---Arrange children (position content widget)
@@ -340,8 +313,9 @@ end
 ---@param contentHeight number Content area height
 function Window:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
     if self.props.content then
-        local contentAreaY = contentY + self.props.titleBarHeight
-        local contentAreaHeight = contentHeight - self.props.titleBarHeight
+        local titleBarSpace = self.props.showTitleBar and self.props.titleBarHeight or 0
+        local contentAreaY = contentY + titleBarSpace
+        local contentAreaHeight = contentHeight - titleBarSpace
 
         self.props.content:measure(contentWidth, contentAreaHeight)
         self.props.content:arrange(contentX, contentAreaY, contentWidth, contentAreaHeight)
@@ -455,7 +429,9 @@ end
 
 ---Render the window
 function Window:onRender()
-    self:__drawTitlebar()
+    if self.props.showTitleBar then
+        self:__drawTitlebar()
+    end
 
     love.graphics.setColor(self.props.backgroundColor)
     love.graphics.rectangle(

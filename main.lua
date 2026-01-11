@@ -12,6 +12,9 @@ local TextInput = require("widgets.textinput")
 local Widget = require("ennui.widget")
 local Window = require("widgets.window")
 
+local DockSpace = require("ennui.docking.dockspace")
+local DockableWindow = require("widgets.dockablewindow")
+
 love.keyboard.setTextInput(true)
 love.graphics.setDefaultFilter("nearest", "nearest")
 
@@ -504,6 +507,187 @@ local function createTextButtonWithImageExample()
     return window
 end
 
+local function createDockingExample()
+    -- Create a DockSpace with a complex multi-split layout
+    local dockSpace = DockSpace()
+        :setPosition(20, 120)
+        :setSize(800, 500)
+
+    local dockTree = dockSpace.dockTree
+
+    -- Create DockableWindow widgets for the predocked panels
+    local editorWindow = DockableWindow()
+        :setTitle("Editor")
+        :setId("EditorWindow")
+        :setSize(ennui.Size.auto(), ennui.Size.auto())
+        :setDockSpace(dockSpace)
+    editorWindow:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Editor")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+
+    local inspectorWindow = DockableWindow()
+        :setTitle("Inspector")
+        :setId("InspectorWindow")
+        :setSize(ennui.Size.auto(), ennui.Size.auto())
+        :setDockSpace(dockSpace)
+    inspectorWindow:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Inspector")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+
+    local sceneWindow = DockableWindow()
+        :setTitle("Scene")
+        :setId("SceneWindow")
+        --:setSize(ennui.Size.auto(), ennui.Size.auto())
+        :setSize(250, 150)
+        :setDockSpace(dockSpace)
+    sceneWindow:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Scene")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+
+    local consoleWindow = DockableWindow()
+        :setTitle("Console")
+        :setId("ConsoleWindow")
+        :setSize(ennui.Size.auto(), ennui.Size.auto())
+        :setDockSpace(dockSpace)
+    consoleWindow:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Console")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+
+    -- Set up initial dock structure by directly manipulating the tree
+    -- Then hide titlebars and mark as docked
+    
+    -- Start with root as leaf
+    dockTree:addWidget(editorWindow, false)
+    editorWindow.props.isDocked = true
+    -- editorWindow:setTitleBarVisibility(false)
+
+    -- Split root horizontally: [editor(20%) | rest(80%)]
+    dockTree:split("horizontal", 0.20)
+
+    -- Add inspector to right child, then split it
+    dockTree.rightChild:addWidget(inspectorWindow, false)
+    inspectorWindow.props.isDocked = true
+    inspectorWindow:setTitleBarVisibility(false)
+
+    -- Split right child vertically: [inspector(33%) | rest(67%)]
+    dockTree.rightChild:split("vertical", 1/3)
+
+    -- Add scene to right child, then split it
+    dockTree.rightChild.rightChild:addWidget(sceneWindow, false)
+    sceneWindow.props.isDocked = true
+    sceneWindow:setTitleBarVisibility(false)
+
+    -- Split again: [scene(50%) | console(50%)]
+    dockTree.rightChild.rightChild:split("vertical", 0.5)
+
+    dockSpace:updateTabBars()
+    -- Add console to right child
+    dockTree.rightChild.rightChild.rightChild:addWidget(consoleWindow, false)
+    consoleWindow.props.isDocked = true
+    consoleWindow:setTitleBarVisibility(false)
+
+    -- Add all docked windows as children of the DockSpace
+    -- This must be done BEFORE layout so they render in correct z-order
+    dockSpace:addChild(editorWindow)
+    dockSpace:addChild(inspectorWindow)
+    dockSpace:addChild(sceneWindow)
+    dockSpace:addChild(consoleWindow)
+
+    -- Trigger initial layout
+    -- dockSpace:invalidateLayout()
+    -- Find the node containing consoleWindow
+    local node = dockSpace.dockTree:findNodeContainingWidget(consoleWindow)
+
+    if node and node.tabBar then
+        local tabBar = node.tabBar
+        tabBar:setActiveTab(1)
+    else
+        print("consoleWindow is not in a tabbed node or has no tabBar")
+    end
+
+    -- Create floating dockable windows that can be dragged into the dock space
+    local window1 = DockableWindow()
+        :setTitle("Floating Panel 1")
+        :setPosition(850, 120)
+        :setSize(250, 150)
+        :setId("Window1")
+    window1:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Floating Panel 1")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+    window1:setDockSpace(dockSpace)
+
+    local window2 = DockableWindow()
+        :setTitle("Floating Panel 2")
+        :setPosition(850, 280)
+        :setSize(250, 150)
+        :setId("Window2")
+    window2:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Floating Panel 2")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+    window2:setDockSpace(dockSpace)
+
+    local window3 = DockableWindow()
+        :setTitle("Floating Panel 3")
+        :setPosition(850, 440)
+        :setSize(250, 150)
+        :setId("Window3")
+    window3:setContent(StackPanel()
+        :setSpacing(8)
+        :setPadding(8, 8, 8, 8)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :addChild(Text()
+            :setText("Floating Panel 3")
+            :setSize(ennui.Size.fill(), ennui.Size.auto()))
+        :addChild(Image()
+            :setImagePath("assets/img/frog.png")
+            :setSize(ennui.Size.fill(), ennui.Size.fill())))
+    window3:setDockSpace(dockSpace)
+
+    return dockSpace, window1, window2, window3
+end
+
 function love.load()
     host = ennui.Host()
     host:setSize(love.graphics.getDimensions())
@@ -512,13 +696,20 @@ function love.load()
     host:addChild(button)
     host:addChild(label)
 
-    host:addChild(createLoginWindow())
-    host:addChild(createNestedLayoutExample())
-    host:addChild(createDebugWindow())
-    host:addChild(createShowcaseWindow())
-    host:addChild(createMenuBarExample())
-    host:addChild(createTextButtonWithImageExample())
-    host:addChild(createReactivePropertiesExample())
+    -- Add docking example
+    local dockSpace, dockWindow1, dockWindow2, dockWindow3 = createDockingExample()
+    host:addChild(dockSpace)
+    host:addChild(dockWindow1)
+    host:addChild(dockWindow2)
+    host:addChild(dockWindow3)
+
+    -- host:addChild(createLoginWindow())
+    -- host:addChild(createNestedLayoutExample())
+    -- host:addChild(createDebugWindow())
+    -- host:addChild(createShowcaseWindow())
+    -- host:addChild(createMenuBarExample())
+    -- host:addChild(createTextButtonWithImageExample())
+    -- host:addChild(createReactivePropertiesExample())
 end
 
 function love.draw()

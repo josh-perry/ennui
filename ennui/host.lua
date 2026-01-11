@@ -7,6 +7,13 @@ local Event = require("ennui.event")
 ---@field __pressedWidget table<integer, Widget> Widgets with pressed mouse buttons
 ---@field __lastHoveredWidget Widget? Last widget that was hovered
 ---@field __focusSetDuringEvent boolean Flag to track if focus was set during current event
+---@field __draggedWidget Widget? Currently dragged widget
+---@field __dragOffsetX number X offset for position-based dragging
+---@field __dragOffsetY number Y offset for position-based dragging
+---@field __lastDragX number Last X position for delta calculation
+---@field __lastDragY number Last Y position for delta calculation
+---@field __dragMode string? "position" or "delta"
+---@field __dragStarted boolean Whether drag has actually started
 local Host = setmetatable({}, {
     __index = Widget,
     __call = function(class, ...)
@@ -25,6 +32,14 @@ function Host.new()
     self.__pressedWidget = {}
     self.__lastHoveredWidget = nil
     self.__focusSetDuringEvent = false
+
+    self.__draggedWidget = nil
+    self.__dragOffsetX = 0
+    self.__dragOffsetY = 0
+    self.__lastDragX = 0
+    self.__lastDragY = 0
+    self.__dragMode = nil
+    self.__dragStarted = false
 
     return self
 end
@@ -110,6 +125,70 @@ function Host:update(dt)
     self:onUpdate(dt)
 end
 
+---@protected
+function Host:onRender()
+    -- Render all children except the dragged widget
+    for _, child in ipairs(self.children) do
+        if child:isVisible() and child ~= self.__draggedWidget then
+            child:onRender()
+        end
+    end
+
+    -- Render dragged widget last
+    if self.__draggedWidget and self.__draggedWidget:isVisible() then
+        self.__draggedWidget:onRender()
+        love.graphics.setColor(1, 1, 1, 0.8)
+        love.graphics.rectangle("fill", self.__draggedWidget.x, self.__draggedWidget.y, self.__draggedWidget.width, self.__draggedWidget.height)
+    end
+end
+
+---@protected
+---@param widget Widget
+---@param x number Mouse X
+---@param y number Mouse Y
+---@param button integer Mouse button
+function Host:__initDrag(widget, x, y, button)
+    self.__draggedWidget = widget
+    self.__dragMode = widget.dragMode or "position"
+    self.__dragOffsetX = x - widget.x
+    self.__dragOffsetY = y - widget.y
+    self.__lastDragX = x
+    self.__lastDragY = y
+    self.__dragStarted = false
+
+    if widget.props.isDocked and widget.undock then
+        widget:undock()
+    end
+
+    if widget.onDragStart then
+        local event = Event.createMouseEvent("mousePressed", x, y, button, widget, false)
+        if widget.onDragStart(event) == false then
+            self:__clearDrag()
+            return false
+        end
+    end
+
+    return true
+end
+
+---@protected
+function Host:__clearDrag()
+    self.__draggedWidget = nil
+    self.__dragOffsetX = 0
+    self.__dragOffsetY = 0
+    self.__lastDragX = 0
+    self.__lastDragY = 0
+    self.__dragMode = nil
+    self.__dragStarted = false
+end
+
+---@protected
+---@param widget Widget
+---@return boolean
+function Host:__isWidgetDragged(widget)
+    return self.__draggedWidget == widget
+end
+
 ---@param x number Mouse X
 ---@param y number Mouse Y
 ---@param button integer Mouse button
@@ -121,6 +200,10 @@ function Host:mousepressed(x, y, button, isTouch)
     self.__focusSetDuringEvent = false
 
     if target then
+        if target.isDraggable and target:isInDragHandle(x, y) then
+            self:__initDrag(target, x, y, button)
+        end
+
         self.__pressedWidget[button] = target
 
         if target:getFocusable() then
@@ -144,15 +227,29 @@ end
 ---@param isTouch boolean Is touch event
 function Host:mousereleased(x, y, button, isTouch)
     self:__ensureLayout()
+
+    if self.__draggedWidget then
+        local widget = self.__draggedWidget --[[@as Widget]]
+
+        if widget.onDragEnd then
+            local event = Event.createMouseEvent("mouseReleased", x, y, button, widget, isTouch)
+            widget.onDragEnd(event)
+        end
+
+        self:__clearDrag()
+        self:invalidateRender()
+    end
+
     local target = self:hitTest(x, y)
     local pressedWidget = self.__pressedWidget[button]
 
     if pressedWidget then
         pressedWidget.state.isPressed = false
         pressedWidget:invalidateRender()
-    end
 
-    if target then
+        local event = Event.createMouseEvent("mouseReleased", x, y, button, pressedWidget, isTouch)
+        self:__dispatchEvent(event)
+    elseif target then
         local event = Event.createMouseEvent("mouseReleased", x, y, button, target, isTouch)
         self:__dispatchEvent(event)
     end
@@ -172,6 +269,41 @@ end
 ---@param isTouch boolean Is touch event
 function Host:mousemoved(x, y, dx, dy, isTouch)
     self:__ensureLayout()
+
+    if self.__draggedWidget then
+        if not self.__dragStarted then
+            self.__dragStarted = true
+        end
+
+        local widget = self.__draggedWidget --[[@as Widget]]
+
+        if self.__dragMode == "position" then
+            local newX = x - self.__dragOffsetX
+            local newY = y - self.__dragOffsetY
+            
+            widget:setPosition(newX, newY)
+        elseif self.__dragMode == "delta" then
+            local deltaX = x - self.__lastDragX
+            local deltaY = y - self.__lastDragY
+
+            if widget.onDrag then
+                local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, deltaX, deltaY)
+                widget.onDrag(event, deltaX, deltaY)
+            end
+
+            self.__lastDragX = x
+            self.__lastDragY = y
+        end
+
+        if self.__dragMode == "position" and widget.onDrag then
+            local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, dx, dy)
+            widget.onDrag(event)
+        end
+
+        self:invalidateRender()
+        return
+    end
+
     local target = self:hitTest(x, y)
 
     if target ~= self.__lastHoveredWidget then

@@ -50,6 +50,12 @@ local Computed = require("ennui.computed")
 ---@field public verticalAlignment "top"|"center"|"bottom"|"stretch" Vertical alignment
 ---@field public layoutStrategy LayoutStrategy? Optional layout strategy for arranging children
 ---@field public isTabContext boolean Whether this widget creates a new tab focus scope
+---@field public isDraggable boolean Whether widget can be dragged
+---@field public dragMode string Drag mode: "position" or "delta"
+---@field public dragHandle table? Drag handle rectangle {x, y, width, height} relative to widget
+---@field public onDragStart function? Drag lifecycle callback
+---@field public onDrag function? Drag lifecycle callback
+---@field public onDragEnd function? Drag lifecycle callback
 ---@field private __handlers table Event handlers (bubble phase)
 ---@field private __captureHandlers table Event handlers (capture phase)
 ---@field private __focusable boolean Whether widget can receive focus
@@ -109,8 +115,19 @@ function Widget.new()
         verticalAlignment = "stretch",
     }
 
+    self:addProperty("isDocked", false)
+
     self.__watchers = {}
     self.__computed = {}
+
+    -- Drag system properties
+    self.isDraggable = false
+    self.dragMode = "position" -- "position" or "delta"
+    self.dragHandle = nil -- {x, y, width, height} relative to widget
+    -- Drag callbacks
+    self.onDragStart = nil -- function(event) -> bool (return false to cancel)
+    self.onDrag = nil -- function(event, deltaX, deltaY) for delta mode, or function(event) for position mode
+    self.onDragEnd = nil -- function(event)
 
     self.props = Reactive.createProxy(
         self.__rawProps,
@@ -1132,6 +1149,73 @@ function Widget:unwatch(watcher)
             break
         end
     end
+end
+
+---Configure whether this widget is draggable
+---@param draggable boolean Whether the widget can be dragged
+---@param dragHandle table? Optional drag handle rectangle {x, y, width, height}
+---@return Widget self
+function Widget:setDraggable(draggable, dragHandle)
+    self.isDraggable = draggable
+    if dragHandle then
+        self.dragHandle = dragHandle
+    end
+    return self
+end
+
+---Set the drag mode ("position" or "delta")
+---@param mode string "position" for position-based dragging, "delta" for delta-based
+---@return Widget self
+function Widget:setDragMode(mode)
+    assert(mode == "position" or mode == "delta", "dragMode must be 'position' or 'delta'")
+    self.dragMode = mode
+    return self
+end
+
+---Set the drag handle rectangle
+---@param rect table? Rectangle {x, y, width, height} relative to widget, or nil to allow drag from anywhere
+---@return Widget self
+function Widget:setDragHandle(rect)
+    self.dragHandle = rect
+    return self
+end
+
+---Check if a point is within the drag handle
+---@param x number X coordinate
+---@param y number Y coordinate
+---@return boolean True if point is in drag handle
+function Widget:isInDragHandle(x, y)
+    -- Check if point is within widget bounds
+    if x < self.x or x > self.x + self.width or
+       y < self.y or y > self.y + self.height then
+        return false
+    end
+
+    -- If no drag handle specified, entire widget is draggable
+    if not self.dragHandle then
+        return true
+    end
+
+    -- Convert point to local coordinates
+    local localX = x - self.x
+    local localY = y - self.y
+
+    local handle = self.dragHandle
+    local handleX = handle.x or 0
+    local handleY = handle.y or 0
+    -- width/height of 0 means full widget dimension
+    local handleWidth = handle.width == 0 and self.width or (handle.width or self.width)
+    local handleHeight = handle.height == 0 and self.height or (handle.height or self.height)
+
+    return localX >= handleX and localX < handleX + handleWidth and
+           localY >= handleY and localY < handleY + handleHeight
+end
+
+---Check if this widget is currently being dragged
+---@return boolean True if widget is currently being dragged
+function Widget:isDragging()
+    local host = self:__getHost()
+    return host and host.__isWidgetDragged and host:__isWidgetDragged(self) or false
 end
 
 ---Clean up all watchers and computed properties

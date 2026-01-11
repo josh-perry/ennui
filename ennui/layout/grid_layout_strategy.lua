@@ -92,11 +92,9 @@ end
 ---@param availableHeight number Available height
 ---@return number desiredWidth, number desiredHeight
 function GridLayoutStrategy:measure(widget, availableWidth, availableHeight)
-    -- Calculate available content space
     local contentWidth = availableWidth - widget.padding.left - widget.padding.right
     local contentHeight = availableHeight - widget.padding.top - widget.padding.bottom
 
-    -- Count visible children
     local visibleChildren = {}
     for _, child in ipairs(widget.children) do
         if child:isVisible() then
@@ -248,7 +246,6 @@ function GridLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentW
     local totalColumnSpacing = (numColumns - 1) * self.columnSpacing
     local totalRowSpacing = (numRows - 1) * self.rowSpacing
 
-    -- First pass: measure children and determine column widths and row heights
     local columnWidths = {}
     local rowHeights = {}
 
@@ -302,7 +299,6 @@ function GridLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentW
         end
     end
 
-    -- Second pass: position children
     local currentY = contentY
 
     for row = 1, numRows do
@@ -342,11 +338,9 @@ function GridLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentW
                 child:arrange(childX, childY, childWidth, childHeight)
             end
 
-            -- Move to next column
             currentX = currentX + columnWidths[col] + self.columnSpacing
         end
 
-        -- Move to next row
         currentY = currentY + rowHeights[row] + self.rowSpacing
     end
 end
