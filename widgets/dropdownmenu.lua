@@ -1,5 +1,5 @@
-local Widget = require("yui.widget")
-local Size = require("yui.size")
+local Widget = require("ennui.widget")
+local Size = require("ennui.size")
 local StackPanel = require("widgets.stackpanel")
 local TextButton = require("widgets.textbutton")
 

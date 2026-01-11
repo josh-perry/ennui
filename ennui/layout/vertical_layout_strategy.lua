@@ -1,54 +1,53 @@
-local LayoutStrategy = require("yui.layout.layout_strategy")
+local LayoutStrategy = require("ennui.layout.layout_strategy")
 
----@class HorizontalLayoutStrategy : LayoutStrategy
-local HorizontalLayoutStrategy = {}
-HorizontalLayoutStrategy.__index = HorizontalLayoutStrategy
-setmetatable(HorizontalLayoutStrategy, {
+---@class VerticalLayoutStrategy : LayoutStrategy
+local VerticalLayoutStrategy = {}
+VerticalLayoutStrategy.__index = VerticalLayoutStrategy
+setmetatable(VerticalLayoutStrategy, {
     __index = LayoutStrategy,
     __call = function(class, ...)
         return class.new(...)
     end
 })
 
----Creates a new HorizontalLayoutstrategy
----@return HorizontalLayoutStrategy
-function HorizontalLayoutStrategy.new()
-    local self = setmetatable(LayoutStrategy(), HorizontalLayoutStrategy) ---@cast self HorizontalLayoutStrategy
+---Creates a new VerticalLayoutstrategy
+---@return VerticalLayoutStrategy
+function VerticalLayoutStrategy.new()
+    local self = setmetatable(LayoutStrategy(), VerticalLayoutStrategy) ---@cast self VerticalLayoutStrategy
     return self
 end
 
----Measures the desired size of a widget with horizontal layout
 ---@param widget Widget The widget being measured
 ---@param availableWidth number Available width
 ---@param availableHeight number Available height
 ---@return number desiredWidth, number desiredHeight
-function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeight)
+function VerticalLayoutStrategy:measure(widget, availableWidth, availableHeight)
     local contentWidth = availableWidth - widget.padding.left - widget.padding.right
     local contentHeight = availableHeight - widget.padding.top - widget.padding.bottom
 
-    local maxChildHeight = 0
-    local totalFixedWidth = 0
+    local maxChildWidth = 0
+    local totalFixedHeight = 0
     local fillCount = 0
     local fillTotalWeight = 0
 
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
             if i > 1 then
-                totalFixedWidth = totalFixedWidth + self.spacing
+                totalFixedHeight = totalFixedHeight + self.spacing
             end
 
             child:measure(contentWidth, contentHeight)
 
-            maxChildHeight = math.max(maxChildHeight, child.desiredHeight)
+            maxChildWidth = math.max(maxChildWidth, child.desiredWidth)
 
-            if type(child.preferredWidth) == "number" then
-                totalFixedWidth = totalFixedWidth + child.desiredWidth
+            if type(child.preferredHeight) == "number" then
+                totalFixedHeight = totalFixedHeight + child.desiredHeight
             else
-                if child.preferredWidth.type == "fill" then
+                if child.preferredHeight.type == "fill" then
                     fillCount = fillCount + 1
-                    fillTotalWeight = fillTotalWeight + (child.preferredWidth.weight or 1)
+                    fillTotalWeight = fillTotalWeight + (child.preferredHeight.weight or 1)
                 else
-                    totalFixedWidth = totalFixedWidth + child.desiredWidth
+                    totalFixedHeight = totalFixedHeight + child.desiredHeight
                 end
             end
         end
@@ -65,8 +64,7 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
         elseif preferredWidth.type == "percent" then
             desiredWidth = availableWidth * preferredWidth.value
         elseif preferredWidth.type == "auto" then
-            local estimatedFillWidth = fillCount * 20
-            desiredWidth = totalFixedWidth + estimatedFillWidth + widget.padding.left + widget.padding.right
+            desiredWidth = maxChildWidth + widget.padding.left + widget.padding.right
         elseif preferredWidth.type == "fill" then
             desiredWidth = availableWidth
         else
@@ -85,7 +83,8 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
         elseif preferredHeight.type == "percent" then
             desiredHeight = availableHeight * preferredHeight.value
         elseif preferredHeight.type == "auto" then
-            desiredHeight = maxChildHeight + widget.padding.top + widget.padding.bottom
+            local estimatedFillHeight = fillCount * 20
+            desiredHeight = totalFixedHeight + estimatedFillHeight + widget.padding.top + widget.padding.bottom
         elseif preferredHeight.type == "fill" then
             desiredHeight = availableHeight
         else
@@ -115,69 +114,66 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
     return desiredWidth, desiredHeight
 end
 
----Arranges children horizontally with spacing
 ---@param widget Widget The widget being arranged
 ---@param contentX number X position of content area (after padding)
 ---@param contentY number Y position of content area (after padding)
 ---@param contentWidth number Width of content area (after padding)
 ---@param contentHeight number Height of content area (after padding)
-function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentWidth, contentHeight)
-    -- First pass: Calculate fixed widths and identify fill children
-    local totalFixedWidth = 0
+function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentWidth, contentHeight)
+    local totalFixedHeight = 0
     local fillTotalWeight = 0
 
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
             if i > 1 then
-                totalFixedWidth = totalFixedWidth + self.spacing
+                totalFixedHeight = totalFixedHeight + self.spacing
             end
 
-            if type(child.preferredWidth) == "number" then
-                totalFixedWidth = totalFixedWidth + child.desiredWidth
-            elseif child.preferredWidth.type == "fill" then
-                fillTotalWeight = fillTotalWeight + (child.preferredWidth.weight or 1)
+            if type(child.preferredHeight) == "number" then
+                totalFixedHeight = totalFixedHeight + child.desiredHeight
+            elseif child.preferredHeight.type == "fill" then
+                fillTotalWeight = fillTotalWeight + (child.preferredHeight.weight or 1)
             else
-                totalFixedWidth = totalFixedWidth + child.desiredWidth
+                totalFixedHeight = totalFixedHeight + child.desiredHeight
             end
         end
     end
 
-    local remainingWidth = contentWidth - totalFixedWidth
+    local remainingHeight = contentHeight - totalFixedHeight
 
-    -- Second pass: Arrange children
-    local currentX = contentX
+    local currentY = contentY
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
             if i > 1 then
-                currentX = currentX + self.spacing
+                currentY = currentY + self.spacing
             end
 
-            local childWidth
-            if type(child.preferredWidth) == "number" then
-                childWidth = child.desiredWidth
-            elseif child.preferredWidth.type == "fill" then
-                local weight = child.preferredWidth.weight or 1
-                childWidth = remainingWidth * (weight / fillTotalWeight)
+            local childHeight
+            if type(child.preferredHeight) == "number" then
+                childHeight = child.desiredHeight
+            elseif child.preferredHeight.type == "fill" then
+                local weight = child.preferredHeight.weight or 1
+                childHeight = remainingHeight * (weight / fillTotalWeight)
             else
-                childWidth = child.desiredWidth
+                childHeight = child.desiredHeight
             end
 
-            local childHeight = child.desiredHeight
+            local childWidth = child.desiredWidth
 
-            local childY = contentY
-            if child.verticalAlignment == "center" then
-                childY = contentY + (contentHeight - childHeight) / 2
-            elseif child.verticalAlignment == "bottom" then
-                childY = contentY + contentHeight - childHeight
-            elseif child.verticalAlignment == "stretch" then
-                childHeight = contentHeight
+            local childX = contentX
+            if child.horizontalAlignment == "center" then
+                childX = contentX + (contentWidth - childWidth) / 2
+            elseif child.horizontalAlignment == "right" then
+                childX = contentX + contentWidth - childWidth
+            elseif child.horizontalAlignment == "stretch" then
+                childWidth = contentWidth
             end
 
-            child:arrange(currentX, childY, childWidth, childHeight)
+            child:arrange(childX, currentY, childWidth, childHeight)
 
-            currentX = currentX + childWidth
+            currentY = currentY + childHeight
         end
     end
 end
 
-return HorizontalLayoutStrategy
+return VerticalLayoutStrategy

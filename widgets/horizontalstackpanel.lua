@@ -1,5 +1,5 @@
-local Widget = require("yui.widget")
-local HorizontalLayoutStrategy = require("yui.layout.horizontal_layout_strategy")
+local ennui = require("ennui")
+local Widget = require("ennui.widget")
 
 ---@class HorizontalStackPanel : Widget
 local HorizontalStackPanel = {}
@@ -16,7 +16,7 @@ setmetatable(HorizontalStackPanel, {
 function HorizontalStackPanel.new()
     local self = setmetatable(Widget.new(), HorizontalStackPanel) ---@cast self HorizontalStackPanel
 
-    local strategy = HorizontalLayoutStrategy()
+    local strategy = ennui.Layout.Horizontal()
     self:setLayoutStrategy(strategy)
 
     return self

@@ -9,7 +9,6 @@ local PropertyType = {
 ---@class PropertyMetadata
 local PropertyMetadata = {}
 
----Property configuration for all widget properties
 PropertyMetadata.properties = {
     -- Layout-affecting properties (trigger invalidateLayout)
     preferredWidth = { type = "layout" },

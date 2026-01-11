@@ -1,6 +1,6 @@
-local Widget = require("yui.widget")
+local Widget = require("ennui.widget")
 local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local yui = require("yui")
+local ennui = require("ennui")
 
 ---@class MenuBar : Widget
 ---@field __headerPanel HorizontalStackPanel Panel to hold menu headers
@@ -20,7 +20,7 @@ function MenuBar.new()
     local self = setmetatable(Widget(), MenuBar) ---@cast self MenuBar
 
     self.__headerPanel = HorizontalStackPanel()
-        :setSize(require("yui.size").fill(), require("yui.size").auto())
+        :setSize(require("ennui.size").fill(), require("ennui.size").auto())
         :setSpacing(0)
 
     self:addChild(self.__headerPanel)
@@ -42,12 +42,12 @@ function MenuBar:addMenu(label)
 
     local headerButton = TextButton()
         :setText(label)
-        :setSize(yui.Size.auto(), yui.Size.auto())
+        :setSize(ennui.Size.auto(), ennui.Size.auto())
         :setMinWidth(80)
         :setPadding(4, 12, 4, 12)
 
     local dropdownMenu = DropdownMenu()
-        :setSize(yui.Size.auto(), require("yui.size").auto())
+        :setSize(ennui.Size.auto(), require("ennui.size").auto())
         :setMinWidth(80)
         :setVisible(false)
 

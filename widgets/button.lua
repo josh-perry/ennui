@@ -1,5 +1,5 @@
-local Widget = require("yui.widget")
-local Size = require("yui.size")
+local Widget = require("ennui.widget")
+local Size = require("ennui.size")
 
 ---@class Button : Widget
 ---@field backgroundColor number[] RGBA color for normal state

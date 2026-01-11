@@ -1,4 +1,4 @@
-local Widget = require("yui.widget")
+local Widget = require("ennui.widget")
 
 ---@class Text : Widget
 ---@field text string Text to display

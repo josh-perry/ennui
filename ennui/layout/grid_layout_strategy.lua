@@ -1,4 +1,4 @@
-local LayoutStrategy = require("yui.layout.layout_strategy")
+local LayoutStrategy = require("ennui.layout.layout_strategy")
 
 ---@class GridLayoutStrategy : LayoutStrategy
 ---@field columns number? Number of columns in the grid (nil = auto-calculate)

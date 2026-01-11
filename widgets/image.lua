@@ -1,5 +1,5 @@
-local Widget = require("yui.widget")
-local Size = require("yui.size")
+local Widget = require("ennui.widget")
+local Size = require("ennui.size")
 
 ---@class Image : Widget
 ---@field drawable love.Image|love.Canvas? Drawable to display (Image or Canvas)

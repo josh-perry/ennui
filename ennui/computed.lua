@@ -1,4 +1,4 @@
-local Reactive = require("yui.reactive")
+local Reactive = require("ennui.reactive")
 
 ---@class Computed
 ---@field getter function The function that computes the value

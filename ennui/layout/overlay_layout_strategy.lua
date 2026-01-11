@@ -1,4 +1,4 @@
-local LayoutStrategy = require("yui.layout.layout_strategy")
+local LayoutStrategy = require("ennui.layout.layout_strategy")
 
 ---@class OverlayLayoutStrategy : LayoutStrategy
 ---A layout strategy that allows children to overlap the parent's content.

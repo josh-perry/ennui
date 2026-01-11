@@ -1,8 +1,8 @@
-local Size = require("yui.size")
-local Reactive = require("yui.reactive")
-local PropertyMetadata = require("yui.property_metadata")
-local Watcher = require("yui.watcher")
-local Computed = require("yui.computed")
+local Size = require("ennui.size")
+local Reactive = require("ennui.reactive")
+local PropertyMetadata = require("ennui.property_metadata")
+local Watcher = require("ennui.watcher")
+local Computed = require("ennui.computed")
 
 ---@class WidgetState
 ---@field public isHovered boolean Mouse is over widget

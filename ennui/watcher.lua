@@ -1,7 +1,7 @@
 ---Watcher system for explicit reactions to property changes
 ---Similar to Vue's watch() - allows running callbacks when properties change
 
-local Reactive = require("yui.reactive")
+local Reactive = require("ennui.reactive")
 
 ---@class Watcher
 ---@field widget Widget The widget this watcher is attached to

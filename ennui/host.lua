@@ -1,5 +1,5 @@
-local Widget = require("yui.widget")
-local Event = require("yui.event")
+local Widget = require("ennui.widget")
+local Event = require("ennui.event")
 
 ---@class Host : Widget
 ---@field focusedWidget Widget? Currently focused widget
