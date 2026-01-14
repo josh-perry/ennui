@@ -510,8 +510,8 @@ end
 local function createDockingExample()
     -- Create a DockSpace with a complex multi-split layout
     local dockSpace = DockSpace()
-        :setPosition(20, 120)
-        :setSize(800, 500)
+        :setPosition(0, 0)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
 
     local dockTree = dockSpace.dockTree
 
@@ -587,7 +587,7 @@ local function createDockingExample()
     -- Start with root as leaf
     dockTree:addWidget(editorWindow, false)
     editorWindow.props.isDocked = true
-    -- editorWindow:setTitleBarVisibility(false)
+    editorWindow.currentDockSpace = dockSpace
 
     -- Split root horizontally: [editor(20%) | rest(80%)]
     dockTree:split("horizontal", 0.20)
@@ -595,7 +595,7 @@ local function createDockingExample()
     -- Add inspector to right child, then split it
     dockTree.rightChild:addWidget(inspectorWindow, false)
     inspectorWindow.props.isDocked = true
-    inspectorWindow:setTitleBarVisibility(false)
+    inspectorWindow.currentDockSpace = dockSpace
 
     -- Split right child vertically: [inspector(33%) | rest(67%)]
     dockTree.rightChild:split("vertical", 1/3)
@@ -603,7 +603,7 @@ local function createDockingExample()
     -- Add scene to right child, then split it
     dockTree.rightChild.rightChild:addWidget(sceneWindow, false)
     sceneWindow.props.isDocked = true
-    sceneWindow:setTitleBarVisibility(false)
+    sceneWindow.currentDockSpace = dockSpace
 
     -- Split again: [scene(50%) | console(50%)]
     dockTree.rightChild.rightChild:split("vertical", 0.5)
@@ -612,7 +612,7 @@ local function createDockingExample()
     -- Add console to right child
     dockTree.rightChild.rightChild.rightChild:addWidget(consoleWindow, false)
     consoleWindow.props.isDocked = true
-    consoleWindow:setTitleBarVisibility(false)
+    consoleWindow.currentDockSpace = dockSpace
 
     -- Add all docked windows as children of the DockSpace
     -- This must be done BEFORE layout so they render in correct z-order

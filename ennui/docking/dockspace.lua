@@ -147,9 +147,8 @@ function DockSpace:findNodeAtPointRecursive(node, x, y)
         return nil
     end
 
-    local bounds = node.bounds
-    if x < bounds.x or x > bounds.x + bounds.width or
-       y < bounds.y or y > bounds.y + bounds.height then
+    if x < node.bounds.x or x > node.bounds.x + node.bounds.width or
+       y < node.bounds.y or y > node.bounds.y + node.bounds.height then
         return nil
     end
 
@@ -380,10 +379,49 @@ end
 ---@param availableHeight number
 ---@return number, number
 function DockSpace:measure(availableWidth, availableHeight)
-    if self.layoutStrategy then
-        return self.layoutStrategy:measure(self, availableWidth, availableHeight)
+    local desiredWidth, desiredHeight
+
+    local prefWidth = self.preferredWidth
+    if type(prefWidth) == "number" then
+        desiredWidth = prefWidth
+    elseif type(prefWidth) == "table" then
+        if prefWidth.type == "fill" then
+            desiredWidth = availableWidth
+        elseif prefWidth.type == "fixed" then
+            desiredWidth = prefWidth.value
+        elseif prefWidth.type == "percent" then
+            desiredWidth = availableWidth * prefWidth.value
+        end
     end
-    return availableWidth, availableHeight
+
+    local prefHeight = self.preferredHeight
+    if type(prefHeight) == "number" then
+        desiredHeight = prefHeight
+    elseif type(prefHeight) == "table" then
+        if prefHeight.type == "fill" then
+            desiredHeight = availableHeight
+        elseif prefHeight.type == "fixed" then
+            desiredHeight = prefHeight.value
+        elseif prefHeight.type == "percent" then
+            desiredHeight = availableHeight * prefHeight.value
+        end
+    end
+
+    if not desiredWidth or not desiredHeight then
+        local contentWidth, contentHeight = 0, 0
+
+        if self.layoutStrategy then
+            contentWidth, contentHeight = self.layoutStrategy:measure(self, availableWidth, availableHeight)
+        end
+
+        desiredWidth = desiredWidth or contentWidth
+        desiredHeight = desiredHeight or contentHeight
+    end
+
+    self.desiredWidth = desiredWidth
+    self.desiredHeight = desiredHeight
+
+    return desiredWidth, desiredHeight
 end
 
 ---Arrange children (position dock tree)

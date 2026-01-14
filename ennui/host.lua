@@ -80,8 +80,10 @@ function Host:setSize(width, height)
     if self.width ~= width or self.height ~= height then
         self.width = width
         self.height = height
+
         self:invalidateLayout()
     end
+
     return self
 end
 
@@ -90,8 +92,10 @@ end
 function Host:setWidth(width)
     if self.width ~= width then
         self.width = width
+
         self:invalidateLayout()
     end
+
     return self
 end
 
@@ -100,8 +104,10 @@ end
 function Host:setHeight(height)
     if self.height ~= height then
         self.height = height
+
         self:invalidateLayout()
     end
+
     return self
 end
 
