@@ -1,9 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local DockNode = require("ennui.docking.docknode")
 local DockLayoutStrategy = require("ennui.layout.dock_layout_strategy")
-local Splitter = require("ennui.splitter")
-local TabBar = require("ennui.tabbar")
+local DockNode = require("ennui.docking.docknode")
+local Splitter = require("ennui.docking.widgets.splitter")
+local TabBar = require("ennui.widgets.tabbar")
+local Widget = require("ennui.widget")
 
 ---Check if a tab bar should be shown for a leaf node
 ---Show if more than 1 widget, OR if exactly 1 widget that is docked
@@ -38,10 +37,10 @@ setmetatable(DockSpace, {
 ---Creates a new DockSpace
 ---@return DockSpace
 function DockSpace.new()
-    local self = setmetatable(Widget.new(), DockSpace)
+    local self = setmetatable(Widget(), DockSpace) ---@cast self DockSpace
 
-    self.dockTree = DockNode.new()
-    self.layoutStrategy = DockLayoutStrategy.new(self.dockTree)
+    self.dockTree = DockNode()
+    self.layoutStrategy = DockLayoutStrategy(self.dockTree)
     self.isDockable = true
 
     self:addProperty("backgroundColor", {0.15, 0.15, 0.15})
@@ -54,15 +53,6 @@ function DockSpace.new()
     self.highlightedZone = nil
     self.previewOverlay = nil
 
-    return self
-end
-
----Set the layout strategy
----@param strategy LayoutStrategy
----@return self
-function DockSpace:setLayoutStrategy(strategy)
-    self.layoutStrategy = strategy
-    self:invalidateLayout()
     return self
 end
 
@@ -193,17 +183,12 @@ function DockSpace:getDropZonesAtPoint(x, y)
     return result
 end
 
----Get the highest priority drop zone (prefer nested dockspaces > center > edges)
+---Get the highest priority drop zone (prefer center > edges)
 ---@param x number X coordinate
 ---@param y number Y coordinate
 ---@return table? Best drop zone
----@return DockSpace? The dock space that owns this zone (may be nested)
+---@return DockSpace? The dock space that owns this zone
 function DockSpace:getDropZoneAtPoint(x, y)
-    local nestedZone, nestedDockSpace = self:getNestedDropZoneAtPoint(x, y)
-    if nestedZone then
-        return nestedZone, nestedDockSpace
-    end
-    
     local zones = self:getDropZonesAtPoint(x, y)
 
     for _, zone in ipairs(zones) do
@@ -213,43 +198,6 @@ function DockSpace:getDropZoneAtPoint(x, y)
     end
 
     return zones[1], self
-end
-
----Check nested dock spaces within docked widgets for drop zones
----@param x number X coordinate
----@param y number Y coordinate
----@return table? Drop zone from nested dock space
----@return DockSpace? The nested dock space that owns the zone
-function DockSpace:getNestedDropZoneAtPoint(x, y)
-    local result = nil
-    local resultDockSpace = nil
-    
-    self.dockTree:traverse(function(node)
-        if result then return end
-        
-        if node:isLeaf() then
-            for _, widget in ipairs(node.dockedWidgets) do
-                local internalDockSpace = widget.internalDockSpace
-
-                if internalDockSpace and internalDockSpace.isDockable and not widget.props.isDocked then
-                    if internalDockSpace.x and internalDockSpace.width and
-                       x >= internalDockSpace.x and x < internalDockSpace.x + internalDockSpace.width and
-                       y >= internalDockSpace.y and y < internalDockSpace.y + internalDockSpace.height then
-
-                        local zone, dockSpace = internalDockSpace:getDropZoneAtPoint(x, y)
-
-                        if zone then
-                            result = zone
-                            resultDockSpace = dockSpace
-                            return
-                        end
-                    end
-                end
-            end
-        end
-    end)
-    
-    return result, resultDockSpace
 end
 
 ---Check if point is in bounds
@@ -290,7 +238,7 @@ function DockSpace:insertSplitAtEdge(node, widget, edgeType)
         if node.leftChild and node.leftChild:isLeaf() then
             node.leftChild:addWidget(widget, true)
         elseif node.rightChild and node.rightChild:isLeaf() then
-            local newNode = DockNode.new()
+            local newNode = DockNode()
             local direction = (edgeType == "left") and "horizontal" or "vertical"
             newNode:split(direction, 0.5)
             newNode.rightChild:addWidget(widget, true)
@@ -301,7 +249,7 @@ function DockSpace:insertSplitAtEdge(node, widget, edgeType)
         if node.rightChild and node.rightChild:isLeaf() then
             node.rightChild:addWidget(widget, true)
         elseif node.leftChild and node.leftChild:isLeaf() then
-            local newNode = DockNode.new()
+            local newNode = DockNode()
             local direction = (edgeType == "right") and "horizontal" or "vertical"
             newNode:split(direction, 0.5)
             newNode.leftChild:addWidget(widget, true)
@@ -407,16 +355,15 @@ function DockSpace:measure(availableWidth, availableHeight)
         end
     end
 
-    if not desiredWidth or not desiredHeight then
-        local contentWidth, contentHeight = 0, 0
-
-        if self.layoutStrategy then
-            contentWidth, contentHeight = self.layoutStrategy:measure(self, availableWidth, availableHeight)
-        end
-
-        desiredWidth = desiredWidth or contentWidth
-        desiredHeight = desiredHeight or contentHeight
+    -- Always measure children so they have valid desiredWidth/Height for arrange
+    local contentWidth, contentHeight = 0, 0
+    if self.layoutStrategy then
+        contentWidth, contentHeight = self.layoutStrategy:measure(self, availableWidth, availableHeight)
     end
+
+    -- Use measured content size if own size wasn't determined
+    desiredWidth = desiredWidth or contentWidth
+    desiredHeight = desiredHeight or contentHeight
 
     self.desiredWidth = desiredWidth
     self.desiredHeight = desiredHeight
@@ -459,7 +406,7 @@ function DockSpace:createSplitterForNode(node)
         return
     end
 
-    local splitter = Splitter.new(node.splitDirection)
+    local splitter = Splitter(node.splitDirection)
     splitter:setMinSize(node.minSize)
 
     splitter.props.normalColor = self.props.dividerColor
@@ -506,7 +453,7 @@ function DockSpace:updateTabBars()
             end
 
             if not node.tabBar then
-                node.tabBar = TabBar.new()
+                node.tabBar = TabBar(node)
                 self:addChild(node.tabBar)
             end
 
@@ -590,17 +537,22 @@ function DockSpace:onRender()
     end
 
     if self.highlightedZone then
-        local zone = self.highlightedZone
         love.graphics.setColor(self.props.dropZoneColor[1], self.props.dropZoneColor[2], self.props.dropZoneColor[3], 0.3)
-        love.graphics.rectangle("fill", zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height)
+
+        local zone = self.highlightedZone
+        ---@diagnostic disable-next-line: need-check-nil
+        love.graphics.rectangle("fill", self.highlightedZone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height)
     end
 
     if self.previewOverlay then
         local preview = self.previewOverlay
+
         love.graphics.setColor(self.props.dropZoneColor[1], self.props.dropZoneColor[2], self.props.dropZoneColor[3], 0.5)
+        ---@diagnostic disable-next-line: need-check-nil
         love.graphics.rectangle("fill", preview.x, preview.y, preview.width, preview.height)
 
         love.graphics.setColor(self.props.dropZoneColor[1], self.props.dropZoneColor[2], self.props.dropZoneColor[3], 0.8)
+        ---@diagnostic disable-next-line: need-check-nil
         love.graphics.rectangle("line", preview.x, preview.y, preview.width, preview.height, 2)
     end
 end

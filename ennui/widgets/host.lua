@@ -14,6 +14,7 @@ local Event = require("ennui.event")
 ---@field __lastDragY number Last Y position for delta calculation
 ---@field __dragMode string? "position" or "delta"
 ---@field __dragStarted boolean Whether drag has actually started
+---@field __overlayWidgets Widget[] Overlay widgets (hit-tested first, rendered last)
 local Host = setmetatable({}, {
     __index = Widget,
     __call = function(class, ...)
@@ -40,8 +41,29 @@ function Host.new()
     self.__lastDragY = 0
     self.__dragMode = nil
     self.__dragStarted = false
+    self.__overlayWidgets = {}
 
     return self
+end
+
+---Register an overlay widget (hit-tested first, rendered last)
+---@param widget Widget
+function Host:registerOverlay(widget)
+    for _, w in ipairs(self.__overlayWidgets) do
+        if w == widget then return end
+    end
+    table.insert(self.__overlayWidgets, widget)
+end
+
+---Unregister a widget's overlay
+---@param widget Widget
+function Host:unregisterOverlay(widget)
+    for i, w in ipairs(self.__overlayWidgets) do
+        if w == widget then
+            table.remove(self.__overlayWidgets, i)
+            return
+        end
+    end
 end
 
 ---@param contentX number Content area X
@@ -120,9 +142,35 @@ function Host:__ensureLayout()
     end
 end
 
+---Override hitTest to check overlay widgets first
+---@param x number Point X
+---@param y number Point Y
+---@return Widget? hitWidget
+function Host:hitTest(x, y)
+    for i = #self.__overlayWidgets, 1, -1 do
+        local widget = self.__overlayWidgets[i]
+
+        if widget:isVisible() then
+            local hit = widget:hitTest(x, y)
+
+            if hit then
+                return hit
+            end
+        end
+    end
+
+    return Widget.hitTest(self, x, y)
+end
+
 function Host:draw()
     self:__ensureLayout()
     self:onRender()
+
+    for _, widget in ipairs(self.__overlayWidgets) do
+        if widget:isVisible() then
+            widget:onRender()
+        end
+    end
 end
 
 ---@param dt number Delta time in seconds
@@ -286,7 +334,7 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
         if self.__dragMode == "position" then
             local newX = x - self.__dragOffsetX
             local newY = y - self.__dragOffsetY
-            
+
             widget:setPosition(newX, newY)
         elseif self.__dragMode == "delta" then
             local deltaX = x - self.__lastDragX

@@ -140,6 +140,57 @@ end
 ---Close the window (hide it)
 ---@return Window self
 function Window:close()
+    -- Clean up Host state before hiding
+    local host = self:__getHost()
+    if host then
+        -- Clear hover state if hovering over this window or its descendants
+        if host.__lastHoveredWidget then
+            local current = host.__lastHoveredWidget
+            while current do
+                if current == self then
+                    host.__lastHoveredWidget.state.isHovered = false
+                    host.__lastHoveredWidget = nil
+                    break
+                end
+                current = current.parent
+            end
+        end
+        
+        -- Clear pressed widget state for any button if pressed on this window or descendants
+        for button, pressedWidget in pairs(host.__pressedWidget) do
+            if pressedWidget then
+                local current = pressedWidget
+                while current do
+                    if current == self then
+                        pressedWidget.state.isPressed = false
+                        host.__pressedWidget[button] = nil
+                        break
+                    end
+                    current = current.parent
+                end
+            end
+        end
+        
+        -- Clear drag state if dragging this window or a descendant
+        if host.__draggedWidget then
+            local current = host.__draggedWidget
+            while current do
+                if current == self then
+                    -- Clear drag state manually
+                    host.__draggedWidget = nil
+                    host.__dragOffsetX = 0
+                    host.__dragOffsetY = 0
+                    host.__lastDragX = 0
+                    host.__lastDragY = 0
+                    host.__dragMode = nil
+                    host.__dragStarted = false
+                    break
+                end
+                current = current.parent
+            end
+        end
+    end
+    
     self:setVisible(false)
     return self
 end
@@ -362,15 +413,12 @@ function Window:__collectFocusableWidgets(widget, widgets)
     end
 end
 
----Recursively render widget and all its descendants
+---Render a widget (onRender handles children recursively)
 ---@param widget Widget Widget to render
 ---@protected
-function Window:__renderTree(widget)
+function Window:__renderWidget(widget)
     if widget:isVisible() then
         widget:onRender()
-        for _, child in ipairs(widget.children) do
-            self:__renderTree(child)
-        end
     end
 end
 
@@ -443,7 +491,7 @@ function Window:onRender()
     )
 
     for _, child in ipairs(self.children) do
-        self:__renderTree(child)
+        self:__renderWidget(child)
     end
 end
 

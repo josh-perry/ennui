@@ -212,8 +212,7 @@ function DockLayoutStrategy:getDropZonesForNode(node, dropZoneSize)
     end
 
     local zones = {}
-    local bounds = node.bounds
-    local x, y, w, h = bounds.x, bounds.y, bounds.width, bounds.height
+    local x, y, w, h = node.bounds.x, node.bounds.y, node.bounds.width, node.bounds.height
 
     table.insert(zones, {
         type = "left",

@@ -1,6 +1,4 @@
 local Window = require("widgets.window")
-local DockSpace = require("ennui.docking.dockspace")
-local Size = require("ennui.size")
 
 ---@class DockableWindow : Window
 ---@field isDockable boolean Whether this can be docked
@@ -8,7 +6,6 @@ local Size = require("ennui.size")
 ---@field floatingBounds table Saved bounds when undocked {x, y, width, height}
 ---@field dockPreviewZone table? Current preview zone during drag
 ---@field dockPreviewTarget DockSpace? The dock space that owns the current preview zone
----@field internalDockSpace DockSpace Internal dock space for hosting docked content
 local DockableWindow = setmetatable({}, Window)
 DockableWindow.__index = DockableWindow
 setmetatable(DockableWindow, {
@@ -29,12 +26,7 @@ function DockableWindow.new()
     self.dockPreviewZone = nil
     self.dockPreviewTarget = nil
 
-    self.internalDockSpace = DockSpace.new()
-    self.internalDockSpace:setSize(Size.fill(), Size.fill())
-    self.internalDockSpace.isDockable = true
-
     self:watch("isDocked", function(newValue)
-        self.internalDockSpace.isDockable = not newValue
         self:setTitleBarVisibility(not newValue)
     end)
 
@@ -100,25 +92,6 @@ function DockableWindow:setDockSpace(dockSpace)
     return self
 end
 
----Get the internal dock space (for docking widgets within this window)
----@return DockSpace
-function DockableWindow:getInternalDockSpace()
-    return self.internalDockSpace
-end
-
----Dock a widget into this window's internal dock space
----@param widget Widget Widget to dock
----@param zone table? Optional drop zone, if nil docks to center
----@return boolean success
-function DockableWindow:dockWidget(widget, zone)
-    if not zone then
-        self.internalDockSpace.dockTree:addWidget(widget, true)
-        self.internalDockSpace:invalidateLayout()
-        return true
-    end
-    return self.internalDockSpace:dock(widget, zone)
-end
-
 ---Dock this window into a specific dock space at a zone
 ---@param targetDockSpace DockSpace The dock space to dock into
 ---@param zone table Drop zone {type, bounds, targetNode, previewBounds}
@@ -160,6 +133,7 @@ function DockableWindow:dock(zone)
     if not self.dockSpace then
         return false
     end
+
     return self:dockInto(self.dockSpace, zone)
 end
 
@@ -222,25 +196,18 @@ function DockableWindow:setTitleBarVisibility(visible)
     return self
 end
 
----Override setContent to add content to internal dock space instead
----@param content Widget
----@return self
-function DockableWindow:setContent(content)
-    self.internalDockSpace.dockTree:addWidget(content, false)
-    Window.setContent(self, self.internalDockSpace)
-    
-    return self
-end
-
 ---Get the host widget
 ---@return Host?
 function DockableWindow:__getHost()
+    ---@type Host|Widget
     local current = self
+
     while current.parent do
         current = current.parent
     end
 
     if current.focusedWidget then
+        ---@cast current Host
         return current
     end
 

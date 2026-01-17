@@ -374,12 +374,26 @@ function TextInput:onRender()
     love.graphics.setLineWidth(self.state.isFocused and 2 or 1)
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
-    love.graphics.setScissor(
-        self.x + self.padding.left,
-        self.y + self.padding.top,
-        self.width - self.padding.left - self.padding.right,
-        self.height - self.padding.top - self.padding.bottom
-    )
+    -- Save current scissor state
+    local prevScissorX, prevScissorY, prevScissorW, prevScissorH = love.graphics.getScissor()
+
+    -- Calculate new scissor rect
+    local newX = self.x + self.padding.left
+    local newY = self.y + self.padding.top
+    local newW = self.width - self.padding.left - self.padding.right
+    local newH = self.height - self.padding.top - self.padding.bottom
+
+    -- Intersect with existing scissor if any
+    if prevScissorX then
+        local right = math.min(newX + newW, prevScissorX + prevScissorW)
+        local bottom = math.min(newY + newH, prevScissorY + prevScissorH)
+        newX = math.max(newX, prevScissorX)
+        newY = math.max(newY, prevScissorY)
+        newW = math.max(0, right - newX)
+        newH = math.max(0, bottom - newY)
+    end
+
+    love.graphics.setScissor(newX, newY, newW, newH)
 
     self.__textWidget:onRender()
 
@@ -412,7 +426,12 @@ function TextInput:onRender()
         love.graphics.line(cursorX, textY, cursorX, textY + self.props.font:getHeight())
     end
 
-    love.graphics.setScissor()
+    -- Restore previous scissor state
+    if prevScissorX then
+        love.graphics.setScissor(prevScissorX, prevScissorY, prevScissorW, prevScissorH)
+    else
+        love.graphics.setScissor()
+    end
 end
 
 return TextInput

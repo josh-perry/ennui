@@ -4,7 +4,6 @@ local Button = require("widgets.button")
 local Computed = require("ennui.computed")
 local HorizontalStackPanel = require("widgets.horizontalstackpanel")
 local Image = require("widgets.image")
-local MenuBar = require("widgets.menubar")
 local StackPanel = require("widgets.stackpanel")
 local Text = require("widgets.text")
 local TextButton = require("widgets.textbutton")
@@ -12,13 +11,29 @@ local TextInput = require("widgets.textinput")
 local Widget = require("ennui.widget")
 local Window = require("widgets.window")
 
-local DockSpace = require("ennui.docking.dockspace")
+-- local DockSpace = require("ennui.docking.dockspace")
+local DockSpace = ennui.Docking.Widgets.DockSpace
 local DockableWindow = require("widgets.dockablewindow")
+
+local Checkbox = require("widgets.checkbox")
+local Slider = require("widgets.slider")
+local RadioButton = require("widgets.radiobutton")
+local Group = require("widgets.group")
+local CollapseableHeader = require("widgets.collapseableheader")
+local TreeView = require("widgets.treeview")
+local TreeViewNode = require("widgets.treeviewnode")
+local ScrollArea = require("widgets.scrollarea")
+local ComboBox = require("widgets.combobox")
+local Dropdown = require("widgets.dropdown")
+local Rectangle = require("widgets.rectangle")
 
 love.keyboard.setTextInput(true)
 love.graphics.setDefaultFilter("nearest", "nearest")
 
 local host
+local dockSpace = DockSpace()
+    :setPosition(0, 0)
+    :setSize(ennui.Size.fill(), ennui.Size.fill())
 
 local gameState = {
     score = 0,
@@ -28,8 +43,12 @@ local gameState = {
     secret = ""
 }
 
+---@type Computed?
+local brightnessCalculated = nil
+
 local scoreLabel
 local clickCountLabel
+local brightnessSlider = nil
 
 local function createSimpleTextButtonExample()
     local button = TextButton()
@@ -417,59 +436,6 @@ local function createReactivePropertiesExample()
     return window
 end
 
-local function createMenuBarExample()
-    local menuBar = MenuBar()
-        :setSize(ennui.Size.fill(), 30)
-        :setPosition(0, 0)
-
-    local fileMenu = menuBar:addMenu("File")
-    local fileDropdown = fileMenu._dropdownMenu
-    fileDropdown:addItem("New"):onClick(function()
-        print("File > New clicked")
-    end)
-    fileDropdown:addItem("Open"):onClick(function()
-        print("File > Open clicked")
-    end)
-    fileDropdown:addItem("Save"):onClick(function()
-        print("File > Save clicked")
-    end)
-    fileDropdown:addSeparator()
-    fileDropdown:addItem("Exit"):onClick(function()
-        print("File > Exit clicked")
-        love.event.quit()
-    end)
-
-    local editMenu = menuBar:addMenu("Edit")
-    local editDropdown = editMenu._dropdownMenu
-    editDropdown:addItem("Undo"):onClick(function()
-        print("Edit > Undo clicked")
-    end)
-    editDropdown:addItem("Redo"):onClick(function()
-        print("Edit > Redo clicked")
-    end)
-    editDropdown:addSeparator()
-    editDropdown:addItem("Cut"):onClick(function()
-        print("Edit > Cut clicked")
-    end)
-    editDropdown:addItem("Copy"):onClick(function()
-        print("Edit > Copy clicked")
-    end)
-    editDropdown:addItem("Paste"):onClick(function()
-        print("Edit > Paste clicked")
-    end)
-
-    local helpMenu = menuBar:addMenu("Help")
-    local helpDropdown = helpMenu._dropdownMenu
-    helpDropdown:addItem("About"):onClick(function()
-        print("Help > About clicked")
-    end)
-    helpDropdown:addItem("Documentation"):onClick(function()
-        print("Help > Documentation clicked")
-    end)
-
-    return menuBar
-end
-
 local function createTextButtonWithImageExample()
     local window = Window()
         :setTitle("Button with Image")
@@ -507,12 +473,198 @@ local function createTextButtonWithImageExample()
     return window
 end
 
-local function createDockingExample()
-    -- Create a DockSpace with a complex multi-split layout
-    local dockSpace = DockSpace()
-        :setPosition(0, 0)
+local function createNewWidgetsShowcase()
+    local window = DockableWindow()
+        :setTitle("Widgets Showcase")
+        :setSize(ennui.Size.fixed(300), ennui.Size.fixed(400))
+        :setPosition(20, 50)
+        :setDockSpace(dockSpace)
+
+    local scrollArea = ScrollArea()
         :setSize(ennui.Size.fill(), ennui.Size.fill())
 
+    local mainPanel = StackPanel()
+        :setPadding(16)
+        :setSpacing(16)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+
+    -- Checkbox section
+    local checkboxGroup = Group("Checkboxes")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    local checkbox1 = Checkbox("Enable feature")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    local checkbox2 = Checkbox("Show notifications")
+        :setChecked(true)
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    local checkbox3 = Checkbox("Auto-save")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+
+    checkboxGroup:addChild(checkbox1)
+    checkboxGroup:addChild(checkbox2)
+    checkboxGroup:addChild(checkbox3)
+    mainPanel:addChild(checkboxGroup)
+
+    -- Slider section
+    local sliderGroup = Group("Sliders")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    local volumeLabel = Text()
+        :setText("Volume: 50")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    local volumeSlider = Slider(0, 100, 50)
+        :setSize(ennui.Size.fill(), 24)
+    volumeSlider:watch("value", function(val)
+        volumeLabel:setText("Volume: " .. math.floor(val))
+    end)
+
+    local brightnessLabel = Text()
+        :setText("Brightness: 100")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    brightnessSlider = Slider(0, 100, 100)
+        :setSize(ennui.Size.fill(), 24)
+        :setFillColor(1, 0.8, 0.2, 1)
+    brightnessSlider:watch("value", function(value)
+        brightnessLabel:setText("Brightness: " .. math.floor(value))
+    end)
+
+    sliderGroup:addChild(volumeLabel)
+    sliderGroup:addChild(volumeSlider)
+    sliderGroup:addChild(brightnessLabel)
+    sliderGroup:addChild(brightnessSlider)
+    mainPanel:addChild(sliderGroup)
+
+    -- Radio button section
+    local radioGroup = Group("Radio Buttons")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    local radio1 = RadioButton("Option A", "options", "a")
+        :setSelected(true)
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    local radio2 = RadioButton("Option B", "options", "b")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    local radio3 = RadioButton("Option C", "options", "c")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+
+    radioGroup:addChild(radio1)
+    radioGroup:addChild(radio2)
+    radioGroup:addChild(radio3)
+    mainPanel:addChild(radioGroup)
+
+    -- ComboBox section
+    local comboGroup = Group("ComboBox")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    local comboBox = ComboBox()
+        :setSize(ennui.Size.fill(), 32)
+        :setPlaceholder("Select a colour...")
+        :addItem("Red", "red")
+        :addItem("Green", "green")
+        :addItem("Blue", "blue")
+        :addItem("Yellow", "yellow")
+        :addItem("Purple", "purple")
+
+    comboGroup:addChild(comboBox)
+    mainPanel:addChild(comboGroup)
+
+    -- Dropdown section
+    local dropdownGroup = Group("Dropdown")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    local dropdown = Dropdown()
+        :setSize(ennui.Size.fill(), 32)
+        :addItem("New File", "new")
+        :addItem("Open File", "open")
+        :addItem("Save File", "save")
+        :addSeparator()
+        :addItem("Exit", "exit")
+
+    dropdownGroup:addChild(dropdown)
+    mainPanel:addChild(dropdownGroup)
+
+    -- Collapseable header section
+    local collapseHeader = CollapseableHeader("Collapseable Section", true)
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    collapseHeader:addChild(Text()
+        :setText("This content can be collapsed")
+        :setSize(ennui.Size.fill(), ennui.Size.auto()))
+    collapseHeader:addChild(TextButton("Hidden Button")
+        :setSize(ennui.Size.fill(), 32))
+
+    mainPanel:addChild(collapseHeader)
+
+    -- Another collapseable header (collapsed by default)
+    local collapseHeader2 = CollapseableHeader("Another Section (collapsed)", false)
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    collapseHeader2:addChild(Text()
+        :setText("Click the header to expand!")
+        :setSize(ennui.Size.fill(), ennui.Size.auto()))
+
+    mainPanel:addChild(collapseHeader2)
+
+    -- TreeView section
+    local treeGroup = Group("TreeView")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setSpacing(8)
+
+    local treeScrollArea = ScrollArea()
+        :setSize(ennui.Size.fill(), 150)
+
+    local treeView = TreeView()
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+
+    local rootNode = TreeViewNode("Project")
+    local srcNode = TreeViewNode("src")
+    srcNode:addChild(TreeViewNode("main.lua"))
+    srcNode:addChild(TreeViewNode("utils.lua"))
+    srcNode:addChild(TreeViewNode("config.lua"))
+    rootNode:addChild(srcNode)
+
+    local assetsNode = TreeViewNode("assets")
+    assetsNode:addChild(TreeViewNode("images"))
+    assetsNode:addChild(TreeViewNode("sounds"))
+    srcNode:addChild(assetsNode)
+
+    local libsNode = TreeViewNode("libs")
+
+    for _, library in ipairs({
+        "peachy",
+        "ennui",
+        "batteries",
+        "baton",
+        "flux"
+    }) do
+        local libNode = TreeViewNode(library)
+        libsNode:addChild(libNode)
+    end
+
+    treeView:addChild(rootNode)
+    treeView:addChild(libsNode)
+
+    for i = 1, 20 do
+        local extraNode = TreeViewNode("ui_lib" .. i)
+        libsNode:addChild(extraNode)
+    end
+
+    treeScrollArea:addChild(treeView)
+    treeGroup:addChild(treeScrollArea)
+    mainPanel:addChild(treeGroup)
+
+    scrollArea:addChild(mainPanel)
+    window:setContent(scrollArea)
+    return window
+end
+
+local function createDockingExample()
     local dockTree = dockSpace.dockTree
 
     -- Create DockableWindow widgets for the predocked panels
@@ -583,7 +735,7 @@ local function createDockingExample()
 
     -- Set up initial dock structure by directly manipulating the tree
     -- Then hide titlebars and mark as docked
-    
+
     -- Start with root as leaf
     dockTree:addWidget(editorWindow, false)
     editorWindow.props.isDocked = true
@@ -689,27 +841,42 @@ local function createDockingExample()
 end
 
 function love.load()
-    host = ennui.Host()
+    host = ennui.Widgets.Host()
     host:setSize(love.graphics.getDimensions())
 
     local button, label = createSimpleTextButtonExample()
     host:addChild(button)
     host:addChild(label)
 
-    -- Add docking example
     local dockSpace, dockWindow1, dockWindow2, dockWindow3 = createDockingExample()
     host:addChild(dockSpace)
     host:addChild(dockWindow1)
     host:addChild(dockWindow2)
     host:addChild(dockWindow3)
 
-    -- host:addChild(createLoginWindow())
-    -- host:addChild(createNestedLayoutExample())
+    host:addChild(createNewWidgetsShowcase())
+
+    host:addChild(createLoginWindow())
+    host:addChild(createNestedLayoutExample())
     -- host:addChild(createDebugWindow())
-    -- host:addChild(createShowcaseWindow())
-    -- host:addChild(createMenuBarExample())
-    -- host:addChild(createTextButtonWithImageExample())
-    -- host:addChild(createReactivePropertiesExample())
+    host:addChild(createShowcaseWindow())
+    host:addChild(createTextButtonWithImageExample())
+    host:addChild(createReactivePropertiesExample())
+
+    local rectangle = Rectangle()
+        :setPosition(0, 0)
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :setColor(1, 0, 0, 1)
+
+    if brightnessSlider then
+        rectangle:bindTo("color", Computed(function()
+            local a = 1 - brightnessSlider.props.value / 100
+            return {0, 0, 0, a}
+        end))
+    end
+
+    host:addChild(rectangle)
+    host:registerOverlay(rectangle)
 end
 
 function love.draw()

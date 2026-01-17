@@ -3,6 +3,7 @@ local Reactive = require("ennui.reactive")
 local PropertyMetadata = require("ennui.property_metadata")
 local Watcher = require("ennui.watcher")
 local Computed = require("ennui.computed")
+local Scissor = require("ennui.utils.scissor")
 
 ---@class WidgetState
 ---@field public isHovered boolean Mouse is over widget
@@ -62,6 +63,7 @@ local Computed = require("ennui.computed")
 ---@field private __tabIndex number Tab order for focus navigation
 ---@field private __hitTransparent boolean Whether widget passes through hit events to parent
 ---@field private __rawProps table<string, any> Underlying raw properties table
+---@field public clipContent boolean Whether to clip children to widget bounds
 local Widget = {}
 Widget.__index = Widget
 setmetatable(Widget, {
@@ -100,6 +102,7 @@ function Widget.new()
     self.__focusable = false
     self.__tabIndex = 0
     self.__hitTransparent = false
+    self.clipContent = false
 
     self.__rawProps = {
         preferredWidth = Size.auto(),
@@ -406,6 +409,14 @@ end
 ---@return boolean hitTransparent
 function Widget:isHitTransparent()
     return self.__hitTransparent
+end
+
+---Set whether to clip children to widget bounds
+---@param clip boolean Whether to enable content clipping
+---@return Widget self
+function Widget:setClipContent(clip)
+    self.clipContent = clip
+    return self
 end
 
 ---@return string? id
@@ -944,14 +955,33 @@ end
 ---@protected
 ---@return number contentHeight
 function Widget:__calculateContentHeight()
-    -- Default: sum of children heights (containers override this)
     local maxHeight = 0
+
     for _, child in ipairs(self.children) do
         if child.isVisible then
             maxHeight = math.max(maxHeight, child.desiredHeight)
         end
     end
     return maxHeight + self.padding.top + self.padding.bottom
+end
+
+---Get the content bounds (area inside padding)
+---@protected
+---@return number contentX, number contentY, number contentWidth, number contentHeight
+function Widget:__getContentBounds()
+    return self.x + self.padding.left,
+           self.y + self.padding.top,
+           self.width - self.padding.left - self.padding.right,
+           self.height - self.padding.top - self.padding.bottom
+end
+
+---Calculate Y position to vertically center an element within content bounds
+---@protected
+---@param elementHeight number Height of the element to center
+---@return number centerY The Y position that centers the element
+function Widget:__centerVertically(elementHeight)
+    local contentX, contentY, contentW, contentH = self:__getContentBounds()
+    return contentY + (contentH - elementHeight) / 2
 end
 
 ---@param x number X position
@@ -982,7 +1012,6 @@ function Widget:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
         return
     end
 
-    -- Default behavior: position children at content origin with their desired size
     for _, child in ipairs(self.children) do
         if child.isVisible then
             local childWidth = child.desiredWidth
@@ -1036,7 +1065,7 @@ end
 ---@param y number Point Y
 ---@return Widget? hitWidget
 function Widget:hitTest(x, y)
-    if not self.isVisible then
+    if not self:isVisible() then
         return nil
     end
 
@@ -1253,10 +1282,29 @@ function Widget:onUpdate(dt)
     end
 end
 
+---Called when mouse wheel is scrolled over this widget
+---@param event MouseEvent Mouse wheel event with dx and dy
+---@return boolean? consumed Return true to consume the event
+function Widget:onMouseWheel(event)
+    -- Default: do nothing, let event propagate
+end
+
 function Widget:onRender()
-    for _, child in ipairs(self.children) do
-        if child:isVisible() then
-            child:onRender()
+    if self.clipContent then
+        local prevX, prevY, prevW, prevH = Scissor.push(self.x, self.y, self.width, self.height)
+
+        for _, child in ipairs(self.children) do
+            if child:isVisible() then
+                child:onRender()
+            end
+        end
+
+        Scissor.pop(prevX, prevY, prevW, prevH)
+    else
+        for _, child in ipairs(self.children) do
+            if child:isVisible() then
+                child:onRender()
+            end
         end
     end
 end

@@ -73,10 +73,10 @@ function DockNode:split(direction, ratio, moveExistingToLeft)
     self.splitDirection = direction
     self.splitRatio = ratio or 0.5
 
-    self.leftChild = DockNode.new()
+    self.leftChild = DockNode()
     self.leftChild.parent = self
 
-    self.rightChild = DockNode.new()
+    self.rightChild = DockNode()
     self.rightChild.parent = self
 
     if #self.dockedWidgets > 0 then
