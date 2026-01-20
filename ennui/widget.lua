@@ -1168,6 +1168,32 @@ function Widget:bindTo(propertyName, computed)
     return self
 end
 
+---Bind multiple properties from a source widget
+---Properties automatically sync when the source changes
+---@param source Widget The source widget to bind from
+---@param mapping table Property mapping: array of same-name props, or key=value for renamed props
+---@return Widget self
+function Widget:bindFrom(source, mapping)
+    for key, value in pairs(mapping) do
+        local targetProperty, sourceProperty
+        if type(key) == "number" then
+            targetProperty = value
+            sourceProperty = value
+        else
+            targetProperty = key
+            sourceProperty = value
+        end
+
+        self.props[targetProperty] = source.props[sourceProperty]
+
+        source:watch(sourceProperty, function(newValue)
+            self.props[targetProperty] = newValue
+        end)
+    end
+
+    return self
+end
+
 ---Remove a specific watcher
 ---@param watcher Watcher The watcher to remove
 function Widget:unwatch(watcher)

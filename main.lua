@@ -587,20 +587,25 @@ local function createNewWidgetsShowcase()
     dropdownGroup:addChild(dropdown)
     mainPanel:addChild(dropdownGroup)
 
-    -- Collapseable header section
-    local collapseHeader = CollapseableHeader("Collapseable Section", true)
+    local collapseHeader = CollapseableHeader("Collapseable", true)
         :setSize(ennui.Size.fill(), ennui.Size.auto())
         :setSpacing(8)
 
     collapseHeader:addChild(Text()
         :setText("This content can be collapsed")
         :setSize(ennui.Size.fill(), ennui.Size.auto()))
-    collapseHeader:addChild(TextButton("Hidden Button")
-        :setSize(ennui.Size.fill(), 32))
+        :addChild(TextButton("Hidden Button")
+            :setSize(ennui.Size.fill(), 32)
+            :onClick(function()
+                local r, g, b = love.math.random(), love.math.random(), love.math.random()
+                dropdown:setBackgroundColor(r, g, b, 1)
+
+                local r2, g2, b2 = love.math.random(), love.math.random(), love.math.random()
+                dropdown:setTextColor(r2, g2, b2, 1)
+            end))
 
     mainPanel:addChild(collapseHeader)
 
-    -- Another collapseable header (collapsed by default)
     local collapseHeader2 = CollapseableHeader("Another Section (collapsed)", false)
         :setSize(ennui.Size.fill(), ennui.Size.auto())
         :setSpacing(8)
@@ -611,7 +616,6 @@ local function createNewWidgetsShowcase()
 
     mainPanel:addChild(collapseHeader2)
 
-    -- TreeView section
     local treeGroup = Group("TreeView")
         :setSize(ennui.Size.fill(), ennui.Size.auto())
         :setSpacing(8)
@@ -856,12 +860,12 @@ function love.load()
 
     host:addChild(createNewWidgetsShowcase())
 
-    host:addChild(createLoginWindow())
-    host:addChild(createNestedLayoutExample())
+    --host:addChild(createLoginWindow())
+    --host:addChild(createNestedLayoutExample())
     -- host:addChild(createDebugWindow())
-    host:addChild(createShowcaseWindow())
-    host:addChild(createTextButtonWithImageExample())
-    host:addChild(createReactivePropertiesExample())
+    --host:addChild(createShowcaseWindow())
+    --host:addChild(createTextButtonWithImageExample())
+    --host:addChild(createReactivePropertiesExample())
 
     local rectangle = Rectangle()
         :setPosition(0, 0)

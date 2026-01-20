@@ -57,7 +57,6 @@ function Dropdown.new(items)
         :setTextVerticalAlignment("center")
         :setSize(Size.auto(), Size.auto())
 
-    -- Create the menu widget
     self.__menu = Menu(items)
     self.__menu:setVisible(false)
     self.__menu.onItemSelected = function(index, item)
@@ -65,51 +64,14 @@ function Dropdown.new(items)
         self:close()
     end
 
-    self:watch("textColor", function(newColor)
-        self.__textWidget.props.color = newColor
-        self:invalidateRender()
-    end, { immediate = true })
+    self.__menu:bindFrom(self, {
+        "selectedColor",
+        "textColor",
+        "backgroundColor"
+    })
 
-    -- Sync properties to menu
-    -- TODO: nicer API for this
     self:watch("items", function(items)
         self.__menu:setItems(items)
-    end, { immediate = true })
-
-    self:watch("itemHeight", function(val)
-        self.__menu.props.itemHeight = val
-    end, { immediate = true })
-
-    self:watch("maxVisibleItems", function(val)
-        self.__menu.props.maxVisibleItems = val
-    end, { immediate = true })
-
-    self:watch("menuColor", function(val)
-        self.__menu.props.backgroundColor = val
-    end, { immediate = true })
-
-    self:watch("hoverColor", function(val)
-        self.__menu.props.hoverColor = val
-    end, { immediate = true })
-
-    self:watch("selectedColor", function(val)
-        self.__menu.props.selectedColor = val
-    end, { immediate = true })
-
-    self:watch("textColor", function(val)
-        self.__menu.props.textColor = val
-    end, { immediate = true })
-
-    self:watch("borderColor", function(val)
-        self.__menu.props.borderColor = val
-    end, { immediate = true })
-
-    self:watch("cornerRadius", function(val)
-        self.__menu.props.cornerRadius = val
-    end, { immediate = true })
-
-    self:watch("selectedIndex", function(val)
-        self.__menu.props.selectedIndex = val
     end, { immediate = true })
 
     self:setFocusable(true)
@@ -222,18 +184,22 @@ end
 ---Open the dropdown
 ---@return Dropdown self
 function Dropdown:open()
-    if self.props.isOpen then return self end
+    if self.props.isOpen then
+        return self
+    end
+
     self.props.isOpen = true
 
-    -- Position and show menu
     self:__positionMenu()
     self.__menu:setVisible(true)
 
     -- Register menu as overlay
     local host = self:__getHost()
+
     if host and host.registerOverlay then
         host:registerOverlay(self.__menu)
     end
+
     return self
 end
 
