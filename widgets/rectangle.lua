@@ -52,10 +52,10 @@ function Rectangle:onRender()
     love.graphics.setColor(self.props.color)
     love.graphics.rectangle(
         "fill",
-        self.x,
-        self.y,
-        self.width,
-        self.height,
+        self.x + 0.5,
+        self.y + 0.5,
+        self.width - 0.5,
+        self.height - 0.5,
         self.radius,
         self.radius
     )
@@ -64,10 +64,10 @@ function Rectangle:onRender()
     love.graphics.setLineWidth(1)
     love.graphics.rectangle(
         "line",
-        self.x,
-        self.y,
-        self.width,
-        self.height,
+        self.x + 0.5,
+        self.y + 0.5,
+        self.width - 0.5,
+        self.height - 0.5,
         self.radius,
         self.radius
     )
