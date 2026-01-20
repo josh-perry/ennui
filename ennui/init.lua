@@ -13,5 +13,7 @@ ennui.Layout = {
     Dock = require("ennui.layout.dock_layout_strategy")
 }
 ennui.Size = require("ennui.size")
+ennui.SizeConstraint = require("ennui.size_constraint")
+ennui.Reactive = require("ennui.reactive")
 
 return ennui

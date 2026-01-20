@@ -40,6 +40,7 @@ local Scissor = require("ennui.utils.scissor")
 ---@field public minHeight number? Minimum height constraint
 ---@field public maxHeight number? Maximum height constraint
 ---@field public aspectRatio number? Aspect ratio constraint (width/height)
+---@field public sizeConstraint table? Size constraint specification
 ---@field public padding Padding Padding around content
 ---@field public margin Margin Margin around widget
 ---@field public parent Widget|Host Parent widget
@@ -112,6 +113,7 @@ function Widget.new()
         minHeight = nil,
         maxHeight = nil,
         aspectRatio = nil,
+        sizeConstraint = nil,
         padding = { top = 0, right = 0, bottom = 0, left = 0 },
         margin = { top = 0, right = 0, bottom = 0, left = 0 },
         horizontalAlignment = "stretch",
@@ -159,6 +161,7 @@ function Widget.new()
     self.minHeight = self.__rawProps.minHeight
     self.maxHeight = self.__rawProps.maxHeight
     self.aspectRatio = self.__rawProps.aspectRatio
+    self.sizeConstraint = self.__rawProps.sizeConstraint
     self.padding = self.__rawProps.padding
     self.margin = self.__rawProps.margin
     self.horizontalAlignment = self.__rawProps.horizontalAlignment
@@ -179,9 +182,10 @@ end
 ---@param width number|Size Preferred width specification
 ---@param height number|Size Preferred height specification
 ---@return T
-function Widget:setSize(width, height)
+function Widget:setSize(width, height, keepUniform)
     self:setPreferredWidth(width)
     self:setPreferredHeight(height)
+
     return self
 end
 
@@ -314,6 +318,13 @@ end
 ---@return Widget self
 function Widget:setAspectRatio(ratio)
     self.props.aspectRatio = ratio
+    return self
+end
+
+---@param constraint table Size constraint specification
+---@return Widget self
+function Widget:setSizeConstraint(constraint)
+    self.props.sizeConstraint = constraint
     return self
 end
 
@@ -494,36 +505,48 @@ function Widget:getLayoutStrategy()
     return self.layoutStrategy
 end
 
+---@param widget Widget
+---@return number
+local function getMaxTabIndexInSubtree(widget)
+    local maxIndex = widget.__tabIndex
+    for _, child in ipairs(widget.children) do
+        local childMax = getMaxTabIndexInSubtree(child)
+        if childMax > maxIndex then
+            maxIndex = childMax
+        end
+    end
+    return maxIndex
+end
+
+---@param widget Widget
+---@param counter number
+---@return number
+local function assignSequentialTabIndexes(widget, counter)
+    counter = counter + 1
+    widget.__tabIndex = counter
+    for _, child in ipairs(widget.children) do
+        counter = assignSequentialTabIndexes(child, counter)
+    end
+    return counter
+end
+
 ---@param child Widget Child widget to add
 ---@return Widget self
 function Widget:addChild(child)
     table.insert(self.children, child)
     child.parent = self
 
-    -- Auto-assign tabIndex if not explicitly set
-    -- Use hierarchical indexing: parent's base * 10000 + local index
-    if child.__tabIndex == 0 then  -- 0 means "not explicitly set"
-        -- Get parent's tabIndex as base (use 0 if parent has default)
-        local parentBase = self.__tabIndex
-        if parentBase == 0 then
-            parentBase = 0
-        end
-
-        -- Find max local tabIndex among siblings
-        local maxLocalIndex = 0
-        for _, sibling in ipairs(self.children) do
-            if sibling ~= child then
-                -- Extract local index from sibling's tabIndex
-                local siblingLocal = sibling.__tabIndex % 10000
-                if siblingLocal > maxLocalIndex then
-                    maxLocalIndex = siblingLocal
-                end
+    local maxSiblingIndex = self.__tabIndex
+    for _, sibling in ipairs(self.children) do
+        if sibling ~= child then
+            local siblingMax = getMaxTabIndexInSubtree(sibling)
+            if siblingMax > maxSiblingIndex then
+                maxSiblingIndex = siblingMax
             end
         end
-
-        -- Assign hierarchical tabIndex: parent_base * 10000 + (local_index + 100)
-        child.__tabIndex = parentBase * 10000 + maxLocalIndex + 100
     end
+
+    assignSequentialTabIndexes(child, maxSiblingIndex)
 
     child:onMount()
     self:invalidateLayout()
@@ -922,6 +945,30 @@ function Widget:__applyConstraints(desiredWidth, desiredHeight)
         desiredHeight = math.min(self.maxHeight, desiredHeight)
     end
 
+    if self.sizeConstraint then
+        local c = self.sizeConstraint
+        if c.type == "width_by_height" then
+            desiredWidth = math.min(desiredWidth, desiredHeight)
+        elseif c.type == "height_by_width" then
+            desiredHeight = math.min(desiredHeight, desiredWidth)
+        elseif c.type == "square" then
+            local minDim = math.min(desiredWidth, desiredHeight)
+            desiredWidth = minDim
+            desiredHeight = minDim
+        elseif c.type == "max_both" then
+            desiredWidth = math.min(desiredWidth, c.value)
+            desiredHeight = math.min(desiredHeight, c.value)
+        elseif c.type == "ratio" then
+            local ratioWidth = desiredHeight * c.value
+            local ratioHeight = desiredWidth / c.value
+            if ratioWidth <= desiredWidth then
+                desiredWidth = ratioWidth
+            else
+                desiredHeight = ratioHeight
+            end
+        end
+    end
+
     if self.aspectRatio then
         local ratioWidth = desiredHeight * self.aspectRatio
         local ratioHeight = desiredWidth / self.aspectRatio
@@ -989,6 +1036,31 @@ end
 ---@param width number Final width
 ---@param height number Final height
 function Widget:arrange(x, y, width, height)
+    -- Apply size constraints to final dimensions
+    if self.sizeConstraint then
+        local c = self.sizeConstraint
+        if c.type == "width_by_height" then
+            width = math.min(width, height)
+        elseif c.type == "height_by_width" then
+            height = math.min(height, width)
+        elseif c.type == "square" then
+            local minDim = math.min(width, height)
+            width = minDim
+            height = minDim
+        elseif c.type == "max_both" then
+            width = math.min(width, c.value)
+            height = math.min(height, c.value)
+        elseif c.type == "ratio" then
+            local ratioWidth = height * c.value
+            local ratioHeight = width / c.value
+            if ratioWidth <= width then
+                width = ratioWidth
+            else
+                height = ratioHeight
+            end
+        end
+    end
+
     self.x = x
     self.y = y
     self.width = width
