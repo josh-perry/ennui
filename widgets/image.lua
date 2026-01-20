@@ -17,10 +17,11 @@ setmetatable(Image, {
 
 ---Create a new image widget
 ---@return Image
-function Image.new()
+---@param drawable love.Image|love.Canvas? Optional drawable to display
+function Image.new(drawable)
     local self = setmetatable(Widget(), Image) ---@cast self Image
 
-    self:addProperty("image", nil)
+    self:addProperty("image", drawable)
     self:addProperty("scaleX", 1)
     self:addProperty("scaleY", 1)
     self:addProperty("color", {1, 1, 1, 1})

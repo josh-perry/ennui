@@ -262,6 +262,7 @@ function Slider:onRender()
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.circle("line", thumbX + thumbSize / 2, thumbY + thumbSize / 2, thumbSize / 2 + 2)
+        love.graphics.setLineWidth(1)
     end
 end
 

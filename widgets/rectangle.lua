@@ -3,6 +3,7 @@ local Size = require("ennui.size")
 
 ---@class Rectangle : Widget
 ---@field color number[] RGBA color tint
+---@field radius number Corner radius
 local Rectangle = {}
 Rectangle.__index = Rectangle
 setmetatable(Rectangle, {
@@ -12,12 +13,15 @@ setmetatable(Rectangle, {
     end,
 })
 
----Create a new image widget
+---Create a new rectangle widget
 ---@return Rectangle
 function Rectangle.new()
     local self = setmetatable(Widget(), Rectangle) ---@cast self Rectangle
 
     self:addProperty("color", {1, 1, 1, 1})
+    self:addProperty("borderColour", {1, 1, 1, 1})
+    self:addProperty("radius", 0)
+
     self:setHitTransparent(true)
     return self
 end
@@ -33,17 +37,42 @@ function Rectangle:setColor(r, g, b, a)
     return self
 end
 
+function Rectangle:setBorderColor(r, g, b, a)
+    self.props.borderColour = {r, g, b, a or 1}
+    return self
+end
+
+function Rectangle:setRadius(radius)
+    self.props.radius = radius
+    return self
+end
+
 ---Render the rectangle
 function Rectangle:onRender()
     love.graphics.setColor(self.props.color)
-
     love.graphics.rectangle(
         "fill",
         self.x,
         self.y,
         self.width,
-        self.height
+        self.height,
+        self.radius,
+        self.radius
     )
+
+    love.graphics.setColor(self.props.borderColour)
+    love.graphics.setLineWidth(1)
+    love.graphics.rectangle(
+        "line",
+        self.x,
+        self.y,
+        self.width,
+        self.height,
+        self.radius,
+        self.radius
+    )
+
+    Widget.onRender(self)
 end
 
 return Rectangle

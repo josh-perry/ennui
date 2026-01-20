@@ -176,6 +176,7 @@ function Button:onRender()
             self.props.cornerRadius,
             self.props.cornerRadius
         )
+        love.graphics.setLineWidth(1)
     end
 
     for _, child in ipairs(self.children) do

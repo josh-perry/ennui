@@ -16,10 +16,10 @@ setmetatable(Text, {
 })
 
 ---@return Text
-function Text.new()
+function Text.new(text)
     local self = setmetatable(Widget(), Text) ---@cast self Text
 
-    self:addProperty("text", "")
+    self:addProperty("text", text or "")
     self:addProperty("color", {1, 1, 1, 1})
     self:addProperty("font", love.graphics.getFont())
     self:addProperty("textHorizontalAlignment", "left")

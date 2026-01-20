@@ -13,12 +13,15 @@ function Size.fixed(pixels)
     if type(pixels) ~= "number" then
         error(("Size.fixed expects a number, got %s"):format(type(pixels)))
     end
+
     if pixels ~= pixels then
         error("Size.fixed does not accept NaN")
     end
+
     if pixels < 0 then
         error(("Size.fixed expects non-negative number, got %s"):format(tostring(pixels)))
     end
+
     return {
         type = "fixed",
         value = pixels,

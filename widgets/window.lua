@@ -27,10 +27,10 @@ setmetatable(Window, {
 
 ---Create a new window widget
 ---@return Window
-function Window.new()
+function Window.new(title)
     local self = setmetatable(Widget(), Window) ---@cast self Window
 
-    self:addProperty("title", "Window")
+    self:addProperty("title", title or "Window")
     self:addProperty("content", nil)
     self:addProperty("titleBarHeight", 30)
     self:addProperty("titleBarColor", {0.2, 0.2, 0.2, 1})
@@ -472,6 +472,7 @@ function Window:__drawTitlebar()
             buttonX + padding,
             buttonY + buttonSize - padding
         )
+        love.graphics.setLineWidth(1)
     end
 end
 

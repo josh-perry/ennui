@@ -18,6 +18,7 @@ PropertyMetadata.properties = {
     minHeight = { type = "layout" },
     maxHeight = { type = "layout" },
     aspectRatio = { type = "layout" },
+    sizeConstraint = { type = "layout" },
     padding = { type = "layout" },
     margin = { type = "layout" },
     horizontalAlignment = { type = "layout" },

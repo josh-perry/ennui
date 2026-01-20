@@ -390,6 +390,7 @@ function Dropdown:onRender()
         love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", self.x + 1, self.y + 1, self.width - 2, self.height - 2,
             cornerRadius, cornerRadius)
+        love.graphics.setLineWidth(1)
     end
 end
 

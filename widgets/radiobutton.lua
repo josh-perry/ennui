@@ -268,6 +268,7 @@ function RadioButton:onRender()
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.circle("line", radioX, radioY, radioSize / 2 + 3)
+        love.graphics.setLineWidth(1)
     end
 
     -- Render label

@@ -230,12 +230,14 @@ function Checkbox:onRender()
         local y3 = boxY + padding
 
         love.graphics.line(x1, y1, x2, y2, x3, y3)
+        love.graphics.setLineWidth(1)
     end
 
     if self.state.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", boxX - 2, boxY - 2, boxSize + 4, boxSize + 4, 4, 4)
+        love.graphics.setLineWidth(1)
     end
 
     if self.__textWidget:isVisible() then

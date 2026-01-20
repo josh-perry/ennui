@@ -79,6 +79,11 @@ function TextButton:getTextWidget()
     return self.__textWidget
 end
 
+function TextButton:setFont(font)
+    self.__textWidget:setFont(font)
+    return self
+end
+
 ---Set text color
 ---@param r number Red component (0-1)
 ---@param g number Green component (0-1)
@@ -209,6 +214,7 @@ function TextButton:onRender()
             self.props.cornerRadius,
             self.props.cornerRadius
         )
+        love.graphics.setLineWidth(1)
     end
 
     if self.__textWidget:isVisible() then
