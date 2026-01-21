@@ -236,10 +236,9 @@ function Host:__clearDrag()
     self.__dragStarted = false
 end
 
----@protected
 ---@param widget Widget
 ---@return boolean
-function Host:__isWidgetDragged(widget)
+function Host:isWidgetDragged(widget)
     return self.__draggedWidget == widget
 end
 

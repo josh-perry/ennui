@@ -524,9 +524,11 @@ end
 local function assignSequentialTabIndexes(widget, counter)
     counter = counter + 1
     widget.__tabIndex = counter
+
     for _, child in ipairs(widget.children) do
         counter = assignSequentialTabIndexes(child, counter)
     end
+
     return counter
 end
 
@@ -947,16 +949,28 @@ function Widget:__applyConstraints(desiredWidth, desiredHeight)
 
     if self.sizeConstraint then
         local c = self.sizeConstraint
+
+        if not c then
+            ---@diagnostic disable-next-line: return-type-mismatch
+            return desiredWidth, desiredHeight
+        end
+
         if c.type == "width_by_height" then
+            ---@diagnostic disable-next-line: param-type-mismatch
             desiredWidth = math.min(desiredWidth, desiredHeight)
         elseif c.type == "height_by_width" then
+            ---@diagnostic disable-next-line: param-type-mismatch
             desiredHeight = math.min(desiredHeight, desiredWidth)
         elseif c.type == "square" then
+            ---@diagnostic disable-next-line: param-type-mismatch
             local minDim = math.min(desiredWidth, desiredHeight)
             desiredWidth = minDim
             desiredHeight = minDim
         elseif c.type == "max_both" then
+            ---@diagnostic disable-next-line: param-type-mismatch
             desiredWidth = math.min(desiredWidth, c.value)
+
+            ---@diagnostic disable-next-line: param-type-mismatch
             desiredHeight = math.min(desiredHeight, c.value)
         elseif c.type == "ratio" then
             local ratioWidth = desiredHeight * c.value
@@ -1039,6 +1053,11 @@ function Widget:arrange(x, y, width, height)
     -- Apply size constraints to final dimensions
     if self.sizeConstraint then
         local c = self.sizeConstraint
+
+        if not c then
+            return
+        end
+
         if c.type == "width_by_height" then
             width = math.min(width, height)
         elseif c.type == "height_by_width" then
@@ -1227,25 +1246,65 @@ end
 
 ---Bind a widget property to a computed property
 ---The property will automatically update whenever the computed value changes
----@param propertyName string Name of the property to bind (e.g., "text")
+---@param propertyName string Name of the property to bind (e.g., "text" or "margin.left")
 ---@param computed Computed The computed property to bind to
 ---@return Widget self
 function Widget:bindTo(propertyName, computed)
-    self.props[propertyName] = computed:get()
+    local function setNestedProperty(value)
+        if not propertyName:find("%.") then
+            self.props[propertyName] = value
+        else
+            local target = self.props
+            local segments = {}
+            for segment in propertyName:gmatch("[^%.]+") do
+                table.insert(segments, segment)
+            end
+            for i = 1, #segments - 1 do
+                target = target[segments[i]]
+            end
+            target[segments[#segments]] = value
+        end
+    end
+
+    setNestedProperty(computed:get())
 
     computed:subscribe(function()
-        self.props[propertyName] = computed:get()
+        setNestedProperty(computed:get())
     end)
 
     return self
 end
 
----Bind multiple properties from a source widget
+---Bind properties from a source (Widget, State, or StateScope)
 ---Properties automatically sync when the source changes
----@param source Widget The source widget to bind from
----@param mapping table Property mapping: array of same-name props, or key=value for renamed props
+---@param source Widget|State|StateScope The source to bind from
+---@param mapping table|string Property mapping table, or single property name (string)
+---@param transform function? Optional transform function when using single property syntax
 ---@return Widget self
-function Widget:bindFrom(source, mapping)
+function Widget:bindFrom(source, mapping, transform)
+    -- Single property syntax: bindFrom(source, "propName", optionalTransform)
+    if type(mapping) == "string" then
+        local sourceProperty = mapping
+        local targetProperty = mapping
+        local initialValue = source.props[sourceProperty]
+
+        if transform then
+            initialValue = transform(initialValue)
+        end
+
+        self.props[targetProperty] = initialValue
+
+        source:watch(sourceProperty, function(newValue)
+            if transform then
+                newValue = transform(newValue)
+            end
+
+            self.props[targetProperty] = newValue
+        end)
+
+        return self
+    end
+
     for key, value in pairs(mapping) do
         local targetProperty, sourceProperty
         if type(key) == "number" then
@@ -1327,12 +1386,12 @@ function Widget:isInDragHandle(x, y)
     local localX = x - self.x
     local localY = y - self.y
 
-    local handle = self.dragHandle
-    local handleX = handle.x or 0
-    local handleY = handle.y or 0
+    local handleX = self.dragHandle.x or 0
+    local handleY = self.dragHandle.y or 0
+
     -- width/height of 0 means full widget dimension
-    local handleWidth = handle.width == 0 and self.width or (handle.width or self.width)
-    local handleHeight = handle.height == 0 and self.height or (handle.height or self.height)
+    local handleWidth = self.dragHandle.width == 0 and self.width or (self.dragHandle.width or self.width)
+    local handleHeight = self.dragHandle.height == 0 and self.height or (self.dragHandle.height or self.height)
 
     return localX >= handleX and localX < handleX + handleWidth and
            localY >= handleY and localY < handleY + handleHeight
@@ -1342,7 +1401,8 @@ end
 ---@return boolean True if widget is currently being dragged
 function Widget:isDragging()
     local host = self:__getHost()
-    return host and host.__isWidgetDragged and host:__isWidgetDragged(self) or false
+
+    return host and host.isWidgetDragged and host:isWidgetDragged(self) or false
 end
 
 ---Clean up all watchers and computed properties

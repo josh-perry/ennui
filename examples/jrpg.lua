@@ -7,13 +7,75 @@ local Text = require("widgets.text")
 local Rectangle = require("widgets.rectangle")
 local Image = require("widgets.image")
 
+-- Create a State object for reactive game data
+-- Tables are automatically made nested-reactive with deep reactivity
+local gameState = ennui.State({
+    time = 0,
+    gold = 0,
+    steps = 0,
+    characters = {
+        {
+            name = "Frog",
+            job = "Amphibian",
+            image = "examples/assets/img/frog.png",
+            stats = {
+                level = 15,
+                currentHp = 320,
+                maxHp = 350,
+                currentMp = 45,
+                maxMp = 60
+            },
+            row = "front"
+        },
+        {
+            name = "Lucca",
+            job = "Inventor",
+            image = "examples/assets/img/lucca.png",
+            stats = {
+                level = 14,
+                currentHp = 280,
+                maxHp = 300,
+                currentMp = 20,
+                maxMp = 30
+            },
+            row = "back"
+        },
+        {
+            name = "Crono",
+            job = "Hero",
+            image = "examples/assets/img/crono.png",
+            stats = {
+                level = 13,
+                currentHp = 200,
+                maxHp = 220,
+                currentMp = 80,
+                maxMp = 100
+            },
+            row = "front"
+        },
+        {
+            name = "Graggle",
+            job = "Creature",
+            image = "examples/assets/img/graggle.png",
+            stats = {
+                level = 14,
+                currentHp = 180,
+                maxHp = 180,
+                currentMp = 80,
+                maxMp = 100
+            },
+            row = "back"
+        }
+    }
+})
+
 local BorderBox = function()
     local rectangle = Rectangle()
         :setColor(0, 0, 0.35)
         :setBorderColor(0.7, 0.7, 0.7)
         :setSize(ennui.Size.fill(), ennui.Size.fill())
         :setPadding(4, 4, 4, 4)
-        :setRadius(0)
+        :setRadius(4)
 
     return rectangle
 end
@@ -32,54 +94,64 @@ local NormalText = function(text)
         :setFont(font)
 end
 
-local state = {
-    characters = {
-        {
-            name = "Frog",
-            stats = {
-                level = 15,
-                currentHp = 320,
-                maxHp = 350,
-                currentMp = 45,
-                maxMp = 60
-            },
-            image = "examples/assets/img/frog.png"
-        },
-        {
-            name = "Lucca",
-            stats = {
-                level = 14,
-                currentHp = 280,
-                maxHp = 300,
-                currentMp = 20,
-                maxMp = 30
-            },
-            image = "examples/assets/img/lucca.png"
-        },
-        {
-            name = "Crono",
-            stats = {
-                level = 13,
-                currentHp = 200,
-                maxHp = 220,
-                currentMp = 80,
-                maxMp = 100
-            },
-            image = "examples/assets/img/crono.png"
-        },
-        {
-            name = "Graggle Simpson",
-            stats = {
-                level = 14,
-                currentHp = 180,
-                maxHp = 180,
-                currentMp = 80,
-                maxMp = 100
-            },
-            image = "examples/assets/img/graggle.png"
-        }
-    }
-}
+local CharacterInfo = function(characterState)
+    local characterBox = BorderBox()
+        :setSize(ennui.Size.fill(), ennui.Size.fill())
+        :setPadding(4, 8, 4, 8)
+
+    local characterHorizontalPanel = HorizontalStackPanel()
+        :setSpacing(10)
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+
+    local imageContainer = ennui.Widget()
+        :setSize(60, ennui.Size.fill())
+
+    local characterImage = Image(love.graphics.newImage(characterState.props.image))
+        :setSize(ennui.Size.auto(), ennui.Size.fill())
+        :setSizeConstraint(ennui.SizeConstraint.square)
+        :setVerticalAlignment("center")
+        :bindTo("horizontalAlignment", characterState:computed("row", function()
+            return characterState.props.row == "front" and "left" or "right"
+        end))
+
+    imageContainer:addChild(characterImage)
+    characterHorizontalPanel:addChild(imageContainer)
+
+    local statsGrid = ennui.Widget()
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+        :setLayoutStrategy(ennui.Layout.Grid(2, 4)
+            :setSpacing(0))
+
+    statsGrid:addChild(NormalText(characterState.props.name))
+    statsGrid:addChild(HeaderText()
+        :bindTo("text", characterState:bind("job"))
+        :setHorizontalAlignment("right")
+    )
+
+    local stats = characterState:scope("stats")
+
+    statsGrid:addChild(HeaderText("Lvl:"))
+    statsGrid:addChild(NormalText()
+        :bindTo("text", stats:bind("level"))
+    )
+
+    statsGrid:addChild(HeaderText("HP:"))
+    statsGrid:addChild(NormalText()
+        :bindTo("text", stats:format("{currentHp} / {maxHp}"))
+    )
+
+    statsGrid:addChild(HeaderText("MP:"))
+    statsGrid:addChild(NormalText()
+        :bindTo("text", stats:format("{currentMp} / {maxMp}"))
+    )
+
+    -- characterInfoStackPanel:addChild(statsGrid)
+
+    characterHorizontalPanel:addChild(statsGrid)
+    characterBox:addChild(characterHorizontalPanel)
+
+    return characterBox
+end
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())
@@ -104,51 +176,9 @@ do
         :setSpacing(5)
         :setSize(ennui.Size.fill(), ennui.Size.fill())
 
-    for _, character in ipairs(state.characters) do
-        local characterBox = BorderBox()
-            :setSize(ennui.Size.fill(), ennui.Size.fill())
-            :setPadding(4, 8, 4, 8)
-
-        local characterHorizontalPanel = HorizontalStackPanel()
-            :setSpacing(10)
-            :setSize(ennui.Size.fill(), ennui.Size.auto())
-
-        local characterImage = Image(love.graphics.newImage(character.image))
-            :setSize(ennui.Size.auto(), ennui.Size.fill())
-            :setSizeConstraint(ennui.SizeConstraint.square)
-            :setVerticalAlignment("center")
-
-        characterHorizontalPanel:addChild(characterImage)
-
-        local characterInfoStackPanel = StackPanel()
-            :setSpacing(0)
-            :setSize(ennui.Size.fill(), ennui.Size.auto())
-
-        characterInfoStackPanel:addChild(NormalText(character.name))
-
-        local statsGrid = ennui.Widget()
-            :setSize(ennui.Size.fill(), ennui.Size.auto())
-            :setLayoutStrategy(ennui.Layout.Grid(2, 3)
-            :setSpacing(0))
-
-        statsGrid:addChild(HeaderText("Level:"))
-        statsGrid:addChild(NormalText(tostring(character.stats.level)))
-        statsGrid:addChild(HeaderText("HP:"))
-        statsGrid:addChild(NormalText(("%d / %d"):format(
-            character.stats.currentHp,
-            character.stats.maxHp
-        )))
-
-        statsGrid:addChild(HeaderText("MP:"))
-        statsGrid:addChild(NormalText(("%d / %d"):format(
-            character.stats.currentMp,
-            character.stats.maxMp
-        )))
-
-        characterInfoStackPanel:addChild(statsGrid)
-
-        characterHorizontalPanel:addChild(characterInfoStackPanel)
-        characterBox:addChild(characterHorizontalPanel)
+    for i, _ in ipairs(gameState:getRaw("characters")) do
+        local charState = gameState:scope("characters." .. i)
+        local characterBox = CharacterInfo(charState)
         characterStackPanel:addChild(characterBox)
     end
 
@@ -178,6 +208,26 @@ do
             :setSize(ennui.Size.fill(), 50)
             :setBackgroundColor(0, 0, 0, 0)
             :setFont(font)
+            :onClick(function()
+                if v == "Formation" then
+                    print("Formation clicked")
+                end
+
+                for _, c in ipairs(gameState:getRaw("characters")) do
+                    local charStats = c.stats
+                    charStats.currentHp = math.min(charStats.currentHp + 20, charStats.maxHp)
+                    charStats.currentMp = math.min(charStats.currentMp + 10, charStats.maxMp)
+                    charStats.level = charStats.level + 1
+
+                    if v == "Formation" then
+                        if c.row == "front" then
+                            c.row = "back"
+                        else
+                            c.row = "front"
+                        end
+                    end
+                end
+            end)
 
         buttonBox:addChild(button)
         menuStackPanel:addChild(buttonBox)
@@ -196,23 +246,36 @@ do
         :setSize(ennui.Size.fill(), ennui.Size.auto())
         :setLayoutStrategy(ennui.Layout.Grid(2, 3):setSpacing(5))
 
-    timeWidget = ennui.Widget()
-        :addProperty("time", 0)
+    local timeComputed = gameState:computed("time", function()
+        return tostring(math.floor(gameState.props.time))
+    end)
 
-    local timeComputed = timeWidget:computed("time", function()
-        return tostring(math.floor(timeWidget.props.time))
+    local goldComputed = gameState:computed("gold", function()
+        return tostring(math.floor(gameState.props.steps) * math.floor(gameState.props.time))
+    end)
+
+    local stepsComputed = gameState:computed("steps", function()
+        return tostring(math.floor(gameState.props.steps))
     end)
 
     statsGrid:addChild(HeaderText("Time:"))
     statsGrid:addChild(NormalText()
         :bindTo("text", timeComputed)
+        :setTextHorizontalAlignment("right")
     )
 
     statsGrid:addChild(HeaderText("Gold:"))
-    statsGrid:addChild(NormalText("45190"))
+    statsGrid:addChild(NormalText()
+        :bindTo("text", goldComputed)
+        :setTextHorizontalAlignment("right")
+        :setSize(ennui.Size.fill(), ennui.Size.auto())
+    )
 
     statsGrid:addChild(HeaderText("Steps:"))
-    statsGrid:addChild(NormalText("66902"))
+    statsGrid:addChild(NormalText()
+        :bindTo("text", stepsComputed)
+        :setTextHorizontalAlignment("right")
+    )
 
     statsBox:addChild(statsGrid)
 
@@ -231,4 +294,4 @@ local hostBackground = BorderBox()
 hostBackground:addChild(horizontalStackPanel)
 host:addChild(hostBackground)
 
-return host
+return { host = host, gameState = gameState }

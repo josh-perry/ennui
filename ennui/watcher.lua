@@ -85,6 +85,15 @@ function Watcher:update()
     end
 end
 
+---Force update - unconditionally fires the callback
+---Used for nested property changes where reference equality doesn't work
+function Watcher:forceUpdate()
+    local newValue = self:evaluate()
+    local oldValue = self.oldValue
+    self.oldValue = newValue
+    self.callback(newValue, oldValue)
+end
+
 ---Unwatch - remove this watcher and clean up dependencies
 function Watcher:unwatch()
     for dep in pairs(self.dependencies) do

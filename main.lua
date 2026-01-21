@@ -1,9 +1,10 @@
 love.keyboard.setTextInput(true)
 love.graphics.setDefaultFilter("nearest", "nearest")
-love.graphics.setLineStyle("rough")
+--love.graphics.setLineStyle("rough")
 
 local buttonExampleHost = require("examples.button")
-local jrpgExampleHost = require("examples.jrpg")
+local jrpg = require("examples.jrpg")
+local jrpgExampleHost, gameState = jrpg.host, jrpg.gameState
 
 local host = jrpgExampleHost
 
@@ -35,8 +36,35 @@ end
 function love.load()
 end
 
+-- local updateTimer = 0
+
+-- local jobs = {
+--     "Warrior",
+--     "Mage",
+--     "Thief",
+--     "Cleric",
+--     "Ranger",
+--     "Paladin",
+--     "Frog"
+-- }
+
 function love.update(dt)
     host:update(dt)
+
+    if gameState then
+        gameState.props.time = gameState.props.time + dt
+        gameState.props.steps = gameState.props.steps + (2 * dt)
+
+        -- updateTimer = updateTimer + dt
+        -- if updateTimer >= 1 then
+        --     updateTimer = 0
+
+        --     local frogEmployment = gameState.props.characters[1].employment
+        --     local job = jobs[love.math.random(1, #jobs)]
+
+        --     frogEmployment.jobTitle = job
+        -- end
+    end
 end
 
 function love.draw()

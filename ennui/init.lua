@@ -15,5 +15,6 @@ ennui.Layout = {
 ennui.Size = require("ennui.size")
 ennui.SizeConstraint = require("ennui.size_constraint")
 ennui.Reactive = require("ennui.reactive")
+ennui.State = require("ennui.state")
 
 return ennui
