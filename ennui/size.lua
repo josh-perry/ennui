@@ -78,4 +78,48 @@ function Size.fill(weight)
     }
 end
 
+---Normalize a value to a Size table
+---Accepts multiple input formats for convenience:
+--- - number -> Size.fixed(number)
+--- - "fill" or "fill(2)" -> Size.fill() or Size.fill(2)
+--- - "auto" -> Size.auto()
+--- - "50%" -> Size.percent(0.5)
+--- - Size table -> returned as-is
+---@param value number|string|Size The value to normalize
+---@return Size
+function Size.normalize(value)
+    if type(value) == "table" and value.type then
+        return value
+    end
+
+    if type(value) == "number" then
+        return Size.fixed(value)
+    end
+
+    if type(value) == "string" then
+        if value == "auto" then
+            return Size.auto()
+        end
+
+        if value == "fill" then
+            return Size.fill()
+        end
+
+        local fillWeight = value:match("^fill%((%d+%.?%d*)%)$")
+        if fillWeight then
+            return Size.fill(tonumber(fillWeight))
+        end
+
+        local percent = value:match("^(%d+%.?%d*)%%$")
+
+        if percent then
+            return Size.percent(tonumber(percent) / 100)
+        end
+
+        error(("Size.normalize: unknown string format %q"):format(value))
+    end
+
+    error(("Size.normalize: expected number, string, or Size table, got %s"):format(type(value)))
+end
+
 return Size
