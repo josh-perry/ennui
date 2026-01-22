@@ -23,8 +23,9 @@ function Rectangle.new()
     local self = setmetatable(Widget(), Rectangle) ---@cast self Rectangle
 
     self:addProperty("color", {1, 1, 1, 1})
-    self:addProperty("borderColour", {1, 1, 1, 1})
+    self:addProperty("borderColor", {1, 1, 1, 1})
     self:addProperty("radius", 0)
+    self:setSize(Size.fill(), Size.fill())
 
     self:setHitTransparent(true)
     return self
@@ -42,7 +43,7 @@ function Rectangle:setColor(r, g, b, a)
 end
 
 function Rectangle:setBorderColor(r, g, b, a)
-    self.props.borderColour = {r, g, b, a or 1}
+    self.props.borderColor = {r, g, b, a or 1}
     return self
 end
 
@@ -64,7 +65,7 @@ function Rectangle:onRender()
         self.radius
     )
 
-    love.graphics.setColor(self.props.borderColour)
+    love.graphics.setColor(self.props.borderColor)
     love.graphics.setLineWidth(1)
     love.graphics.rectangle(
         "line",

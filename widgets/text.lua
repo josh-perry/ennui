@@ -114,7 +114,6 @@ function Text:onRender()
     love.graphics.printf(self.props.text, textX, textY, contentWidth, printAlignment)
 end
 
-
 function Text:setTextHorizontalAlignment(alignment)
     self.props.textHorizontalAlignment = alignment
     return self
@@ -123,6 +122,20 @@ end
 function Text:setTextVerticalAlignment(alignment)
     self.props.textVerticalAlignment = alignment
     return self
+end
+
+---Alias for setTextHorizontalAlignment
+---@param alignment string Horizontal alignment: "left", "center", "right"
+---@return Text self
+function Text:setTextAlign(alignment)
+    return self:setTextHorizontalAlignment(alignment)
+end
+
+---Alias for setTextVerticalAlignment
+---@param alignment string Vertical alignment: "top", "center", "bottom"
+---@return Text self
+function Text:setTextVAlign(alignment)
+    return self:setTextVerticalAlignment(alignment)
 end
 
 return Text

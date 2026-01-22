@@ -20,8 +20,8 @@ end
 function StackPanel.new()
     local self = setmetatable(Widget(), StackPanel) ---@cast self StackPanel
 
-    local strategy = ennui.Layout.Vertical()
-    self:setLayoutStrategy(strategy)
+    self:setLayoutStrategy(ennui.Layout.Vertical())
+    self:setSize("fill", "auto")
 
     return self
 end

@@ -20,8 +20,8 @@ end
 function HorizontalStackPanel.new()
     local self = setmetatable(Widget.new(), HorizontalStackPanel) ---@cast self HorizontalStackPanel
 
-    local strategy = ennui.Layout.Horizontal()
-    self:setLayoutStrategy(strategy)
+    self:setLayoutStrategy(ennui.Layout.Horizontal())
+    self:setSize("auto", "fill")
 
     return self
 end

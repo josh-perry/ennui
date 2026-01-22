@@ -186,8 +186,8 @@ function Widget:setId(id)
 end
 
 ---@generic T : Widget
----@param width number|Size Preferred width specification
----@param height number|Size Preferred height specification
+---@param width number|string|Size Preferred width specification
+---@param height number|string|Size Preferred height specification
 ---@return T
 function Widget:setSize(width, height, keepUniform)
     self:setPreferredWidth(width)
@@ -196,27 +196,27 @@ function Widget:setSize(width, height, keepUniform)
     return self
 end
 
----@param width number|Size Preferred width specification
+---@param width number|string|Size Preferred width specification
 ---@return Widget self
 function Widget:setPreferredWidth(width)
-    self.props.preferredWidth = width
+    self.props.preferredWidth = Size.normalize(width)
     return self
 end
 
----@param height number|Size Preferred height specification
+---@param height number|string|Size Preferred height specification
 ---@return Widget self
 function Widget:setPreferredHeight(height)
-    self.props.preferredHeight = height
+    self.props.preferredHeight = Size.normalize(height)
     return self
 end
 
----@param width number|Size Preferred width specification
+---@param width number|string|Size Preferred width specification
 ---@return Widget self
 function Widget:setWidth(width)
     return self:setPreferredWidth(width)
 end
 
----@param height number|Size Preferred height specification
+---@param height number|string|Size Preferred height specification
 ---@return Widget self
 function Widget:setHeight(height)
     return self:setPreferredHeight(height)
