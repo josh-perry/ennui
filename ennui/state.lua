@@ -394,6 +394,46 @@ function State:scope(path)
     return StateScope.new(self, path)
 end
 
+---Iterate over an array at a path, calling fn for each element with a StateScope
+---@param path string Dot-notation path to an array
+---@param fn function(scope: StateScope, index: number) Function called for each element
+function State:forEach(path, fn)
+    local raw = self:getRaw(path)
+
+    if type(raw) ~= "table" then
+        return
+    end
+
+    for i = 1, #raw do
+        local scopePath = ("%s.%s"):format(path, i)
+        local scope = self:scope(scopePath)
+
+        fn(scope, i)
+    end
+end
+
+---Map over an array at a path, collecting results
+---@param path string Dot-notation path to an array
+---@param fn function(scope: StateScope, index: number): any Function called for each element
+---@return table results Array of results from fn
+function State:map(path, fn)
+    local results = {}
+    local raw = self:getRaw(path)
+
+    if type(raw) ~= "table" then
+        return results
+    end
+
+    for i = 1, #raw do
+        local scopePath = ("%s.%s"):format(path, i)
+        local scope = self:scope(scopePath)
+
+        results[i] = fn(scope, i)
+    end
+
+    return results
+end
+
 ---@class StateScope
 ---@field private __root State The root state
 ---@field private __path string The dot-notation path
@@ -531,6 +571,31 @@ end
 function StateScope:scope(path)
     local fullPath = self.__path .. "." .. path
     return StateScope.new(self.__root, fullPath)
+end
+
+---Get raw (non-reactive) value at a relative path
+---@param path string Property name or relative dot-notation path
+---@return any The raw underlying table (or the value itself if not a proxy)
+function StateScope:getRaw(path)
+    local fullPath = ("%s.%s"):format(self.__path, path)
+    return self.__root:getRaw(fullPath)
+end
+
+---Iterate over an array at a relative path, calling fn for each element with a StateScope
+---@param path string Dot-notation path relative to current scope
+---@param fn function(scope: StateScope, index: number) Function called for each element
+function StateScope:forEach(path, fn)
+    local fullPath = ("%s.%s"):format(self.__path, path)
+    self.__root:forEach(fullPath, fn)
+end
+
+---Map over an array at a relative path, collecting results
+---@param path string Dot-notation path relative to current scope
+---@param fn function(scope: StateScope, index: number): any Function called for each element
+---@return table results Array of results from fn
+function StateScope:map(path, fn)
+    local fullPath = ("%s.%s"):format(self.__path, path)
+    return self.__root:map(fullPath, fn)
 end
 
 return State
