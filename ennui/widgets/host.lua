@@ -256,7 +256,7 @@ function Host:mousepressed(x, y, button, isTouch)
 
     self.__focusSetDuringEvent = false
 
-    if target then
+    if target and target ~= self then
         if target.isDraggable and target:isInDragHandle(x, y) then
             self:__initDrag(target, x, y, button)
         end
@@ -314,7 +314,7 @@ function Host:mousereleased(x, y, button, isTouch)
         local event = Event.createMouseEvent("mouseReleased", x, y, button, pressedWidget, isTouch)
         self:__dispatchEvent(event)
         handled = true
-    elseif target then
+    elseif target and target ~= self then
         local event = Event.createMouseEvent("mouseReleased", x, y, button, target, isTouch)
         self:__dispatchEvent(event)
         handled = true
@@ -383,7 +383,7 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             self:__dispatchEvent(event)
         end
 
-        if target then
+        if target and target ~= self then
             target.state.isHovered = true
             target:invalidateRender()
 
@@ -391,10 +391,10 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             self:__dispatchEvent(event)
         end
 
-        self.__lastHoveredWidget = target
+        self.__lastHoveredWidget = (target ~= self) and target or nil
     end
 
-    if target then
+    if target and target ~= self then
         local event = Event.createMouseEvent("mouseMoved", x, y, 1, target, isTouch, dx, dy)
         self:__dispatchEvent(event)
         return true
@@ -410,7 +410,7 @@ function Host:wheelmoved(dx, dy)
     local x, y = love.mouse.getPosition()
     local target = self:hitTest(x, y)
 
-    if target then
+    if target and target ~= self then
         local event = Event.createMouseEvent("mouseWheel", x, y, 1, target, false, dx, dy)
         self:__dispatchEvent(event)
         return true
