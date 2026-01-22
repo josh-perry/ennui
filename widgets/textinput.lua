@@ -27,6 +27,10 @@ setmetatable(TextInput, {
     end,
 })
 
+function TextInput:__tostring()
+    return "TextInput"
+end
+
 ---Create a new text input widget
 ---@return TextInput
 function TextInput.new()

@@ -11,6 +11,10 @@ setmetatable(HorizontalStackPanel, {
     end,
 })
 
+function HorizontalStackPanel:__tostring()
+    return "HorizontalStackPanel"
+end
+
 ---Create a new horizontal stack panel
 ---@return HorizontalStackPanel
 function HorizontalStackPanel.new()

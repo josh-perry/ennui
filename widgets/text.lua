@@ -13,7 +13,14 @@ setmetatable(Text, {
     __call = function(class, ...)
         return class.new(...)
     end,
+    __tostring = function(self)
+        return "Text"
+    end
 })
+
+function Text:__tostring()
+    return string.format("Text(%q)", self.props.text or "")
+end
 
 ---@return Text
 function Text.new(text)

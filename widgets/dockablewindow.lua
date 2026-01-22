@@ -15,6 +15,10 @@ setmetatable(DockableWindow, {
     end
 })
 
+function DockableWindow:__tostring()
+    return string.format("DockableWindow(%q)", self.props.title or "")
+end
+
 ---Creates a new DockableWindow
 ---@return DockableWindow
 function DockableWindow.new()

@@ -33,6 +33,10 @@ setmetatable(Dropdown, {
     end,
 })
 
+function Dropdown:__tostring()
+    return "Dropdown"
+end
+
 ---Create a new dropdown widget
 ---@param items DropdownItem[]? Initial items (optional)
 ---@return Dropdown

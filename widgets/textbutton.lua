@@ -19,6 +19,10 @@ setmetatable(TextButton, {
     end,
 })
 
+function TextButton:__tostring()
+    return string.format("TextButton(%q)", self.props.text or "")
+end
+
 ---Create a new text button widget
 ---@param text string? Button text (optional, defaults to "")
 ---@return TextButton

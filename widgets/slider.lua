@@ -24,6 +24,10 @@ setmetatable(Slider, {
     end,
 })
 
+function Slider:__tostring()
+    return string.format("Slider(%.1f)", self.props.value or 0)
+end
+
 ---Create a new slider widget
 ---@param minValue number? Minimum value (default 0)
 ---@param maxValue number? Maximum value (default 100)

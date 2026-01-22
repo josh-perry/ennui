@@ -6,6 +6,8 @@ local buttonExampleHost = require("examples.button")
 local jrpg = require("examples.jrpg")
 local jrpgExampleHost, gameState = jrpg.host, jrpg.gameState
 
+local debugger = require("ennui.debug")
+
 local host = jrpgExampleHost
 
 local smallCanvas = love.graphics.newCanvas(320, 288)
@@ -36,20 +38,9 @@ end
 function love.load()
 end
 
--- local updateTimer = 0
-
--- local jobs = {
---     "Warrior",
---     "Mage",
---     "Thief",
---     "Cleric",
---     "Ranger",
---     "Paladin",
---     "Frog"
--- }
-
 function love.update(dt)
     host:update(dt)
+    debugger.host:update(dt)
 
     if gameState then
         gameState.props.time = gameState.props.time + dt
@@ -73,7 +64,19 @@ function love.draw()
         love.graphics.clear()
     end
 
+    love.graphics.setColor(1, 1, 1)
     host:draw()
+
+    if debugger.inspectingWidget then
+        love.graphics.setColor(1, 0, 0)
+        love.graphics.rectangle(
+            "line",
+            debugger.inspectingWidget.x,
+            debugger.inspectingWidget.y,
+            debugger.inspectingWidget.width,
+            debugger.inspectingWidget.height
+        )
+    end
 
     love.graphics.setCanvas()
 
@@ -90,42 +93,75 @@ function love.draw()
         local offsetY = (windowHeight - scaledHeight) / 2
 
         love.graphics.clear()
+        love.graphics.setColor(1, 1, 1)
         love.graphics.draw(smallCanvas, offsetX, offsetY, 0, scale, scale)
     end
+
+    debugger.host:draw()
 end
 
 function love.mousepressed(x, y, button, isTouch)
+    if debugger.host:mousepressed(x, y, button, isTouch) then
+        return
+    end
+
     local canvasX, canvasY = transformMouseCoords(x, y)
     host:mousepressed(canvasX, canvasY, button, isTouch)
 end
 
 function love.mousereleased(x, y, button, isTouch)
+    if debugger.host:mousereleased(x, y, button, isTouch) then
+        return
+    end
+
     local canvasX, canvasY = transformMouseCoords(x, y)
     host:mousereleased(canvasX, canvasY, button, isTouch)
 end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
+    if debugger.host:mousemoved(x, y, dx, dy, isTouch) then
+        return
+    end
+
     local canvasX, canvasY = transformMouseCoords(x, y)
     host:mousemoved(canvasX, canvasY, dx, dy, isTouch)
 end
 
 function love.wheelmoved(dx, dy)
+    if debugger.host:wheelmoved(dx, dy) then
+        return
+    end
+
     host:wheelmoved(dx, dy)
 end
 
 function love.keypressed(key, scancode, isRepeat)
     if key == "escape" then
         love.event.quit()
+    elseif key == "f1" then
+        debugger:setTargetHost(host)
+    end
+
+    if debugger.host:keypressed(key, scancode, isRepeat) then
+        return
     end
 
     host:keypressed(key, scancode, isRepeat)
 end
 
 function love.keyreleased(key, scancode)
+    if debugger.host:keyreleased(key, scancode) then
+        return
+    end
+
     host:keyreleased(key, scancode)
 end
 
 function love.textinput(text)
+    if debugger.host:textinput(text) then
+        return
+    end
+
     host:textinput(text)
 end
 
@@ -136,4 +172,5 @@ function love.resize(w, h)
     end
 
     host:setSize(w, h)
+    debugger.host:setSize(w, h)
 end

@@ -27,6 +27,10 @@ setmetatable(RadioButton, {
     end,
 })
 
+function RadioButton:__tostring()
+    return string.format("RadioButton(%q)", self.props.label or "")
+end
+
 ---Create a new radio button widget
 ---@param label string? Radio button label text (optional)
 ---@param groupName string? Name of the radio group (optional)

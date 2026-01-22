@@ -17,6 +17,10 @@ setmetatable(DropdownMenu, {
     end,
 })
 
+function DropdownMenu:__tostring()
+    return "DropdownMenu"
+end
+
 ---Create a new dropdown menu
 ---@return DropdownMenu
 function DropdownMenu.new()

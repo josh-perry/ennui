@@ -30,6 +30,10 @@ setmetatable(Menu, {
     end,
 })
 
+function Menu:__tostring()
+    return "Menu"
+end
+
 ---Create a new menu widget
 ---@param items MenuItem[]? Initial items
 ---@return Menu

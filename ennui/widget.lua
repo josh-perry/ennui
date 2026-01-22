@@ -70,8 +70,15 @@ Widget.__index = Widget
 setmetatable(Widget, {
     __call = function(class, ...)
         return class.new(...)
+    end,
+    __tostring = function(self)
+        return "Widget"
     end
 })
+
+function Widget:__tostring()
+    return "Widget"
+end
 
 ---@return Widget
 function Widget.new()
@@ -530,6 +537,21 @@ local function assignSequentialTabIndexes(widget, counter)
     end
 
     return counter
+end
+
+---Build a nested tree structure of this widget and its descendants
+---@return table tree { widget: Widget, children: table[] }
+function Widget:buildDescendantTree()
+    local tree = {
+        widget = self,
+        children = {}
+    }
+
+    for _, child in ipairs(self.children) do
+        table.insert(tree.children, child:buildDescendantTree())
+    end
+
+    return tree
 end
 
 ---@param child Widget Child widget to add

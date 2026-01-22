@@ -24,6 +24,10 @@ local Host = setmetatable({}, {
 
 Host.__index = Host
 
+function Host:__tostring()
+    return "Host"
+end
+
 ---@return Host
 function Host.new()
     local self = setmetatable(Widget(), Host) ---@cast self Host
@@ -271,7 +275,11 @@ function Host:mousepressed(x, y, button, isTouch)
         self:__dispatchEvent(event)
 
         self.__focusSetDuringEvent = false
+
+        return true
     end
+
+    return false
 end
 
 ---@param x number Mouse X
@@ -280,6 +288,8 @@ end
 ---@param isTouch boolean Is touch event
 function Host:mousereleased(x, y, button, isTouch)
     self:__ensureLayout()
+
+    local handled = false
 
     if self.__draggedWidget then
         local widget = self.__draggedWidget --[[@as Widget]]
@@ -291,6 +301,7 @@ function Host:mousereleased(x, y, button, isTouch)
 
         self:__clearDrag()
         self:invalidateRender()
+        handled = true
     end
 
     local target = self:hitTest(x, y)
@@ -302,9 +313,11 @@ function Host:mousereleased(x, y, button, isTouch)
 
         local event = Event.createMouseEvent("mouseReleased", x, y, button, pressedWidget, isTouch)
         self:__dispatchEvent(event)
+        handled = true
     elseif target then
         local event = Event.createMouseEvent("mouseReleased", x, y, button, target, isTouch)
         self:__dispatchEvent(event)
+        handled = true
     end
 
     if target and target == pressedWidget then
@@ -313,6 +326,8 @@ function Host:mousereleased(x, y, button, isTouch)
     end
 
     self.__pressedWidget[button] = nil
+
+    return handled
 end
 
 ---@param x number Mouse X
@@ -354,7 +369,7 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
         end
 
         self:invalidateRender()
-        return
+        return true
     end
 
     local target = self:hitTest(x, y)
@@ -382,7 +397,10 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
     if target then
         local event = Event.createMouseEvent("mouseMoved", x, y, 1, target, isTouch, dx, dy)
         self:__dispatchEvent(event)
+        return true
     end
+
+    return false
 end
 
 ---@param dx number Horizontal scroll amount
@@ -395,7 +413,10 @@ function Host:wheelmoved(dx, dy)
     if target then
         local event = Event.createMouseEvent("mouseWheel", x, y, 1, target, false, dx, dy)
         self:__dispatchEvent(event)
+        return true
     end
+
+    return false
 end
 
 ---@param key string Key code
@@ -409,13 +430,17 @@ function Host:keypressed(key, scancode, isRepeat)
         else
             self:focusNext()
         end
-        return
+
+        return true
     end
 
     if self.focusedWidget then
         local event = Event.createKeyboardEvent("keyPressed", key, scancode, isRepeat, self.focusedWidget)
         self:__dispatchEvent(event)
+        return true
     end
+
+    return false
 end
 
 ---@param key string Key code
@@ -424,7 +449,10 @@ function Host:keyreleased(key, scancode)
     if self.focusedWidget then
         local event = Event.createKeyboardEvent("keyReleased", key, scancode, false, self.focusedWidget)
         self:__dispatchEvent(event)
+        return true
     end
+
+    return false
 end
 
 ---@param text string Text entered
@@ -432,7 +460,10 @@ function Host:textinput(text)
     if self.focusedWidget then
         local event = Event.createTextInputEvent(text, self.focusedWidget)
         self:__dispatchEvent(event)
+        return true
     end
+
+    return false
 end
 
 ---@param event Event Event object

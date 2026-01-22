@@ -28,6 +28,10 @@ setmetatable(TreeViewNode, {
     end,
 })
 
+function TreeViewNode:__tostring()
+    return string.format("TreeViewNode(%q)", self.props.label or "")
+end
+
 ---Create a new tree view node widget
 ---@param label string? Node label (optional)
 ---@param value any? Custom value (optional)
@@ -44,7 +48,7 @@ function TreeViewNode.new(label, value)
     self:addProperty("iconColor", {0.6, 0.6, 0.6, 1})
     self:addProperty("value", value)
 
-    self.__treeView = nil
+    self.__treeViewCache = nil
 
     -- Create internal row layout (NOT added as a child - managed separately)
     self.__rowLayout = HorizontalStackPanel()
@@ -96,21 +100,28 @@ function TreeViewNode.new(label, value)
     return self
 end
 
----Called when node is mounted - find and cache TreeView parent
-function TreeViewNode:onMount()
-    -- Find the TreeView ancestor
+---Find the TreeView ancestor (lazy lookup)
+---@return TreeView?
+function TreeViewNode:__getTreeView()
+    if self.__treeViewCache then
+        return self.__treeViewCache
+    end
     local current = self.parent
     while current do
         if current.selectNode then -- Duck-type check for TreeView
-            self.__treeView = current
-            break
+            self.__treeViewCache = current
+            return current
         end
         current = current.parent
     end
+    return nil
+end
 
+---Called when node is mounted
+function TreeViewNode:onMount()
     -- Calculate level based on parent chain
     local level = 0
-    current = self.parent
+    local current = self.parent
     while current do
         if current.props and current.props.level ~= nil then
             level = current.props.level + 1
@@ -217,8 +228,8 @@ end
 ---Get row height from TreeView or default
 ---@return number rowHeight
 function TreeViewNode:__getRowHeight()
-    if self.__treeView then
-        return self.__treeView.props.rowHeight
+    if self:__getTreeView() then
+        return self:__getTreeView().props.rowHeight
     end
     return 24
 end
@@ -226,8 +237,8 @@ end
 ---Get indent size from TreeView or default
 ---@return number indentSize
 function TreeViewNode:__getIndentSize()
-    if self.__treeView then
-        return self.__treeView.props.indentSize
+    if self:__getTreeView() then
+        return self:__getTreeView().props.indentSize
     end
     return 20
 end
@@ -350,21 +361,23 @@ function TreeViewNode:onClicked(event)
        event.x >= iconX and event.x <= iconX + iconSize + 8 and
        event.y >= iconY and event.y <= iconY + iconSize then
         self:toggle()
+        event:consume()
         return true
     end
 
     -- Select this node
-    if self.__treeView then
-        self.__treeView:selectNode(self)
+    if self:__getTreeView() then
+        self:__getTreeView():selectNode(self)
     end
 
+    event:consume()
     return true
 end
 
 function TreeViewNode:onKeyPressed(event)
     if event.key == "space" or event.key == "return" then
-        if self.__treeView then
-            self.__treeView:selectNode(self)
+        if self:__getTreeView() then
+            self:__getTreeView():selectNode(self)
         end
         return true
     elseif event.key == "left" then
@@ -385,11 +398,11 @@ function TreeViewNode:onRender()
     local rowHeight = self:__getRowHeight()
 
     -- Draw selection/hover background
-    if self.props.selected and self.__treeView then
-        love.graphics.setColor(self.__treeView.props.selectionColor)
+    if self.props.selected and self:__getTreeView() then
+        love.graphics.setColor(self:__getTreeView().props.selectionColor)
         love.graphics.rectangle("fill", self.x, self.y, self.width, rowHeight)
     elseif self.state.isHovered then
-        local hoverColor = self.__treeView and self.__treeView.props.hoverColor or {0.25, 0.25, 0.25, 1}
+        local hoverColor = self:__getTreeView() and self:__getTreeView().props.hoverColor or {0.25, 0.25, 0.25, 1}
         love.graphics.setColor(hoverColor)
         love.graphics.rectangle("fill", self.x, self.y, self.width, rowHeight)
     end

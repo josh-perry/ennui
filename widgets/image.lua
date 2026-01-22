@@ -15,6 +15,10 @@ setmetatable(Image, {
     end,
 })
 
+function Image:__tostring()
+    return "Image"
+end
+
 ---Create a new image widget
 ---@return Image
 ---@param drawable love.Image|love.Canvas? Optional drawable to display

@@ -237,7 +237,11 @@ function GridLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentW
     local numColumns, numRows
     if self.rows then
         numRows = self.rows
-        numColumns = math.ceil(childCount / numRows)
+        numColumns = self.columns or math.ceil(childCount / numRows)
+
+        while numRows * numColumns < childCount do
+            numRows = numRows + 1
+        end
     else
         numColumns = self.columns or 1
         numRows = math.ceil(childCount / numColumns)

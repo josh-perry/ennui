@@ -25,6 +25,10 @@ setmetatable(Checkbox, {
     end,
 })
 
+function Checkbox:__tostring()
+    return string.format("Checkbox(%q)", self.props.label or "")
+end
+
 ---Create a new checkbox widget
 ---@param label string? Checkbox label text (optional)
 ---@return Checkbox

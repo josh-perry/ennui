@@ -34,6 +34,10 @@ setmetatable(ComboBox, {
     end,
 })
 
+function ComboBox:__tostring()
+    return "ComboBox"
+end
+
 ---Create a new combo box widget
 ---@param items ComboBoxItem[]? Initial items (optional)
 ---@return ComboBox

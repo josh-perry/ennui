@@ -17,6 +17,10 @@ setmetatable(TreeView, {
     end,
 })
 
+function TreeView:__tostring()
+    return "TreeView"
+end
+
 ---Create a new tree view widget
 ---@return TreeView
 function TreeView.new()

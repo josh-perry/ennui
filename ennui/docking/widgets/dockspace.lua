@@ -449,6 +449,7 @@ function DockSpace:updateTabBars()
                     self:removeChild(node.tabBar)
                     node.tabBar = nil
                 end
+
                 return
             end
 
@@ -465,6 +466,7 @@ function DockSpace:updateTabBars()
 
             if #node.tabBar.tabs ~= #node.dockedWidgets then
                 node.tabBar:clearTabs()
+
                 for i, widget in ipairs(node.dockedWidgets) do
                     local title = (widget.props and widget.props.title) or widget.id or ("Tab " .. i)
                     node.tabBar:addTab(title, widget)

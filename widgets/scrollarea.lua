@@ -31,6 +31,10 @@ setmetatable(ScrollArea, {
     end,
 })
 
+function ScrollArea:__tostring()
+    return "ScrollArea"
+end
+
 ---Create a new scroll area widget
 ---@return ScrollArea
 function ScrollArea.new()
@@ -382,8 +386,8 @@ function ScrollArea:measure(availableWidth, availableHeight)
     self.props.scrollX = math.min(self.props.scrollX, maxScrollX)
     self.props.scrollY = math.min(self.props.scrollY, maxScrollY)
 
-    local desiredWidth = availableWidth
-    local desiredHeight = availableHeight
+    local desiredWidth = self:calculateDesiredWidth(availableWidth)
+    local desiredHeight = self:calculateDesiredHeight(availableHeight)
 
     desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
 

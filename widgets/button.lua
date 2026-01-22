@@ -15,6 +15,10 @@ setmetatable(Button, {
     end,
 })
 
+function Button:__tostring()
+    return "Button"
+end
+
 ---Create a new button widget
 ---@param content Widget[]? Button content (array of widgets added as children)
 ---@return Button

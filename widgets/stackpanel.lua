@@ -11,6 +11,10 @@ setmetatable(StackPanel, {
     end,
 })
 
+function StackPanel:__tostring()
+    return "StackPanel"
+end
+
 ---Create a new vertical stack panel
 ---@return StackPanel
 function StackPanel.new()

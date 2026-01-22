@@ -31,7 +31,6 @@ function TabBar.new()
     self.tabs = {}
     self.activeIndex = 1
     self.height = 30
-    self.showCloseButtons = true
 
     self:addProperty("backgroundColor", {0.2, 0.2, 0.2})
     self:addProperty("activeTabColor", {0.3, 0.5, 0.8})
@@ -39,6 +38,10 @@ function TabBar.new()
     self:addProperty("hoverTabColor", {0.35, 0.35, 0.35})
     self:addProperty("textColor", {1, 1, 1})
     self:addProperty("closeButtonSize", 14)
+    self:addProperty("canDragTabs", false)
+    self:addProperty("tabBarHeight", 30)
+    self:addProperty("activeIndex", 1)
+    self:addProperty("showCloseButtons", false)
 
     self.onTabChanged = nil
     self.onTabClosed = nil
@@ -61,6 +64,15 @@ function TabBar:addTab(title, widget)
     end
 
     table.insert(self.tabs, {title = title, widget = widget})
+    
+    -- Add the widget as a child so it gets rendered
+    self:addChild(widget)
+    
+    -- Hide it if it's not the active tab
+    if #self.tabs ~= self.activeIndex then
+        widget:setVisible(false)
+    end
+    
     self:invalidateRender()
     return self
 end
@@ -113,6 +125,15 @@ function TabBar:setActiveTab(index)
     end
 
     self.activeIndex = index
+    
+    -- Update visibility of all tab content widgets
+    for i, tab in ipairs(self.tabs) do
+        if tab.widget then
+            tab.widget:setVisible(i == index)
+        end
+    end
+    
+    self:invalidateLayout()
     self:invalidateRender()
 
     if self.onTabChanged then
@@ -127,7 +148,8 @@ end
 ---@param y number
 ---@return number? Tab index
 function TabBar:getTabAtPoint(x, y)
-    if y < self.y or y > self.y + self.height or
+    -- Only check within the tab bar header area, not the full height
+    if y < self.y or y > self.y + self.tabBarHeight or
        x < self.x or x > self.x + self.width then
         return nil
     end
@@ -170,6 +192,10 @@ function TabBar:onMouseMoved(event)
     if tabIndex ~= self.hoveredTabIndex then
         self.hoveredTabIndex = tabIndex
         self:invalidateRender()
+    end
+
+    if not self.props.canDragTabs then
+        return
     end
 
     if self.draggedTabIndex and not self.isDraggingTab then
@@ -272,13 +298,53 @@ end
 ---@param availableHeight number
 ---@return number, number
 function TabBar:measure(availableWidth, availableHeight)
-    return availableWidth, self.height
+    -- Tab bar needs the full available height: 30px for the bar + remaining for content
+    local contentHeight = availableHeight - self.height
+    
+    -- Measure the active tab's content if it exists
+    if #self.tabs > 0 and self.activeIndex >= 1 and self.activeIndex <= #self.tabs then
+        local activeTab = self.tabs[self.activeIndex]
+        if activeTab and activeTab.widget then
+            activeTab.widget:measure(availableWidth, contentHeight)
+        end
+    end
+    
+    return availableWidth, availableHeight
+end
+
+---Arrange children (position active tab content)
+---@param contentX number
+---@param contentY number
+---@param contentWidth number
+---@param contentHeight number
+function TabBar:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
+    -- Position the active tab's content widget below the tab bar
+    if #self.tabs > 0 and self.activeIndex >= 1 and self.activeIndex <= #self.tabs then
+        local activeTab = self.tabs[self.activeIndex]
+        if activeTab and activeTab.widget then
+            -- Content starts below the tab bar header (use tabBarHeight, not self.height)
+            local tabContentY = self.y + self.tabBarHeight
+            -- Available height is what's left after the tab bar header
+            local tabContentHeight = self.height - self.tabBarHeight
+            
+            -- Hide all inactive tabs and show/arrange only the active one
+            for i, tab in ipairs(self.tabs) do
+                if i == self.activeIndex then
+                    tab.widget:setVisible(true)
+                    tab.widget:arrange(self.x, tabContentY, self.width, tabContentHeight)
+                else
+                    tab.widget:setVisible(false)
+                end
+            end
+        end
+    end
 end
 
 ---Render the tab bar
 function TabBar:onRender()
+    -- Only draw the tab bar header, not the full height
     love.graphics.setColor(self.props.backgroundColor)
-    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+    love.graphics.rectangle("fill", self.x, self.y, self.width, self.tabBarHeight)
 
     local tabX = self.x
     for i, tab in ipairs(self.tabs) do
@@ -296,19 +362,19 @@ function TabBar:onRender()
         end
 
         love.graphics.setColor(color)
-        love.graphics.rectangle("fill", tabX, self.y, tabWidth, self.height)
+        love.graphics.rectangle("fill", tabX, self.y, tabWidth, self.tabBarHeight)
 
         love.graphics.setColor(self.props.textColor)
         local font = love.graphics.getFont()
         local textWidth = font:getWidth(tab.title)
         local textX = tabX + math.max(8, (tabWidth - textWidth) / 2)
-        local textY = self.y + (self.height - font:getHeight()) / 2
+        local textY = self.y + (self.tabBarHeight - font:getHeight()) / 2
         love.graphics.print(tab.title, textX, textY)
 
         if self.showCloseButtons and isHovered and #self.tabs > 1 then
             self:drawCloseButton(
                 self:calculateTabCloseButtonPosition(i),
-                self.y + self.height / 2,
+                self.y + self.tabBarHeight / 2,
                 self.props.closeButtonSize
             )
         end
@@ -317,7 +383,14 @@ function TabBar:onRender()
     end
 
     love.graphics.setColor(0.1, 0.1, 0.1)
-    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
+    love.graphics.rectangle("line", self.x, self.y, self.width, self.tabBarHeight)
+    
+    -- Render child widgets (the tab content)
+    for _, child in ipairs(self.children) do
+        if child:isVisible() then
+            child:onRender()
+        end
+    end
 end
 
 ---Draw a close button

@@ -21,6 +21,10 @@ setmetatable(Group, {
     end,
 })
 
+function Group:__tostring()
+    return string.format("Group(%q)", self.props.title or "")
+end
+
 ---Create a new group widget
 ---@param title string? Group title (optional)
 ---@return Group

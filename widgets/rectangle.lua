@@ -13,6 +13,10 @@ setmetatable(Rectangle, {
     end,
 })
 
+function Rectangle:__tostring()
+    return "Rectangle"
+end
+
 ---Create a new rectangle widget
 ---@return Rectangle
 function Rectangle.new()

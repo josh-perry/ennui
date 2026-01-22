@@ -25,6 +25,10 @@ setmetatable(Window, {
     end,
 })
 
+function Window:__tostring()
+    return string.format("Window(%q)", self.props.title or "")
+end
+
 ---Create a new window widget
 ---@return Window
 function Window.new(title)

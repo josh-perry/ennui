@@ -26,6 +26,10 @@ setmetatable(CollapseableHeader, {
     end,
 })
 
+function CollapseableHeader:__tostring()
+    return string.format("CollapseableHeader(%q)", self.props.title or "")
+end
+
 ---Create a new collapseable header widget
 ---@param title string? Header title (optional)
 ---@param expanded boolean? Initial expanded state (default true)
