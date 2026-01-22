@@ -73,4 +73,26 @@ function Computed:subscribe(callback)
     table.insert(self.subscribers, callback)
 end
 
+---Create a new Computed that transforms this computed's value
+---@param transform function(value: any): any The transformation function
+---@return Computed A new Computed with the transformed value
+function Computed:map(transform)
+    local source = self
+
+    return Computed.new(function()
+        return transform(source:get())
+    end)
+end
+
+---Create a new Computed that formats this computed's value using string.format
+---@param template string The format template (e.g., "%d%%", "Level: %s")
+---@return Computed A new Computed with the formatted value
+function Computed:format(template)
+    local source = self
+
+    return Computed.new(function()
+        return template:format(source:get())
+    end)
+end
+
 return Computed
