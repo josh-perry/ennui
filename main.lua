@@ -4,17 +4,32 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 
 local buttonExampleHost = require("examples.button")
 local jrpg = require("examples.jrpg")
-local jrpgExampleHost, gameState = jrpg.host, jrpg.gameState
+local jrpgExampleHost, jrpgExampleState = jrpg.host, jrpg.gameState
 
 local debugger = require("ennui.debug")
 
-local host = jrpgExampleHost
+local examples = {
+    { host = buttonExampleHost, state = nil },
+    { host = jrpgExampleHost, state = jrpgExampleState }
+}
+
+local exampleIndex = 1
 
 local smallCanvas = love.graphics.newCanvas(320, 288)
-local drawToSmallCanvas = true
+local smallCanvasExamples = {
+    [examples[2]] = true
+}
+
+local function drawToSmallCanvas(example)
+    if smallCanvasExamples[example] then
+        return true
+    end
+
+    return false
+end
 
 local function transformMouseCoords(x, y)
-    if not drawToSmallCanvas then
+    if not drawToSmallCanvas(examples[exampleIndex]) then
         return x, y
     end
 
@@ -35,16 +50,15 @@ local function transformMouseCoords(x, y)
     return canvasX, canvasY
 end
 
-function love.load()
-end
-
 function love.update(dt)
-    host:update(dt)
+    local example = examples[exampleIndex]
+
+    example.host:update(dt)
     debugger.host:update(dt)
 
-    if gameState then
-        gameState.props.time = gameState.props.time + dt
-        gameState.props.steps = gameState.props.steps + (2 * dt)
+    if example.state then
+        example.state.props.time = example.state.props.time + dt
+        example.state.props.steps = example.state.props.steps + (2 * dt)
 
         -- updateTimer = updateTimer + dt
         -- if updateTimer >= 1 then
@@ -59,13 +73,15 @@ function love.update(dt)
 end
 
 function love.draw()
-    if drawToSmallCanvas then
+    local example = examples[exampleIndex]
+
+    if drawToSmallCanvas(example) then
         love.graphics.setCanvas(smallCanvas)
         love.graphics.clear()
     end
 
     love.graphics.setColor(1, 1, 1)
-    host:draw()
+    example.host:draw()
 
     if debugger.inspectingWidget then
         love.graphics.setColor(1, 0, 0)
@@ -80,7 +96,7 @@ function love.draw()
 
     love.graphics.setCanvas()
 
-    if drawToSmallCanvas then
+    if drawToSmallCanvas(example)then
         local windowWidth, windowHeight = love.graphics.getDimensions()
         local scale = math.floor(math.min(
             windowWidth / smallCanvas:getWidth(),
@@ -106,7 +122,7 @@ function love.mousepressed(x, y, button, isTouch)
     end
 
     local canvasX, canvasY = transformMouseCoords(x, y)
-    host:mousepressed(canvasX, canvasY, button, isTouch)
+    examples[exampleIndex].host:mousepressed(canvasX, canvasY, button, isTouch)
 end
 
 function love.mousereleased(x, y, button, isTouch)
@@ -115,7 +131,7 @@ function love.mousereleased(x, y, button, isTouch)
     end
 
     local canvasX, canvasY = transformMouseCoords(x, y)
-    host:mousereleased(canvasX, canvasY, button, isTouch)
+    examples[exampleIndex].host:mousereleased(canvasX, canvasY, button, isTouch)
 end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
@@ -124,7 +140,7 @@ function love.mousemoved(x, y, dx, dy, isTouch)
     end
 
     local canvasX, canvasY = transformMouseCoords(x, y)
-    host:mousemoved(canvasX, canvasY, dx, dy, isTouch)
+    examples[exampleIndex].host:mousemoved(canvasX, canvasY, dx, dy, isTouch)
 end
 
 function love.wheelmoved(dx, dy)
@@ -132,21 +148,39 @@ function love.wheelmoved(dx, dy)
         return
     end
 
-    host:wheelmoved(dx, dy)
+    examples[exampleIndex].host:wheelmoved(dx, dy)
 end
 
 function love.keypressed(key, scancode, isRepeat)
     if key == "escape" then
         love.event.quit()
     elseif key == "f1" then
-        debugger:setTargetHost(host)
+        debugger:setTargetHost(examples[exampleIndex].host)
+    elseif key == "f4" then
+        exampleIndex = exampleIndex + 1
+
+        if exampleIndex > #examples then
+            exampleIndex = 1
+        end
+
+        local example = examples[exampleIndex]
+
+        debugger:setTargetHost(example.host)
+
+        if drawToSmallCanvas(example)then
+            example.host:setSize(smallCanvas:getWidth(), smallCanvas:getHeight())
+        else
+            local w, h = love.graphics.getDimensions()
+            example.host:setSize(w, h)
+            debugger.host:setSize(w, h)
+        end
     end
 
     if debugger.host:keypressed(key, scancode, isRepeat) then
         return
     end
 
-    host:keypressed(key, scancode, isRepeat)
+    examples[exampleIndex].host:keypressed(key, scancode, isRepeat)
 end
 
 function love.keyreleased(key, scancode)
@@ -154,7 +188,7 @@ function love.keyreleased(key, scancode)
         return
     end
 
-    host:keyreleased(key, scancode)
+    examples[exampleIndex].host:keyreleased(key, scancode)
 end
 
 function love.textinput(text)
@@ -162,15 +196,17 @@ function love.textinput(text)
         return
     end
 
-    host:textinput(text)
+    examples[exampleIndex].host:textinput(text)
 end
 
 function love.resize(w, h)
-    if drawToSmallCanvas then
-        host:setSize(smallCanvas:getWidth(), smallCanvas:getHeight())
+    local example = examples[exampleIndex]
+
+    if drawToSmallCanvas(example)then
+        example.host:setSize(smallCanvas:getWidth(), smallCanvas:getHeight())
         return
     end
 
-    host:setSize(w, h)
+    example.host:setSize(w, h)
     debugger.host:setSize(w, h)
 end
