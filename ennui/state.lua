@@ -6,7 +6,6 @@ local Reactive = require("ennui.reactive")
 local Watcher = require("ennui.watcher")
 local Computed = require("ennui.computed")
 
--- Path parsing helpers
 local function parsePath(path)
     local segments = {}
 
@@ -437,11 +436,20 @@ end
 ---@class StateScope
 ---@field private __root State The root state
 ---@field private __path string The dot-notation path
----@field protected __pathSegments string[] Parsed path segments
 ---@field props table Proxy to access scoped properties
----@field private __bindCache table<string, Computed> Cached Computed bindings
 StateScope = {}
 StateScope.__index = StateScope
+
+---Build the full path from scope path and relative path
+---@private
+---@param relativePath string? Relative path to append
+---@return string
+function StateScope:__fullPath(relativePath)
+    if not relativePath or relativePath == "" then
+        return self.__path
+    end
+    return self.__path .. "." .. relativePath
+end
 
 ---Create a new scoped view of a State
 ---@param root State The root state
@@ -452,69 +460,45 @@ function StateScope.new(root, path)
 
     self.__root = root
     self.__path = path
-    self.__pathSegments = parsePath(path)
 
-    -- Create a proxy that navigates the path
+    -- Create a proxy that delegates to root with path prefix
     self.props = setmetatable({}, {
         __index = function(_, key)
-            ---@diagnostic disable-next-line: invisible
-            local target = navigatePath(root.props, self.__pathSegments)
-
-            if not target then
-                return nil
-            end
-
-            return target[key] or nil
+            local target = root:get(path)
+            if not target then return nil end
+            return target[key]
         end,
 
         __newindex = function(_, key, value)
-            ---@diagnostic disable-next-line: invisible
-            local target = navigatePath(root.props, self.__pathSegments)
-
+            local target = root:get(path)
             if target then
                 target[key] = value
             end
         end,
 
         __pairs = function(_)
-            ---@diagnostic disable-next-line: invisible
-            local target = navigatePath(root.props, self.__pathSegments)
-
-            if target then
-                return pairs(target)
-            end
-
+            local target = root:get(path)
+            if target then return pairs(target) end
             return pairs({})
         end,
     })
-
-    self.__bindCache = {}
 
     return self
 end
 
 ---Get a cached Computed binding for a property path
----Supports dot-notation paths: scope:bind("stats.level")
+---Delegates to root State with full path (caching happens there)
 ---@param path string Property name or dot-notation path
 ---@return Computed
 function StateScope:bind(path)
-    if not self.__bindCache[path] then
-        local segments = parsePath(path)
-
-        self.__bindCache[path] = Computed(function()
-            return navigatePath(self.props, segments)
-        end)
-    end
-
-    return self.__bindCache[path]
+    return self.__root:bind(self:__fullPath(path))
 end
 
----Get value at a relative path (or direct property name)
+---Get value at a relative path
 ---@param path string Property name or relative dot-notation path
 ---@return any The value at the path
 function StateScope:get(path)
-    local segments = parsePath(path)
-    return navigatePath(self.props, segments)
+    return self.__root:get(self:__fullPath(path))
 end
 
 ---Watch a property for changes (relative to scope)
@@ -523,18 +507,14 @@ end
 ---@param options {immediate: boolean?, deep: boolean?}? Watcher options
 ---@return Watcher The watcher instance
 function StateScope:watch(source, callback, options)
-    local getter
     if type(source) == "string" then
-        local propName = source
         local self_ref = self
-        getter = function()
+        local propName = source
+        source = function()
             return self_ref.props[propName]
         end
-    else
-        getter = source
     end
-
-    return self.__root:watch(getter, callback, options)
+    return self.__root:watch(source, callback, options)
 end
 
 ---Create a computed property (relative to scope)
@@ -569,24 +549,21 @@ end
 ---@param path string Dot-notation path relative to current scope
 ---@return StateScope A new scoped view
 function StateScope:scope(path)
-    local fullPath = self.__path .. "." .. path
-    return StateScope.new(self.__root, fullPath)
+    return StateScope.new(self.__root, self:__fullPath(path))
 end
 
 ---Get raw (non-reactive) value at a relative path
 ---@param path string Property name or relative dot-notation path
 ---@return any The raw underlying table (or the value itself if not a proxy)
 function StateScope:getRaw(path)
-    local fullPath = ("%s.%s"):format(self.__path, path)
-    return self.__root:getRaw(fullPath)
+    return self.__root:getRaw(self:__fullPath(path))
 end
 
 ---Iterate over an array at a relative path, calling fn for each element with a StateScope
 ---@param path string Dot-notation path relative to current scope
 ---@param fn function(scope: StateScope, index: number) Function called for each element
 function StateScope:forEach(path, fn)
-    local fullPath = ("%s.%s"):format(self.__path, path)
-    self.__root:forEach(fullPath, fn)
+    self.__root:forEach(self:__fullPath(path), fn)
 end
 
 ---Map over an array at a relative path, collecting results
@@ -594,8 +571,7 @@ end
 ---@param fn function(scope: StateScope, index: number): any Function called for each element
 ---@return table results Array of results from fn
 function StateScope:map(path, fn)
-    local fullPath = ("%s.%s"):format(self.__path, path)
-    return self.__root:map(fullPath, fn)
+    return self.__root:map(self:__fullPath(path), fn)
 end
 
 return State
