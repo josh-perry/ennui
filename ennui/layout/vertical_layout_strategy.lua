@@ -29,6 +29,7 @@ function VerticalLayoutStrategy:measure(widget, availableWidth, availableHeight)
     local totalFixedHeight = 0
     local fillCount = 0
     local fillTotalWeight = 0
+    local percentTotalRatio = 0
 
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
@@ -46,6 +47,8 @@ function VerticalLayoutStrategy:measure(widget, availableWidth, availableHeight)
                 if child.preferredHeight.type == "fill" then
                     fillCount = fillCount + 1
                     fillTotalWeight = fillTotalWeight + (child.preferredHeight.weight or 1)
+                elseif child.preferredHeight.type == "percent" then
+                    percentTotalRatio = percentTotalRatio + child.preferredHeight.value
                 else
                     totalFixedHeight = totalFixedHeight + child.desiredHeight
                 end
@@ -84,7 +87,8 @@ function VerticalLayoutStrategy:measure(widget, availableWidth, availableHeight)
             desiredHeight = availableHeight * preferredHeight.value
         elseif preferredHeight.type == "auto" then
             local estimatedFillHeight = fillCount * 20
-            desiredHeight = totalFixedHeight + estimatedFillHeight + widget.padding.top + widget.padding.bottom
+            local estimatedPercentHeight = percentTotalRatio * contentHeight
+            desiredHeight = totalFixedHeight + estimatedFillHeight + estimatedPercentHeight + widget.padding.top + widget.padding.bottom
         elseif preferredHeight.type == "fill" then
             desiredHeight = availableHeight
         else
@@ -122,6 +126,7 @@ end
 function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentWidth, contentHeight)
     local totalFixedHeight = 0
     local fillTotalWeight = 0
+    local percentTotalRatio = 0
 
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
@@ -133,6 +138,8 @@ function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, cont
                 totalFixedHeight = totalFixedHeight + child.desiredHeight
             elseif child.preferredHeight.type == "fill" then
                 fillTotalWeight = fillTotalWeight + (child.preferredHeight.weight or 1)
+            elseif child.preferredHeight.type == "percent" then
+                percentTotalRatio = percentTotalRatio + child.preferredHeight.value
             else
                 totalFixedHeight = totalFixedHeight + child.desiredHeight
             end
@@ -140,6 +147,10 @@ function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, cont
     end
 
     local remainingHeight = contentHeight - totalFixedHeight
+    
+    -- Calculate how much space percent children need
+    local percentHeight = remainingHeight * percentTotalRatio
+    local fillHeight = remainingHeight - percentHeight
 
     local currentY = contentY
     for i, child in ipairs(widget.children) do
@@ -153,7 +164,10 @@ function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, cont
                 childHeight = child.desiredHeight
             elseif child.preferredHeight.type == "fill" then
                 local weight = child.preferredHeight.weight or 1
-                childHeight = remainingHeight * (weight / fillTotalWeight)
+                childHeight = fillHeight * (weight / fillTotalWeight)
+            elseif child.preferredHeight.type == "percent" then
+                -- Calculate percent based on remaining space, not total space
+                childHeight = remainingHeight * child.preferredHeight.value
             else
                 childHeight = child.desiredHeight
             end

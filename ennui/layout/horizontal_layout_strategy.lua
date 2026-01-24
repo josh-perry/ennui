@@ -30,6 +30,7 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
     local totalFixedWidth = 0
     local fillCount = 0
     local fillTotalWeight = 0
+    local percentTotalRatio = 0
 
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
@@ -47,6 +48,8 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
                 if child.preferredWidth.type == "fill" then
                     fillCount = fillCount + 1
                     fillTotalWeight = fillTotalWeight + (child.preferredWidth.weight or 1)
+                elseif child.preferredWidth.type == "percent" then
+                    percentTotalRatio = percentTotalRatio + child.preferredWidth.value
                 else
                     totalFixedWidth = totalFixedWidth + child.desiredWidth
                 end
@@ -66,7 +69,8 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
             desiredWidth = availableWidth * preferredWidth.value
         elseif preferredWidth.type == "auto" then
             local estimatedFillWidth = fillCount * 20
-            desiredWidth = totalFixedWidth + estimatedFillWidth + widget.padding.left + widget.padding.right
+            local estimatedPercentWidth = percentTotalRatio * contentWidth
+            desiredWidth = totalFixedWidth + estimatedFillWidth + estimatedPercentWidth + widget.padding.left + widget.padding.right
         elseif preferredWidth.type == "fill" then
             desiredWidth = availableWidth
         else
@@ -122,9 +126,10 @@ end
 ---@param contentWidth number Width of content area (after padding)
 ---@param contentHeight number Height of content area (after padding)
 function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentWidth, contentHeight)
-    -- First pass: Calculate fixed widths and identify fill children
+    -- First pass: Calculate fixed widths and identify fill/percent children
     local totalFixedWidth = 0
     local fillTotalWeight = 0
+    local percentTotalRatio = 0
 
     for i, child in ipairs(widget.children) do
         if child:isVisible() then
@@ -136,6 +141,8 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
                 totalFixedWidth = totalFixedWidth + child.desiredWidth
             elseif child.preferredWidth.type == "fill" then
                 fillTotalWeight = fillTotalWeight + (child.preferredWidth.weight or 1)
+            elseif child.preferredWidth.type == "percent" then
+                percentTotalRatio = percentTotalRatio + child.preferredWidth.value
             else
                 totalFixedWidth = totalFixedWidth + child.desiredWidth
             end
@@ -143,6 +150,10 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
     end
 
     local remainingWidth = contentWidth - totalFixedWidth
+    
+    -- Calculate how much space percent children need
+    local percentWidth = remainingWidth * percentTotalRatio
+    local fillWidth = remainingWidth - percentWidth
 
     -- Second pass: Arrange children
     local currentX = contentX
@@ -157,7 +168,10 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
                 childWidth = child.desiredWidth
             elseif child.preferredWidth.type == "fill" then
                 local weight = child.preferredWidth.weight or 1
-                childWidth = remainingWidth * (weight / fillTotalWeight)
+                childWidth = fillWidth * (weight / fillTotalWeight)
+            elseif child.preferredWidth.type == "percent" then
+                -- Calculate percent based on remaining space, not total space
+                childWidth = remainingWidth * child.preferredWidth.value
             else
                 childWidth = child.desiredWidth
             end
