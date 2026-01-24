@@ -94,10 +94,18 @@ function debugger:setInspectedWidget(widget)
     propertiesPanel:addChild(Text("Property"):setTextHorizontalAlignment("center"))
     propertiesPanel:addChild(Text("Value"):setTextHorizontalAlignment("center"))
 
+    if not widget then
+        return
+    end
+
+    propertiesPanel:addChild(Text("Size (pixels)"))
+    propertiesPanel:addChild(Text(string.format("%d x %d", widget.width, widget.height)))
+
     for propertyName, propertyValue in pairs(widget.__rawProps) do
         propertiesPanel:addChild(Text(propertyName))
 
         local valueText = ""
+
         if type(propertyValue) == "table" then
             valueText = "{ " .. table.concat(propertyValue, ", ") .. " }"
         else
@@ -126,6 +134,7 @@ end
 
 function debugger:setTargetHost(host)
     self.targettingHost = host
+    self:setInspectedWidget(nil)
 
     treeview.children = {}
 
