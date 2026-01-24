@@ -167,6 +167,11 @@ function CollapseableHeader:setSpacing(pixels)
     return self
 end
 
+function CollapseableHeader:setAnimationSpeed(speed)
+    self.props.animationSpeed = speed
+    return self
+end
+
 ---Check if point is in header area
 ---@param x number X coordinate
 ---@param y number Y coordinate

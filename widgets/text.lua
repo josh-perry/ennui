@@ -80,7 +80,74 @@ function Text:__calculateContentHeight()
     if self.props.text == "" then
         return self.padding.top + self.padding.bottom
     end
+
     return self.props.font:getHeight() + self.padding.top + self.padding.bottom
+end
+
+---Override to calculate height based on wrapped text
+---@param availableHeight number Available height
+---@return number desiredHeight
+function Text:calculateDesiredHeight(availableHeight)
+    local height = self.preferredHeight
+
+    if type(height) == "number" then
+        return height
+    end
+
+    if height.type == "fixed" then
+        return height.value
+    elseif height.type == "percent" then
+        return availableHeight * height.value
+    elseif height.type == "fill" then
+        return availableHeight
+    elseif height.type == "auto" then
+        if self.props.text == "" then
+            return self.padding.top + self.padding.bottom
+        end
+
+        local wrapWidth = self.desiredWidth - self.padding.left - self.padding.right
+
+        if wrapWidth <= 0 then
+            -- Fallback to single line if no width available
+            return self.props.font:getHeight() + self.padding.top + self.padding.bottom
+        end
+
+        -- Calculate wrapped text height
+        local _, wrappedLines = self.props.font:getWrap(self.props.text, wrapWidth)
+        local lineHeight = self.props.font:getHeight()
+        local totalHeight = lineHeight * #wrappedLines
+
+        return totalHeight + self.padding.top + self.padding.bottom
+    end
+
+    return 100
+end
+
+---Override measure to properly handle text wrapping
+---@param availableWidth number Available width in pixels
+---@param availableHeight number Available height in pixels
+---@return number desiredWidth
+---@return number desiredHeight
+function Text:measure(availableWidth, availableHeight)
+    -- Calculate width first
+    local desiredWidth = self:calculateDesiredWidth(availableWidth)
+
+    -- Store it temporarily so calculateDesiredHeight can use it
+    self.desiredWidth = desiredWidth
+
+    -- Now calculate height with knowledge of the width
+    local desiredHeight = self:calculateDesiredHeight(availableHeight)
+
+    -- Apply constraints
+    desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
+
+    -- Store final values
+    self.desiredWidth = desiredWidth
+    self.desiredHeight = desiredHeight
+
+    self.isLayoutDirty = false
+
+    return desiredWidth, desiredHeight
 end
 
 function Text:onRender()

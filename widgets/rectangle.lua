@@ -52,6 +52,11 @@ function Rectangle:setRadius(radius)
     return self
 end
 
+function Rectangle:setBorderWidth(width)
+    self.props.borderWidth = width
+    return self
+end
+
 ---Render the rectangle
 function Rectangle:onRender()
     love.graphics.setColor(self.props.color)

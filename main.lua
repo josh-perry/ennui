@@ -7,9 +7,6 @@ local examples = require("examples")
 local exampleIndex = 1
 
 local smallCanvas = love.graphics.newCanvas(320, 288)
-local smallCanvasExamples = {
-    [examples[2]] = true
-}
 
 local function transformMouseCoords(x, y)
     if not examples[exampleIndex].smallCanvas then

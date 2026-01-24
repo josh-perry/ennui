@@ -389,6 +389,7 @@ function Window:setPosition(x, y)
         local contentY = self.y + self.padding.top
         local contentWidth = self.width - self.padding.left - self.padding.right
         local contentHeight = self.height - self.padding.top - self.padding.bottom
+
         self:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
     end
 

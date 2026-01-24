@@ -322,12 +322,13 @@ function TabBar:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
     if #self.tabs > 0 and self.activeIndex >= 1 and self.activeIndex <= #self.tabs then
         local activeTab = self.tabs[self.activeIndex]
         if activeTab and activeTab.widget then
-            -- Content starts below the tab bar header (use tabBarHeight, not self.height)
+            if activeTab.widget.props and activeTab.widget.props.isDocked then
+                return
+            end
+
             local tabContentY = self.y + self.tabBarHeight
-            -- Available height is what's left after the tab bar header
             local tabContentHeight = self.height - self.tabBarHeight
-            
-            -- Hide all inactive tabs and show/arrange only the active one
+
             for i, tab in ipairs(self.tabs) do
                 if i == self.activeIndex then
                     tab.widget:setVisible(true)

@@ -460,7 +460,7 @@ function Host:textinput(text)
     if self.focusedWidget then
         local event = Event.createTextInputEvent(text, self.focusedWidget)
         self:__dispatchEvent(event)
-        return true
+        return event.consumed
     end
 
     return false
