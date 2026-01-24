@@ -1,17 +1,8 @@
 love.keyboard.setTextInput(true)
 love.graphics.setDefaultFilter("nearest", "nearest")
---love.graphics.setLineStyle("rough")
-
-local buttonExampleHost = require("examples.button")
-local jrpg = require("examples.jrpg")
-local jrpgExampleHost, jrpgExampleState = jrpg.host, jrpg.gameState
 
 local debugger = require("ennui.debug")
-
-local examples = {
-    { host = buttonExampleHost, state = nil },
-    { host = jrpgExampleHost, state = jrpgExampleState }
-}
+local examples = require("examples")
 
 local exampleIndex = 1
 
@@ -20,16 +11,8 @@ local smallCanvasExamples = {
     [examples[2]] = true
 }
 
-local function drawToSmallCanvas(example)
-    if smallCanvasExamples[example] then
-        return true
-    end
-
-    return false
-end
-
 local function transformMouseCoords(x, y)
-    if not drawToSmallCanvas(examples[exampleIndex]) then
+    if not examples[exampleIndex].smallCanvas then
         return x, y
     end
 
@@ -50,32 +33,29 @@ local function transformMouseCoords(x, y)
     return canvasX, canvasY
 end
 
+local function setExample(example)
+    debugger:setTargetHost(example.host)
+
+    if example.smallCanvas then
+        example.host:setSize(smallCanvas:getWidth(), smallCanvas:getHeight())
+    else
+        local w, h = love.graphics.getDimensions()
+        example.host:setSize(w, h)
+        debugger.host:setSize(w, h)
+    end
+end
+
 function love.update(dt)
     local example = examples[exampleIndex]
 
     example.host:update(dt)
     debugger.host:update(dt)
-
-    if example.state then
-        example.state.props.time = example.state.props.time + dt
-        example.state.props.steps = example.state.props.steps + (2 * dt)
-
-        -- updateTimer = updateTimer + dt
-        -- if updateTimer >= 1 then
-        --     updateTimer = 0
-
-        --     local frogEmployment = gameState.props.characters[1].employment
-        --     local job = jobs[love.math.random(1, #jobs)]
-
-        --     frogEmployment.jobTitle = job
-        -- end
-    end
 end
 
 function love.draw()
     local example = examples[exampleIndex]
 
-    if drawToSmallCanvas(example) then
+    if example.smallCanvas then
         love.graphics.setCanvas(smallCanvas)
         love.graphics.clear()
     end
@@ -96,7 +76,7 @@ function love.draw()
 
     love.graphics.setCanvas()
 
-    if drawToSmallCanvas(example)then
+    if example.smallCanvas then
         local windowWidth, windowHeight = love.graphics.getDimensions()
         local scale = math.floor(math.min(
             windowWidth / smallCanvas:getWidth(),
@@ -114,6 +94,13 @@ function love.draw()
     end
 
     debugger.host:draw()
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf(("Example: %s"):format(example.name), 10, 10, love.graphics.getWidth() - 20, "right")
+
+    love.graphics.printf("FPS: " .. tostring(love.timer.getFPS()), 10, 10, love.graphics.getWidth() - 20, "left")
+    love.graphics.printf("dt: " .. string.format("%.3f ms", love.timer.getDelta() * 1000), 10, 30, love.graphics.getWidth() - 20, "left")
+    love.graphics.printf("Memory: " .. string.format("%.2f MB", collectgarbage("count") / 1024), 10, 50, love.graphics.getWidth() - 20, "left")
 end
 
 function love.mousepressed(x, y, button, isTouch)
@@ -156,24 +143,22 @@ function love.keypressed(key, scancode, isRepeat)
         love.event.quit()
     elseif key == "f1" then
         debugger:setTargetHost(examples[exampleIndex].host)
-    elseif key == "f4" then
+    elseif key == "f5" then
         exampleIndex = exampleIndex + 1
 
         if exampleIndex > #examples then
             exampleIndex = 1
         end
 
-        local example = examples[exampleIndex]
+        setExample(examples[exampleIndex])
+    elseif key == "f4" then
+        exampleIndex = exampleIndex - 1
 
-        debugger:setTargetHost(example.host)
-
-        if drawToSmallCanvas(example)then
-            example.host:setSize(smallCanvas:getWidth(), smallCanvas:getHeight())
-        else
-            local w, h = love.graphics.getDimensions()
-            example.host:setSize(w, h)
-            debugger.host:setSize(w, h)
+        if exampleIndex < 1 then
+            exampleIndex = #examples
         end
+
+        setExample(examples[exampleIndex])
     end
 
     if debugger.host:keypressed(key, scancode, isRepeat) then
@@ -202,7 +187,7 @@ end
 function love.resize(w, h)
     local example = examples[exampleIndex]
 
-    if drawToSmallCanvas(example)then
+    if example.smallCanvas then
         example.host:setSize(smallCanvas:getWidth(), smallCanvas:getHeight())
         return
     end
