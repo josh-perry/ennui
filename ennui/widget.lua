@@ -178,65 +178,83 @@ function Widget.new()
 end
 
 ---Set widget ID
+---@generic T : Widget
+---@param self T
 ---@param id string Widget identifier
----@return Widget self
+---@return T
 function Widget:setId(id)
     self.id = id
     return self
 end
 
 ---@generic T : Widget
+---@param self T
 ---@param width number|string|Size Preferred width specification
 ---@param height number|string|Size Preferred height specification
 ---@return T
 function Widget:setSize(width, height, keepUniform)
+    ---@cast self Widget
     self:setPreferredWidth(width)
     self:setPreferredHeight(height)
 
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param width number|string|Size Preferred width specification
----@return Widget self
+---@return T
 function Widget:setPreferredWidth(width)
+    ---@cast self Widget
     self.props.preferredWidth = Size.normalize(width)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param height number|string|Size Preferred height specification
----@return Widget self
+---@return T
 function Widget:setPreferredHeight(height)
+    ---@cast self Widget
     self.props.preferredHeight = Size.normalize(height)
     return self
 end
 
+---@generic T : Widget
 ---@param width number|string|Size Preferred width specification
----@return Widget self
+---@return T
 function Widget:setWidth(width)
+    ---@cast self Widget
     return self:setPreferredWidth(width)
 end
 
+---@generic T : Widget
 ---@param height number|string|Size Preferred height specification
----@return Widget self
+---@return T
 function Widget:setHeight(height)
     return self:setPreferredHeight(height)
 end
 
+---@generic T : Widget
 ---@param x number X position
 ---@param y number Y position
----@return Widget self
+---@return T
 function Widget:setPosition(x, y)
     self.x = x
     self.y = y
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param top number Top padding (or all sides if only argument)
 ---@param right number? Right padding (or horizontal if 2 args)
 ---@param bottom number? Bottom padding
 ---@param left number? Left padding
----@return Widget self
+---@return T
 function Widget:setPadding(top, right, bottom, left)
+    ---@cast self Widget
+
     if not right then
         -- 1 arg: all sides
         self.props.padding.top = top
@@ -262,12 +280,16 @@ function Widget:setPadding(top, right, bottom, left)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param top number Top margin (or all sides if only argument)
 ---@param right number? Right margin (or horizontal if 2 args)
 ---@param bottom number? Bottom margin
 ---@param left number? Left margin
----@return Widget self
+---@return T
 function Widget:setMargin(top, right, bottom, left)
+    ---@cast self Widget
+
     if not right then
         -- 1 arg: all sides
         self.props.margin.top = top
@@ -293,51 +315,72 @@ function Widget:setMargin(top, right, bottom, left)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param width number Minimum width in pixels
----@return Widget self
+---@return T
 function Widget:setMinWidth(width)
+    ---@cast self Widget
     self.props.minWidth = width
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param width number Maximum width in pixels
----@return Widget self
+---@return T
 function Widget:setMaxWidth(width)
+    ---@cast self Widget
     self.props.maxWidth = width
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param height number Minimum height in pixels
----@return Widget self
+---@return T
 function Widget:setMinHeight(height)
+    ---@cast self Widget
     self.props.minHeight = height
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param height number Maximum height in pixels
----@return Widget self
+---@return T
 function Widget:setMaxHeight(height)
+    ---@cast self Widget
     self.props.maxHeight = height
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param ratio number Aspect ratio
----@return Widget self
+---@return T
 function Widget:setAspectRatio(ratio)
+    ---@cast self Widget
     self.props.aspectRatio = ratio
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param constraint table Size constraint specification
----@return Widget self
+---@return T
 function Widget:setSizeConstraint(constraint)
+    ---@cast self Widget
     self.props.sizeConstraint = constraint
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param visible boolean Whether widget is visible
----@return Widget self
+---@return T
 function Widget:setVisible(visible)
+    ---@cast self Widget
     if self.state.isVisible == visible then
         return self
     end
@@ -364,9 +407,12 @@ function Widget:setVisible(visible)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param disabled boolean Whether widget is disabled
----@return Widget self
+---@return T
 function Widget:setDisabled(disabled)
+    ---@cast self Widget
     if self.state.isDisabled == disabled then
         return self
     end
@@ -376,50 +422,71 @@ function Widget:setDisabled(disabled)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param alignment "left"|"center"|"right"|"stretch" Horizontal alignment
----@return Widget self
+---@return T
 function Widget:setHorizontalAlignment(alignment)
+    ---@cast self Widget
     self.props.horizontalAlignment = alignment
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param alignment "top"|"center"|"bottom"|"stretch" Vertical alignment
----@return Widget self
+---@return T
 function Widget:setVerticalAlignment(alignment)
+    ---@cast self Widget
     self.props.verticalAlignment = alignment
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param strategy LayoutStrategy? Layout strategy instance (nil to use default)
----@return Widget self
+---@return T
 function Widget:setLayoutStrategy(strategy)
+    ---@cast self Widget
     self.layoutStrategy = strategy
     self:invalidateLayout()
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param focusable boolean Whether widget can receive focus
----@return Widget self
+---@return T
 function Widget:setFocusable(focusable)
+    ---@cast self Widget
     self.__focusable = focusable
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@return boolean
 function Widget:getFocusable()
+    ---@cast self Widget
     return self.__focusable
 end
 
+---@generic T : Widget
+---@param self T
 ---@param index number Tab order (lower = earlier)
----@return Widget self
+---@return T
 function Widget:setTabIndex(index)
+    ---@cast self Widget
     self.__tabIndex = index
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param transparent boolean Whether widget should pass through hit events
----@return Widget self
+---@return T
 function Widget:setHitTransparent(transparent)
+    ---@cast self Widget
     self.__hitTransparent = transparent
     return self
 end
@@ -430,9 +497,12 @@ function Widget:isHitTransparent()
 end
 
 ---Set whether to clip children to widget bounds
+---@generic T : Widget
+---@param self T
 ---@param clip boolean Whether to enable content clipping
----@return Widget self
+---@return T
 function Widget:setClipContent(clip)
+    ---@cast self Widget
     self.clipContent = clip
     return self
 end
@@ -518,10 +588,12 @@ local function getMaxTabIndexInSubtree(widget)
     local maxIndex = widget.__tabIndex
     for _, child in ipairs(widget.children) do
         local childMax = getMaxTabIndexInSubtree(child)
+
         if childMax > maxIndex then
             maxIndex = childMax
         end
     end
+
     return maxIndex
 end
 
@@ -554,9 +626,12 @@ function Widget:buildDescendantTree()
     return tree
 end
 
+---@generic T : Widget
+---@param self T
 ---@param child Widget Child widget to add
----@return Widget self
+---@return T
 function Widget:addChild(child)
+    ---@cast self Widget
     table.insert(self.children, child)
     child.parent = self
 
@@ -577,9 +652,12 @@ function Widget:addChild(child)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param child Widget Child widget to remove
----@return Widget self
+---@return T
 function Widget:removeChild(child)
+    ---@cast self Widget
     for i, c in ipairs(self.children) do
         if c == child then
             table.remove(self.children, i)
@@ -602,12 +680,16 @@ function Widget:removeChild(child)
             break
         end
     end
+
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param index number Index of child to remove
----@return Widget self
+---@return T
 function Widget:removeChildAt(index)
+    ---@cast self Widget
     local child = self.children[index]
     if child then
         table.remove(self.children, index)
@@ -628,12 +710,17 @@ function Widget:removeChildAt(index)
         child:onUnmount()
         self:invalidateLayout()
     end
+
     return self
 end
 
----@return Widget self
+---@generic T : Widget
+---@param self T
+---@return T
 function Widget:clearChildren()
+    ---@cast self Widget
     local host = self:__getHost()
+
     if host and host.focusedWidget then
         for _, child in ipairs(self.children) do
             local current = host.focusedWidget
@@ -651,13 +738,17 @@ function Widget:clearChildren()
         child.parent = nil
         child:onUnmount()
     end
+
     self.children = {}
     self:invalidateLayout()
     return self
 end
 
----@return Widget self
+---@generic T : Widget
+---@param self T
+---@return T
 function Widget:removeAllChildren()
+    ---@cast self Widget
     return self:clearChildren()
 end
 
@@ -686,6 +777,7 @@ function Widget:findById(id)
 
     for _, child in ipairs(self.children) do
         local found = child:findById(id)
+
         if found then
             return found
         end
@@ -694,8 +786,11 @@ function Widget:findById(id)
     return nil
 end
 
----@return Widget self For method chaining
+---@generic T : Widget
+---@param self T
+---@return T
 function Widget:bringToFront()
+    ---@cast self Widget
     if not self.parent then
         return self
     end
@@ -724,11 +819,14 @@ function Widget:bringToFront()
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param event string Event name
 ---@param handler fun(self: Widget, event: Event): boolean? Event handler function (return true to consume)
 ---@param options {capture: boolean}? Handler options
----@return Widget self
+---@return T
 function Widget:on(event, handler, options)
+    ---@cast self Widget
     options = options or {}
     local handlersTable = options.capture and self.__captureHandlers or self.__handlers
 
@@ -740,10 +838,13 @@ function Widget:on(event, handler, options)
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param event string Event name
 ---@param handler fun(self: Widget, event: Event)? Specific handler to remove (or nil for all)
----@return Widget self
+---@return T
 function Widget:off(event, handler)
+    ---@cast self Widget
     if not handler then
         self.__handlers[event] = nil
         self.__captureHandlers[event] = nil
@@ -765,35 +866,50 @@ function Widget:off(event, handler)
             end
         end
     end
+
     return self
 end
 
+---@generic T : Widget
+---@param self T
 ---@param event string Event name
 ---@param handler fun(self: Widget, event: Event) Event handler function
----@return Widget self
+---@return T
 function Widget:once(event, handler)
+    ---@cast self Widget
     local wrappedHandler
+
     wrappedHandler = function(self, eventData)
         handler(self, eventData)
         self:off(event, wrappedHandler)
     end
+
     return self:on(event, wrappedHandler)
 end
 
+---@generic T : Widget
+---@param self T
 ---@param handler fun(self: Widget, event: Event) Click handler function
----@return Widget self
+---@return T
 function Widget:onClick(handler)
+    ---@cast self Widget
     return self:on("clicked", handler)
 end
 
+---@generic T : Widget
+---@param self T
 ---@param handler fun(self: Widget, event: Event) Hover handler function
----@return Widget self
+---@return T
 function Widget:onHover(handler)
+    ---@cast self Widget
     return self:on("mouseEntered", handler)
 end
 
+---@generic T : Widget
+---@param self T
 ---@param event Event Event object
 function Widget:dispatchEvent(event)
+    ---@cast self Widget
     self:__handleEvent(event)
 end
 
@@ -1246,10 +1362,13 @@ end
 
 ---Add a custom property to the widget
 ---Custom properties are reactive and accessible via self.props
+---@generic T : Widget
+---@param self T
 ---@param name string Property name
 ---@param initialValue any Initial value for the property
----@return Widget self
+---@return T
 function Widget:addProperty(name, initialValue)
+    ---@cast self Widget
     self.__rawProps[name] = initialValue
     self[name] = initialValue
     return self
@@ -1257,10 +1376,13 @@ end
 
 ---Create a computed property
 ---Computed properties automatically track dependencies and update lazily
+---@generic T : Widget
+---@param self T
 ---@param name string Name of the computed property
 ---@param getter function() Function that computes and returns the value
 ---@return Computed The computed instance (access value with :get())
 function Widget:computed(name, getter)
+    ---@cast self Widget
     local computed = Computed(getter)
     self.__computed[name] = computed
     return computed
@@ -1268,10 +1390,13 @@ end
 
 ---Bind a widget property to a computed property
 ---The property will automatically update whenever the computed value changes
+---@generic T : Widget
+---@param self T
 ---@param propertyName string Name of the property to bind (e.g., "text" or "margin.left")
 ---@param computed Computed The computed property to bind to
----@return Widget self
+---@return T
 function Widget:bindTo(propertyName, computed)
+    ---@cast self Widget
     local function setNestedProperty(value)
         if not propertyName:find("%.") then
             self.props[propertyName] = value
@@ -1299,11 +1424,15 @@ end
 
 ---Bind properties from a source (Widget, State, or StateScope)
 ---Properties automatically sync when the source changes
+---@generic T : Widget
+---@param self T
 ---@param source Widget|State|StateScope The source to bind from
 ---@param mapping table|string Property mapping table, or single property name (string)
 ---@param transform function? Optional transform function when using single property syntax
----@return Widget self
+---@return T
 function Widget:bindFrom(source, mapping, transform)
+    ---@cast self Widget
+
     -- Single property syntax: bindFrom(source, "propName", optionalTransform)
     if type(mapping) == "string" then
         local sourceProperty = mapping
@@ -1351,6 +1480,7 @@ end
 ---@param watcher Watcher The watcher to remove
 function Widget:unwatch(watcher)
     watcher:unwatch()
+
     for i, w in ipairs(self.__watchers) do
         if w == watcher then
             table.remove(self.__watchers, i)
@@ -1360,20 +1490,27 @@ function Widget:unwatch(watcher)
 end
 
 ---Configure whether this widget is draggable
+---@generic T : Widget
+---@param self T
 ---@param draggable boolean Whether the widget can be dragged
 ---@param dragHandle table? Optional drag handle rectangle {x, y, width, height}
----@return Widget self
+---@return T
 function Widget:setDraggable(draggable, dragHandle)
+    ---@cast self Widget
     self.isDraggable = draggable
+
     if dragHandle then
         self.dragHandle = dragHandle
     end
+
     return self
 end
 
 ---Set the drag mode ("position" or "delta")
+---@generic T : Widget
+---@param self T
 ---@param mode string "position" for position-based dragging, "delta" for delta-based
----@return Widget self
+---@return T
 function Widget:setDragMode(mode)
     assert(mode == "position" or mode == "delta", "dragMode must be 'position' or 'delta'")
     self.dragMode = mode
@@ -1381,18 +1518,24 @@ function Widget:setDragMode(mode)
 end
 
 ---Set the drag handle rectangle
+---@generic T : Widget
+---@param self T
 ---@param rect table? Rectangle {x, y, width, height} relative to widget, or nil to allow drag from anywhere
----@return Widget self
+---@return T
 function Widget:setDragHandle(rect)
+    ---@cast self Widget
     self.dragHandle = rect
     return self
 end
 
 ---Check if a point is within the drag handle
+---@generic T : Widget
+---@param self T
 ---@param x number X coordinate
 ---@param y number Y coordinate
 ---@return boolean True if point is in drag handle
 function Widget:isInDragHandle(x, y)
+    ---@cast self Widget
     -- Check if point is within widget bounds
     if x < self.x or x > self.x + self.width or
        y < self.y or y > self.y + self.height then
@@ -1420,8 +1563,11 @@ function Widget:isInDragHandle(x, y)
 end
 
 ---Check if this widget is currently being dragged
+---@generic T : Widget
+---@param self T
 ---@return boolean True if widget is currently being dragged
 function Widget:isDragging()
+    ---@cast self Widget
     local host = self:__getHost()
 
     return host and host.isWidgetDragged and host:isWidgetDragged(self) or false
@@ -1430,7 +1576,10 @@ end
 ---Clean up all watchers and computed properties
 ---Called automatically on unmount to prevent memory leaks
 ---@private
+---@generic T : Widget
+---@param self T
 function Widget:__cleanupReactive()
+    ---@cast self Widget
     for _, watcher in ipairs(self.__watchers) do
         watcher:unwatch()
     end
@@ -1446,15 +1595,27 @@ function Widget:__cleanupReactive()
     self.__computed = {}
 end
 
+---Called when the widget is mounted to the widget tree
+---@generic T : Widget
+---@param self T
 function Widget:onMount()
+    ---@cast self Widget
 end
 
+---Called when the widget is unmounted from the widget tree
+---@generic T : Widget
+---@param self T
 function Widget:onUnmount()
+    ---@cast self Widget
     self:__cleanupReactive()
 end
 
+---Called every frame to update the widget
+---@generic T : Widget
+---@param self T
 ---@param dt number Delta time in seconds
 function Widget:onUpdate(dt)
+    ---@cast self Widget
     for _, child in ipairs(self.children) do
         if child:isVisible() then
             child:onUpdate(dt)
@@ -1463,13 +1624,19 @@ function Widget:onUpdate(dt)
 end
 
 ---Called when mouse wheel is scrolled over this widget
+---@generic T : Widget
+---@param self T
 ---@param event MouseEvent Mouse wheel event with dx and dy
 ---@return boolean? consumed Return true to consume the event
 function Widget:onMouseWheel(event)
-    -- Default: do nothing, let event propagate
+    ---@cast self Widget
 end
 
+---Called to render the widget and its children
+---@generic T : Widget
+---@param self T
 function Widget:onRender()
+    ---@cast self Widget
     if self.clipContent then
         local prevX, prevY, prevW, prevH = Scissor.push(self.x, self.y, self.width, self.height)
 
