@@ -1,10 +1,7 @@
----Lightweight reactive state container with property watching/binding
----Similar to a Widget's reactive props, but without the widget overhead
----State objects are source-only - widgets bind FROM them via widget:bindFrom(state, {...})
-
 local Reactive = require("ennui.reactive")
-local Watcher = require("ennui.watcher")
 local Computed = require("ennui.computed")
+local Mixins = require("ennui.mixins")
+local Mixin = require("ennui.utils.mixin")
 
 local function parsePath(path)
     local segments = {}
@@ -72,7 +69,7 @@ function StateDependency:notify(forceUpdate)
     end
 end
 
----@class State
+---@class State : StatefulMixin
 ---@field props table Reactive properties table
 ---@field private __rawProps table<string, any> Underlying raw properties table (contains proxies for nested tables)
 ---@field private __dependencies table<string, StateDependency> Dependencies for each property
@@ -88,17 +85,20 @@ setmetatable(State, {
     end
 })
 
+Mixin.extend(State, Mixins.Stateful)
+
 ---Create a new State container
 ---@param initialProps table? Optional initial properties
 ---@return State
 function State.new(initialProps)
     local self = setmetatable({}, State)
 
-    self.__rawProps = {}
+    -- Initialize StatefulMixin fields (__rawProps, __watchers, __computed)
+    self:initStateful()
+
+    -- State-specific fields
     self.__dependencies = {}
     self.__nestedProps = {}
-    self.__watchers = {}
-    self.__computed = {}
     self.__bindCache = {}
 
     self.props = self:__createProxy()
@@ -239,77 +239,24 @@ function State:__makeNestedReactive(rawTable, parentKey)
     return proxy
 end
 
----Add a property to the state
----Tables are automatically made nested-reactive
+---Hook to transform property values before storing (implements StatefulMixin hook)
+---Tables are wrapped in nested reactivity
 ---@param name string Property name
----@param initialValue any Initial value for the property
----@return State self
-function State:addProperty(name, initialValue)
-    if type(initialValue) == "table" then
-        self.__rawProps[name] = self:__makeNestedReactive(initialValue, name)
+---@param value any Initial value
+---@return any transformedValue The value to store (potentially wrapped)
+function State:__beforeAddTransformPropertyValue(name, value)
+    if type(value) == "table" then
         self.__nestedProps[name] = true
-    else
-        self.__rawProps[name] = initialValue
+        return self:__makeNestedReactive(value, name)
     end
-    return self
-end
-
----Watch a property for changes
----Calls callback when the watched property changes
----@param source string|function Property name (string) or getter function
----@param callback function(newValue, oldValue) Callback when value changes
----@param options {immediate: boolean?, deep: boolean?}? Watcher options
----@return Watcher The watcher instance (can be passed to unwatch)
-function State:watch(source, callback, options)
-    local watcher = Watcher(self, source, callback, options)
-    table.insert(self.__watchers, watcher)
-    return watcher
-end
-
----Remove a specific watcher
----@param watcher Watcher The watcher to remove
-function State:unwatch(watcher)
-    watcher:unwatch()
-    for i, w in ipairs(self.__watchers) do
-        if w == watcher then
-            table.remove(self.__watchers, i)
-            break
-        end
-    end
-end
-
----Create a computed property
----Computed properties automatically track dependencies and update lazily
----@param name string Name of the computed property
----@param getter function() Function that computes and returns the value
----@return Computed The computed instance (access value with :get())
-function State:computed(name, getter)
-    local computed = Computed(getter)
-    self.__computed[name] = computed
-    return computed
-end
-
----Get a computed property by name
----@param name string Name of the computed property
----@return Computed? The computed instance, or nil if not found
-function State:getComputed(name)
-    return self.__computed[name]
+    return value
 end
 
 ---Clean up all watchers and computed properties
 ---Call this when the state is no longer needed to prevent memory leaks
+---Delegates to StatefulMixin:cleanupStateful()
 function State:cleanup()
-    for _, watcher in ipairs(self.__watchers) do
-        watcher:unwatch()
-    end
-    self.__watchers = {}
-
-    for _, computed in pairs(self.__computed) do
-        for dependency in pairs(computed.dependencies) do
-            dependency.subscribers[computed] = nil
-        end
-    end
-    self.__computed = {}
+    self:cleanupStateful()
 end
 
 ---Get value at a dot-notation path

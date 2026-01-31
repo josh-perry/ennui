@@ -59,27 +59,31 @@ function Slider.new(minValue, maxValue, initialValue)
     self:setSize(Size.fill(), 24)
 
     self:on("mousePressed", function(_, event)
+        ---@cast event MouseEvent
         if event.button == 1 and not self.state.isDisabled then
             self.__isDragging = true
-            self:__updateValueFromMouse(event.x)
+            self:updateValueFromMouse(event.x)
             return true
         end
     end)
 
     self:on("mouseReleased", function(_, event)
+        ---@cast event MouseEvent
         if event.button == 1 then
             self.__isDragging = false
         end
     end)
 
     self:on("mouseMoved", function(_, event)
+        ---@cast event MouseEvent
         if self.__isDragging and not self.state.isDisabled then
-            self:__updateValueFromMouse(event.x)
+            self:updateValueFromMouse(event.x)
             return true
         end
     end)
 
     self:on("keyPressed", function(_, event)
+        ---@cast event KeyboardEvent
         if self.state.isDisabled then return end
 
         local step = self.props.step > 0 and self.props.step or (self.props.maxValue - self.props.minValue) / 20
@@ -102,9 +106,8 @@ function Slider.new(minValue, maxValue, initialValue)
 end
 
 ---Update value from mouse position
----@private
 ---@param mouseX number Mouse X position
-function Slider:__updateValueFromMouse(mouseX)
+function Slider:updateValueFromMouse(mouseX)
     local trackX = self.x + self.padding.left + self.props.thumbSize / 2
     local trackWidth = self.width - self.padding.left - self.padding.right - self.props.thumbSize
 

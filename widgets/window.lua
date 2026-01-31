@@ -1,5 +1,6 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
+local AABB = require("ennui.utils.aabb")
 
 ---@class Window : Widget
 ---@field title string Window title text
@@ -226,8 +227,7 @@ end
 ---@param y number Y coordinate
 ---@return boolean inTitleBar
 function Window:isInTitleBar(x, y)
-    return x >= self.x and x <= self.x + self.width and
-           y >= self.y and y <= self.y + self.props.titleBarHeight
+    return AABB.containsPoint(x, y, self.x, self.y, self.width, self.props.titleBarHeight)
 end
 
 ---Check if point is on close button
@@ -243,15 +243,14 @@ function Window:isOnCloseButton(x, y)
     local buttonX = self.x + self.width - buttonSize - 3
     local buttonY = self.y + 3
 
-    return x >= buttonX and x <= buttonX + buttonSize and
-           y >= buttonY and y <= buttonY + buttonSize
+    return AABB.containsPoint(x, y, buttonX, buttonY, buttonSize, buttonSize)
 end
 
 ---Get the first focusable widget in this window
 ---@return Widget? widget First focusable widget or nil
 function Window:__getFirstFocusableWidget()
     local function findFirst(widget)
-        if widget.__focusable and widget:isVisible() and not widget.state.isDisabled then
+        if widget.focusable and widget:isVisible() and not widget.state.isDisabled then
             return widget
         end
         for _, child in ipairs(widget.children) do
@@ -409,7 +408,7 @@ function Window:__calculateContentHeight()
 end
 
 function Window:__collectFocusableWidgets(widget, widgets)
-    if widget.__focusable and widget:isVisible() and not widget.state.isDisabled then
+    if widget.focusable and widget:isVisible() and not widget.state.isDisabled then
         table.insert(widgets, widget)
     end
 

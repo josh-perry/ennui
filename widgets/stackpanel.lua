@@ -2,6 +2,7 @@ local ennui = require("ennui")
 local Widget = require("ennui.widget")
 
 ---@class StackPanel : Widget
+---@operator call:StackPanel
 local StackPanel = {}
 StackPanel.__index = StackPanel
 setmetatable(StackPanel, {
@@ -28,12 +29,13 @@ end
 
 ---Set spacing between children
 ---@param pixels number Spacing in pixels
----@return StackPanel self
+---@return self
 function StackPanel:setSpacing(pixels)
     if self.layoutStrategy then
         self.layoutStrategy.spacing = pixels
         self:invalidateLayout()
     end
+
     return self
 end
 

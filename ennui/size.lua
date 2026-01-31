@@ -78,16 +78,16 @@ function Size.fill(weight)
     }
 end
 
----Normalize a value to a Size table
+---Normalise a value to a Size table
 ---Accepts multiple input formats for convenience:
 --- - number -> Size.fixed(number)
 --- - "fill" or "fill(2)" -> Size.fill() or Size.fill(2)
 --- - "auto" -> Size.auto()
 --- - "50%" -> Size.percent(0.5)
 --- - Size table -> returned as-is
----@param value number|string|Size The value to normalize
+---@param value number|string|Size The value to normalise
 ---@return Size
-function Size.normalize(value)
+function Size.normalise(value)
     if type(value) == "table" and value.type then
         return value
     end
@@ -116,10 +116,10 @@ function Size.normalize(value)
             return Size.percent(tonumber(percent) / 100)
         end
 
-        error(("Size.normalize: unknown string format %q"):format(value))
+        error(("Size.normalise: unknown string format %q"):format(value))
     end
 
-    error(("Size.normalize: expected number, string, or Size table, got %s"):format(type(value)))
+    error(("Size.normalise: expected number, string, or Size table, got %s"):format(type(value)))
 end
 
 return Size

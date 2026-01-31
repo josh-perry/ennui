@@ -1,6 +1,7 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
 local Scissor = require("ennui.utils.scissor")
+local AABB = require("ennui.utils.aabb")
 
 ---@class ScrollArea : Widget
 ---@field scrollX number Current horizontal scroll position
@@ -62,6 +63,7 @@ function ScrollArea.new()
     self.__horizontalBarHovered = false
 
     self:on("mousePressed", function(_, event)
+        ---@diagnostic disable-next-line: invisible
         return self:__handleMousePressed(event)
     end)
 
@@ -71,6 +73,7 @@ function ScrollArea.new()
     end)
 
     self:on("mouseMoved", function(_, event)
+        ---@diagnostic disable-next-line: invisible
         return self:__handleMouseMoved(event)
     end)
 
@@ -87,8 +90,7 @@ function ScrollArea:__handleMousePressed(event)
 
     -- Check vertical scroll bar
     if self:__needsVerticalScroll() and
-       event.x >= vBarX and event.x <= vBarX + vBarW and
-       event.y >= vBarY and event.y <= vBarY + vBarH then
+       AABB.containsPoint(event.x, event.y, vBarX, vBarY, vBarW, vBarH) then
         self.__isDraggingVertical = true
         self.__dragStartY = event.y
         self.__dragStartScrollY = self.props.scrollY
@@ -97,8 +99,7 @@ function ScrollArea:__handleMousePressed(event)
 
     -- Check horizontal scroll bar
     if self:__needsHorizontalScroll() and
-       event.x >= hBarX and event.x <= hBarX + hBarW and
-       event.y >= hBarY and event.y <= hBarY + hBarH then
+       AABB.containsPoint(event.x, event.y, hBarX, hBarY, hBarW, hBarH) then
         self.__isDraggingHorizontal = true
         self.__dragStartX = event.x
         self.__dragStartScrollX = self.props.scrollX
@@ -116,12 +117,10 @@ function ScrollArea:__handleMouseMoved(event)
     local hBarX, hBarY, hBarW, hBarH = self:__getHorizontalScrollBarRect()
 
     self.__verticalBarHovered = self:__needsVerticalScroll() and
-        event.x >= vBarX and event.x <= vBarX + vBarW and
-        event.y >= vBarY and event.y <= vBarY + vBarH
+        AABB.containsPoint(event.x, event.y, vBarX, vBarY, vBarW, vBarH)
 
     self.__horizontalBarHovered = self:__needsHorizontalScroll() and
-        event.x >= hBarX and event.x <= hBarX + hBarW and
-        event.y >= hBarY and event.y <= hBarY + hBarH
+        AABB.containsPoint(event.x, event.y, hBarX, hBarY, hBarW, hBarH)
 
     -- Handle dragging
     if self.__isDraggingVertical then
@@ -431,14 +430,14 @@ function ScrollArea:hitTest(x, y)
     -- Check scroll bars first
     if self:__needsVerticalScroll() then
         local vBarX, vBarY, vBarW, vBarH = self:__getVerticalScrollBarRect()
-        if x >= vBarX and x <= vBarX + vBarW then
+        if AABB.containsPoint(x, y, vBarX, vBarY, vBarW, vBarH) then
             return self
         end
     end
 
     if self:__needsHorizontalScroll() then
         local hBarX, hBarY, hBarW, hBarH = self:__getHorizontalScrollBarRect()
-        if y >= hBarY and y <= hBarY + hBarH then
+        if AABB.containsPoint(x, y, hBarX, hBarY, hBarW, hBarH) then
             return self
         end
     end
@@ -449,8 +448,7 @@ function ScrollArea:hitTest(x, y)
     local viewWidth = self:__getViewportWidth()
     local viewHeight = self:__getViewportHeight()
 
-    if x >= viewX and x <= viewX + viewWidth and
-       y >= viewY and y <= viewY + viewHeight then
+    if AABB.containsPoint(x, y, viewX, viewY, viewWidth, viewHeight) then
 
         for i = #self.children, 1, -1 do
             local hit = self.children[i]:hitTest(x, y)

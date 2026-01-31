@@ -1,6 +1,7 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
 local Text = require("widgets.text")
+local AABB = require("ennui.utils.aabb")
 
 ---@class MenuItem
 ---@field label string Display text
@@ -120,8 +121,7 @@ function Menu:hitTest(x, y)
 
     local menuHeight = self:getMenuHeight()
 
-    if x >= self.x and x <= self.x + self.width and
-       y >= self.y and y <= self.y + menuHeight then
+    if AABB.containsPoint(x, y, self.x, self.y, self.width, menuHeight) then
         return self
     end
 

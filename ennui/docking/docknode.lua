@@ -81,9 +81,12 @@ function DockNode:split(direction, ratio, moveExistingToLeft)
 
     if #self.dockedWidgets > 0 then
         local targetChild = moveExistingToLeft and self.leftChild or self.rightChild
+        assert(targetChild, "Target child should not be nil")
+
         for _, widget in ipairs(self.dockedWidgets) do
             table.insert(targetChild.dockedWidgets, widget)
         end
+
         targetChild.activeTabIndex = self.activeTabIndex
         targetChild.tabBar = self.tabBar
     end
@@ -270,24 +273,23 @@ function DockNode:getSplitterBounds()
     end
 
     local thickness = 4
-    local bounds = self.bounds
 
     if self.splitDirection == "horizontal" then
-        local splitterX = bounds.x + bounds.width * self.splitRatio
+        local splitterX = self.bounds.x + self.bounds.width * self.splitRatio
 
         return {
             x = splitterX - thickness / 2,
-            y = bounds.y,
+            y = self.bounds.y,
             width = thickness,
-            height = bounds.height
+            height = self.bounds.height
         }
     else
-        local splitterY = bounds.y + bounds.height * self.splitRatio
+        local splitterY = self.bounds.y + self.bounds.height * self.splitRatio
 
         return {
-            x = bounds.x,
+            x = self.bounds.x,
             y = splitterY - thickness / 2,
-            width = bounds.width,
+            width = self.bounds.width,
             height = thickness
         }
     end

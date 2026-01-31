@@ -615,7 +615,7 @@ function Host:__getFocusableWidgets(tabContext)
             return
         end
 
-        if widget.__focusable and widget:isVisible() and not widget:isDisabled() then
+        if widget.focusable and widget:isVisible() and not widget:isDisabled() then
             table.insert(focusable, widget)
         end
 
@@ -631,7 +631,7 @@ function Host:__getFocusableWidgets(tabContext)
     end
 
     table.sort(focusable, function(a, b)
-        return a.__tabIndex < b.__tabIndex
+        return a.tabIndex < b.tabIndex
     end)
 
     return focusable

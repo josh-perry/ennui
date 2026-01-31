@@ -3,6 +3,7 @@ local Widget = require("ennui.widget")
 local Size = require("ennui.size")
 local Text = require("widgets.text")
 local Scissor = require("ennui.utils.scissor")
+local AABB = require("ennui.utils.aabb")
 
 ---@class CollapseableHeader : Widget
 ---@field expanded boolean Whether the content is expanded
@@ -177,8 +178,7 @@ end
 ---@param y number Y coordinate
 ---@return boolean inHeader
 function CollapseableHeader:__isInHeader(x, y)
-    return x >= self.x and x <= self.x + self.width and
-           y >= self.y and y <= self.y + self.props.headerHeight
+    return AABB.containsPoint(x, y, self.x, self.y, self.width, self.props.headerHeight)
 end
 
 ---Override hitTest

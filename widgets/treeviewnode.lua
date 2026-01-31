@@ -4,6 +4,7 @@ local Size = require("ennui.size")
 local Text = require("widgets.text")
 local HorizontalStackPanel = require("widgets.horizontalstackpanel")
 local Rectangle = require("widgets.rectangle")
+local AABB = require("ennui.utils.aabb")
 
 ---@class TreeViewNode : Widget
 ---@field label string Node label text
@@ -358,8 +359,7 @@ function TreeViewNode:onClicked(event)
     local iconSize = self.props.iconSize
 
     if #self.children > 0 and
-       event.x >= iconX and event.x <= iconX + iconSize + 8 and
-       event.y >= iconY and event.y <= iconY + iconSize then
+       AABB.containsPoint(event.x, event.y, iconX, iconY, iconSize + 8, iconSize) then
         self:toggle()
         event:consume()
         return true

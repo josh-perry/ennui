@@ -17,9 +17,9 @@ setmetatable(Splitter, {
 
 ---Creates a new Splitter
 ---@param orientation "horizontal"|"vertical"
----@return Splitter
+---@return self
 function Splitter.new(orientation)
-    local self = setmetatable(Widget.new(), Splitter)
+    local self = setmetatable(Widget.new(), Splitter) ---@cast self Splitter
 
     if orientation ~= "horizontal" and orientation ~= "vertical" then
         error("Orientation must be 'horizontal' or 'vertical'")

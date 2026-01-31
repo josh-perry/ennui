@@ -26,7 +26,7 @@ end
 ---@param dockTree DockNode? Root dock node
 ---@return DockLayoutStrategy
 function DockLayoutStrategy.new(dockTree)
-    local self = setmetatable(LayoutStrategy.new(), DockLayoutStrategy)
+    local self = setmetatable(LayoutStrategy.new(), DockLayoutStrategy) ---@cast self DockLayoutStrategy
 
     self.dockTree = dockTree
     self.splitterThickness = 4

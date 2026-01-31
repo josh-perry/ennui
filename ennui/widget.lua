@@ -1,9 +1,10 @@
 local Size = require("ennui.size")
 local Reactive = require("ennui.reactive")
 local PropertyMetadata = require("ennui.property_metadata")
-local Watcher = require("ennui.watcher")
-local Computed = require("ennui.computed")
 local Scissor = require("ennui.utils.scissor")
+local Mixins = require("ennui.mixins")
+local Mixin = require("ennui.utils.mixin")
+local AABB = require("ennui.utils.aabb")
 
 ---@class WidgetState
 ---@field public isHovered boolean Mouse is over widget
@@ -24,9 +25,8 @@ local Scissor = require("ennui.utils.scissor")
 ---@field public bottom number Bottom margin in pixels
 ---@field public left number Left margin in pixels
 
----@class Widget
+---@class Widget : StatefulMixin, ParentableMixin, DraggableMixin, FocusableMixin, EventEmitterMixin
 ---@field public id string? Optional widget identifier
----@field public props table Properties table
 ---@field public x number X position in pixels
 ---@field public y number Y position in pixels
 ---@field public width number Actual width in pixels
@@ -43,8 +43,6 @@ local Scissor = require("ennui.utils.scissor")
 ---@field public sizeConstraint table? Size constraint specification
 ---@field public padding Padding Padding around content
 ---@field public margin Margin Margin around widget
----@field public parent Widget|Host Parent widget
----@field public children Widget[] Child widgets
 ---@field public state WidgetState Internal interaction state
 ---@field public isLayoutDirty boolean Whether layout needs recalculation
 ---@field public isRenderDirty boolean Whether widget needs redraw
@@ -52,18 +50,7 @@ local Scissor = require("ennui.utils.scissor")
 ---@field public verticalAlignment "top"|"center"|"bottom"|"stretch" Vertical alignment
 ---@field public layoutStrategy LayoutStrategy? Optional layout strategy for arranging children
 ---@field public isTabContext boolean Whether this widget creates a new tab focus scope
----@field public isDraggable boolean Whether widget can be dragged
----@field public dragMode string Drag mode: "position" or "delta"
----@field public dragHandle table? Drag handle rectangle {x, y, width, height} relative to widget
----@field public onDragStart function? Drag lifecycle callback
----@field public onDrag function? Drag lifecycle callback
----@field public onDragEnd function? Drag lifecycle callback
----@field private __handlers table Event handlers (bubble phase)
----@field private __captureHandlers table Event handlers (capture phase)
----@field private __focusable boolean Whether widget can receive focus
----@field private __tabIndex number Tab order for focus navigation
 ---@field private __hitTransparent boolean Whether widget passes through hit events to parent
----@field private __rawProps table<string, any> Underlying raw properties table
 ---@field public clipContent boolean Whether to clip children to widget bounds
 local Widget = {}
 Widget.__index = Widget
@@ -76,6 +63,8 @@ setmetatable(Widget, {
     end
 })
 
+Mixin.extend(Widget, Mixins.Stateful, Mixins.Parentable, Mixins.Draggable, Mixins.Focusable, Mixins.EventEmitter)
+
 function Widget:__tostring()
     return "Widget"
 end
@@ -84,7 +73,12 @@ end
 function Widget.new()
     local self = setmetatable({}, Widget)
 
-    -- Non-reactive properties (used by layout engine, event system, etc)
+    self:initStateful()
+    self:initParentable()
+    self:initDraggable()
+    self:initFocusable()
+    self:initEventEmitter()
+
     self.id = nil
     self.x = 0
     self.y = 0
@@ -92,8 +86,6 @@ function Widget.new()
     self.height = 0
     self.desiredWidth = 0
     self.desiredHeight = 0
-    self.parent = nil
-    self.children = {}
     self.state = {
         isHovered = false,
         isFocused = false,
@@ -105,42 +97,25 @@ function Widget.new()
     self.isRenderDirty = true
     self.isTabContext = false
     self.layoutStrategy = nil
-    self.__handlers = {}
-    self.__captureHandlers = {}
-    self.__focusable = false
-    self.__tabIndex = 0
     self.__hitTransparent = false
     self.clipContent = false
 
-    self.__rawProps = {
-        preferredWidth = Size.auto(),
-        preferredHeight = Size.auto(),
-        minWidth = nil,
-        maxWidth = nil,
-        minHeight = nil,
-        maxHeight = nil,
-        aspectRatio = nil,
-        sizeConstraint = nil,
-        padding = { top = 0, right = 0, bottom = 0, left = 0 },
-        margin = { top = 0, right = 0, bottom = 0, left = 0 },
-        horizontalAlignment = "stretch",
-        verticalAlignment = "stretch",
-    }
+    self.__rawProps.preferredWidth = Size.auto()
+    self.__rawProps.preferredHeight = Size.auto()
+    self.__rawProps.minWidth = nil
+    self.__rawProps.maxWidth = nil
+    self.__rawProps.minHeight = nil
+    self.__rawProps.maxHeight = nil
+    self.__rawProps.aspectRatio = nil
+    self.__rawProps.sizeConstraint = nil
+    self.__rawProps.padding = { top = 0, right = 0, bottom = 0, left = 0 }
+    self.__rawProps.margin = { top = 0, right = 0, bottom = 0, left = 0 }
+    self.__rawProps.horizontalAlignment = "stretch"
+    self.__rawProps.verticalAlignment = "stretch"
 
     self:addProperty("isDocked", false)
 
-    self.__watchers = {}
-    self.__computed = {}
-
-    -- Drag system properties
-    self.isDraggable = false
-    self.dragMode = "position" -- "position" or "delta"
-    self.dragHandle = nil -- {x, y, width, height} relative to widget
-    -- Drag callbacks
-    self.onDragStart = nil -- function(event) -> bool (return false to cancel)
-    self.onDrag = nil -- function(event, deltaX, deltaY) for delta mode, or function(event) for position mode
-    self.onDragEnd = nil -- function(event)
-
+    -- Create reactive proxy (Widget uses Reactive.createProxy, not State's custom proxy)
     self.props = Reactive.createProxy(
         self.__rawProps,
         nil,
@@ -155,7 +130,6 @@ function Widget.new()
         end
     )
 
-    -- Make nested tables reactive (padding and margin)
     self.props.padding = self:__makeReactiveNested(self.__rawProps.padding, "padding")
     self.props.margin = self:__makeReactiveNested(self.__rawProps.margin, "margin")
 
@@ -206,7 +180,7 @@ end
 ---@return T
 function Widget:setPreferredWidth(width)
     ---@cast self Widget
-    self.props.preferredWidth = Size.normalize(width)
+    self.props.preferredWidth = Size.normalise(width)
     return self
 end
 
@@ -216,7 +190,7 @@ end
 ---@return T
 function Widget:setPreferredHeight(height)
     ---@cast self Widget
-    self.props.preferredHeight = Size.normalize(height)
+    self.props.preferredHeight = Size.normalise(height)
     return self
 end
 
@@ -453,33 +427,6 @@ function Widget:setLayoutStrategy(strategy)
     return self
 end
 
----@generic T : Widget
----@param self T
----@param focusable boolean Whether widget can receive focus
----@return T
-function Widget:setFocusable(focusable)
-    ---@cast self Widget
-    self.__focusable = focusable
-    return self
-end
-
----@generic T : Widget
----@param self T
----@return boolean
-function Widget:getFocusable()
-    ---@cast self Widget
-    return self.__focusable
-end
-
----@generic T : Widget
----@param self T
----@param index number Tab order (lower = earlier)
----@return T
-function Widget:setTabIndex(index)
-    ---@cast self Widget
-    self.__tabIndex = index
-    return self
-end
 
 ---@generic T : Widget
 ---@param self T
@@ -585,7 +532,8 @@ end
 ---@param widget Widget
 ---@return number
 local function getMaxTabIndexInSubtree(widget)
-    local maxIndex = widget.__tabIndex
+    local maxIndex = widget.tabIndex
+
     for _, child in ipairs(widget.children) do
         local childMax = getMaxTabIndexInSubtree(child)
 
@@ -602,7 +550,7 @@ end
 ---@return number
 local function assignSequentialTabIndexes(widget, counter)
     counter = counter + 1
-    widget.__tabIndex = counter
+    widget.tabIndex = counter
 
     for _, child in ipairs(widget.children) do
         counter = assignSequentialTabIndexes(child, counter)
@@ -611,31 +559,12 @@ local function assignSequentialTabIndexes(widget, counter)
     return counter
 end
 
----Build a nested tree structure of this widget and its descendants
----@return table tree { widget: Widget, children: table[] }
-function Widget:buildDescendantTree()
-    local tree = {
-        widget = self,
-        children = {}
-    }
 
-    for _, child in ipairs(self.children) do
-        table.insert(tree.children, child:buildDescendantTree())
-    end
-
-    return tree
-end
-
----@generic T : Widget
----@param self T
----@param child Widget Child widget to add
----@return T
-function Widget:addChild(child)
-    ---@cast self Widget
-    table.insert(self.children, child)
-    child.parent = self
-
-    local maxSiblingIndex = self.__tabIndex
+---Hook called after a child is added (implements ParentableMixin hook)
+---@param child Widget The child that was added
+function Widget:__onAfterAddChild(child)
+    -- Assign tab indexes
+    local maxSiblingIndex = self.tabIndex
     for _, sibling in ipairs(self.children) do
         if sibling ~= child then
             local siblingMax = getMaxTabIndexInSubtree(sibling)
@@ -647,144 +576,30 @@ function Widget:addChild(child)
 
     assignSequentialTabIndexes(child, maxSiblingIndex)
 
-    child:onMount()
+    -- Invalidate layout
     self:invalidateLayout()
-    return self
 end
 
----@generic T : Widget
----@param self T
----@param child Widget Child widget to remove
----@return T
-function Widget:removeChild(child)
-    ---@cast self Widget
-    for i, c in ipairs(self.children) do
-        if c == child then
-            table.remove(self.children, i)
-            child.parent = nil
-
-            local host = self:__getHost()
-            if host and host.focusedWidget then
-                local current = host.focusedWidget
-                while current do
-                    if current == child then
-                        host:setFocusedWidget(nil)
-                        break
-                    end
-                    current = current.parent
-                end
-            end
-
-            child:onUnmount()
-            self:invalidateLayout()
-            break
-        end
-    end
-
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param index number Index of child to remove
----@return T
-function Widget:removeChildAt(index)
-    ---@cast self Widget
-    local child = self.children[index]
-    if child then
-        table.remove(self.children, index)
-        child.parent = nil
-
-        local host = self:__getHost()
-        if host and host.focusedWidget then
-            local current = host.focusedWidget
-            while current do
-                if current == child then
-                    host:setFocusedWidget(nil)
-                    break
-                end
-                current = current.parent
-            end
-        end
-
-        child:onUnmount()
-        self:invalidateLayout()
-    end
-
-    return self
-end
-
----@generic T : Widget
----@param self T
----@return T
-function Widget:clearChildren()
-    ---@cast self Widget
+---Hook called after a child is removed (implements ParentableMixin hook)
+---@param child Widget The child that was removed
+function Widget:__onAfterRemoveChild(child)
+    -- Clear focus if focused widget is being removed
     local host = self:__getHost()
-
     if host and host.focusedWidget then
-        for _, child in ipairs(self.children) do
-            local current = host.focusedWidget
-            while current do
-                if current == child then
-                    host:setFocusedWidget(nil)
-                    break
-                end
-                current = current.parent
+        local current = host.focusedWidget
+        while current do
+            if current == child then
+                host:setFocusedWidget(nil)
+                break
             end
+            current = current.parent
         end
     end
 
-    for _, child in ipairs(self.children) do
-        child.parent = nil
-        child:onUnmount()
-    end
-
-    self.children = {}
+    -- Invalidate layout
     self:invalidateLayout()
-    return self
 end
 
----@generic T : Widget
----@param self T
----@return T
-function Widget:removeAllChildren()
-    ---@cast self Widget
-    return self:clearChildren()
-end
-
----@param index number Index of child
----@return Widget? child
-function Widget:getChild(index)
-    return self.children[index]
-end
-
----@return Widget[]
-function Widget:getChildren()
-    return self.children
-end
-
----@return Widget? parent
-function Widget:getParent()
-    return self.parent
-end
-
----@param id string Widget ID to search for
----@return Widget? widget
-function Widget:findById(id)
-    if self.id == id then
-        return self
-    end
-
-    for _, child in ipairs(self.children) do
-        local found = child:findById(id)
-
-        if found then
-            return found
-        end
-    end
-
-    return nil
-end
 
 ---@generic T : Widget
 ---@param self T
@@ -819,105 +634,11 @@ function Widget:bringToFront()
     return self
 end
 
----@generic T : Widget
----@param self T
----@param event string Event name
----@param handler fun(self: Widget, event: Event): boolean? Event handler function (return true to consume)
----@param options {capture: boolean}? Handler options
----@return T
-function Widget:on(event, handler, options)
-    ---@cast self Widget
-    options = options or {}
-    local handlersTable = options.capture and self.__captureHandlers or self.__handlers
-
-    if not handlersTable[event] then
-        handlersTable[event] = {}
-    end
-
-    table.insert(handlersTable[event], handler)
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param event string Event name
----@param handler fun(self: Widget, event: Event)? Specific handler to remove (or nil for all)
----@return T
-function Widget:off(event, handler)
-    ---@cast self Widget
-    if not handler then
-        self.__handlers[event] = nil
-        self.__captureHandlers[event] = nil
-    else
-        if self.__handlers[event] then
-            for i, h in ipairs(self.__handlers[event]) do
-                if h == handler then
-                    table.remove(self.__handlers[event], i)
-                    break
-                end
-            end
-        end
-        if self.__captureHandlers[event] then
-            for i, h in ipairs(self.__captureHandlers[event]) do
-                if h == handler then
-                    table.remove(self.__captureHandlers[event], i)
-                    break
-                end
-            end
-        end
-    end
-
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param event string Event name
----@param handler fun(self: Widget, event: Event) Event handler function
----@return T
-function Widget:once(event, handler)
-    ---@cast self Widget
-    local wrappedHandler
-
-    wrappedHandler = function(self, eventData)
-        handler(self, eventData)
-        self:off(event, wrappedHandler)
-    end
-
-    return self:on(event, wrappedHandler)
-end
-
----@generic T : Widget
----@param self T
----@param handler fun(self: Widget, event: Event) Click handler function
----@return T
-function Widget:onClick(handler)
-    ---@cast self Widget
-    return self:on("clicked", handler)
-end
-
----@generic T : Widget
----@param self T
----@param handler fun(self: Widget, event: Event) Hover handler function
----@return T
-function Widget:onHover(handler)
-    ---@cast self Widget
-    return self:on("mouseEntered", handler)
-end
-
----@generic T : Widget
----@param self T
----@param event Event Event object
-function Widget:dispatchEvent(event)
-    ---@cast self Widget
-    self:__handleEvent(event)
-end
-
 ---@protected
 ---@param event Event Event object
 function Widget:__handleEvent(event)
-    if self.__handlers and self.__handlers[event.type] then
-        for _, handler in ipairs(self.__handlers[event.type]) do
+    if self.eventHandlers and self.eventHandlers[event.type] then
+        for _, handler in ipairs(self.eventHandlers[event.type]) do
             local consumed = handler(self, event)
             if consumed then
                 event.consumed = true
@@ -937,9 +658,10 @@ end
 ---@protected
 ---@param event Event Event object
 function Widget:__handleCaptureEvent(event)
-    if self.__captureHandlers[event.type] then
-        for _, handler in ipairs(self.__captureHandlers[event.type]) do
+    if self.eventCaptureHandlers[event.type] then
+        for _, handler in ipairs(self.eventCaptureHandlers[event.type]) do
             local consumed = handler(self, event)
+
             if consumed then
                 event.consumed = true
             end
@@ -947,26 +669,6 @@ function Widget:__handleCaptureEvent(event)
     end
 end
 
-function Widget:focus()
-    if self.__focusable then
-        local host = self:__getHost()
-        if host then
-            host:setFocusedWidget(self)
-        end
-    end
-end
-
-function Widget:blur()
-    local host = self:__getHost()
-    if host and host:getFocusedWidget() == self then
-        host:setFocusedWidget(nil)
-    end
-end
-
----@return boolean
-function Widget:isFocused()
-    return self.state.isFocused
-end
 
 ---@protected
 ---@return Host? host
@@ -1286,8 +988,7 @@ end
 ---@param y number Point Y
 ---@return boolean
 function Widget:containsPoint(x, y)
-    return x >= self.x and x <= self.x + self.width and
-           y >= self.y and y <= self.y + self.height
+    return AABB.containsPoint(x, y, self.x, self.y, self.width, self.height)
 end
 
 ---@param x number Point X
@@ -1345,47 +1046,16 @@ function Widget:__makeReactiveNested(rawTable, parentKey)
             end
         end
     )
+
     return proxy
 end
 
----Watch a property for changes
----Calls callback when the watched property changes
----@param source string|function Property name (string) or getter function
----@param callback function(newValue, oldValue) Callback when value changes
----@param options {immediate: boolean?, deep: boolean?}? Watcher options
----@return Watcher The watcher instance (can be passed to unwatch)
-function Widget:watch(source, callback, options)
-    local watcher = Watcher(self, source, callback, options)
-    table.insert(self.__watchers, watcher)
-    return watcher
-end
-
----Add a custom property to the widget
----Custom properties are reactive and accessible via self.props
----@generic T : Widget
----@param self T
+---Hook called after property is added (implements StatefulMixin hook)
+---Mirrors the property to the widget instance for direct access
 ---@param name string Property name
----@param initialValue any Initial value for the property
----@return T
-function Widget:addProperty(name, initialValue)
-    ---@cast self Widget
-    self.__rawProps[name] = initialValue
-    self[name] = initialValue
-    return self
-end
-
----Create a computed property
----Computed properties automatically track dependencies and update lazily
----@generic T : Widget
----@param self T
----@param name string Name of the computed property
----@param getter function() Function that computes and returns the value
----@return Computed The computed instance (access value with :get())
-function Widget:computed(name, getter)
-    ---@cast self Widget
-    local computed = Computed(getter)
-    self.__computed[name] = computed
-    return computed
+---@param value any The stored value
+function Widget:__afterAddProperty(name, value)
+    self[name] = value
 end
 
 ---Bind a widget property to a computed property
@@ -1476,123 +1146,15 @@ function Widget:bindFrom(source, mapping, transform)
     return self
 end
 
----Remove a specific watcher
----@param watcher Watcher The watcher to remove
-function Widget:unwatch(watcher)
-    watcher:unwatch()
-
-    for i, w in ipairs(self.__watchers) do
-        if w == watcher then
-            table.remove(self.__watchers, i)
-            break
-        end
-    end
-end
-
----Configure whether this widget is draggable
----@generic T : Widget
----@param self T
----@param draggable boolean Whether the widget can be dragged
----@param dragHandle table? Optional drag handle rectangle {x, y, width, height}
----@return T
-function Widget:setDraggable(draggable, dragHandle)
-    ---@cast self Widget
-    self.isDraggable = draggable
-
-    if dragHandle then
-        self.dragHandle = dragHandle
-    end
-
-    return self
-end
-
----Set the drag mode ("position" or "delta")
----@generic T : Widget
----@param self T
----@param mode string "position" for position-based dragging, "delta" for delta-based
----@return T
-function Widget:setDragMode(mode)
-    assert(mode == "position" or mode == "delta", "dragMode must be 'position' or 'delta'")
-    self.dragMode = mode
-    return self
-end
-
----Set the drag handle rectangle
----@generic T : Widget
----@param self T
----@param rect table? Rectangle {x, y, width, height} relative to widget, or nil to allow drag from anywhere
----@return T
-function Widget:setDragHandle(rect)
-    ---@cast self Widget
-    self.dragHandle = rect
-    return self
-end
-
----Check if a point is within the drag handle
----@generic T : Widget
----@param self T
----@param x number X coordinate
----@param y number Y coordinate
----@return boolean True if point is in drag handle
-function Widget:isInDragHandle(x, y)
-    ---@cast self Widget
-    -- Check if point is within widget bounds
-    if x < self.x or x > self.x + self.width or
-       y < self.y or y > self.y + self.height then
-        return false
-    end
-
-    -- If no drag handle specified, entire widget is draggable
-    if not self.dragHandle then
-        return true
-    end
-
-    -- Convert point to local coordinates
-    local localX = x - self.x
-    local localY = y - self.y
-
-    local handleX = self.dragHandle.x or 0
-    local handleY = self.dragHandle.y or 0
-
-    -- width/height of 0 means full widget dimension
-    local handleWidth = self.dragHandle.width == 0 and self.width or (self.dragHandle.width or self.width)
-    local handleHeight = self.dragHandle.height == 0 and self.height or (self.dragHandle.height or self.height)
-
-    return localX >= handleX and localX < handleX + handleWidth and
-           localY >= handleY and localY < handleY + handleHeight
-end
-
----Check if this widget is currently being dragged
----@generic T : Widget
----@param self T
----@return boolean True if widget is currently being dragged
-function Widget:isDragging()
-    ---@cast self Widget
-    local host = self:__getHost()
-
-    return host and host.isWidgetDragged and host:isWidgetDragged(self) or false
-end
-
 ---Clean up all watchers and computed properties
 ---Called automatically on unmount to prevent memory leaks
+---Delegates to StatefulMixin:cleanupStateful()
 ---@private
 ---@generic T : Widget
 ---@param self T
 function Widget:__cleanupReactive()
     ---@cast self Widget
-    for _, watcher in ipairs(self.__watchers) do
-        watcher:unwatch()
-    end
-
-    self.__watchers = {}
-
-    for _, computed in pairs(self.__computed) do
-        for dependency in pairs(computed.dependencies) do
-            dependency.subscribers[computed] = nil
-        end
-    end
-
-    self.__computed = {}
+    self:cleanupStateful()
 end
 
 ---Called when the widget is mounted to the widget tree

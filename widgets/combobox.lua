@@ -72,9 +72,11 @@ function ComboBox.new(items)
     self.__menu:setVisible(false)
     self.__menu.onItemSelected = function(index, item)
         local originalIndex = self.__filteredIndices[index]
+
         if originalIndex then
-            self:__selectItem(originalIndex)
+            self:selectItem(originalIndex)
         end
+
         self:close()
     end
 
@@ -147,8 +149,7 @@ end
 
 ---Select an item by original index
 ---@param index number Original item index
----@private
-function ComboBox:__selectItem(index)
+function ComboBox:selectItem(index)
     self.props.selectedIndex = index
     local item = self.props.items[index]
     if item then
@@ -198,7 +199,7 @@ function ComboBox:setSelectedIndex(index)
             self.props.selectedIndex = 0
             self.__textInput:setText("")
         else
-            self:__selectItem(index)
+            self:selectItem(index)
         end
     end
     return self
@@ -232,7 +233,7 @@ end
 function ComboBox:setSelectedValue(value)
     for i, item in ipairs(self.props.items) do
         if item.value == value then
-            self:__selectItem(i)
+            self:selectItem(i)
             break
         end
     end
@@ -364,7 +365,7 @@ function ComboBox:onKeyPressed(event)
             local originalIndex = self.__filteredIndices[self.__menu.props.hoveredIndex]
 
             if originalIndex then
-                self:__selectItem(originalIndex)
+                self:selectItem(originalIndex)
             end
 
             self:close()

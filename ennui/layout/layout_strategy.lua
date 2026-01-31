@@ -11,8 +11,9 @@ setmetatable(LayoutStrategy, {
 ---Creates a new Layoutstrategy
 ---@return LayoutStrategy
 function LayoutStrategy.new()
-    local self = setmetatable({}, LayoutStrategy)
+    local self = setmetatable({}, LayoutStrategy) ---@cast self LayoutStrategy
     self.spacing = 0
+
     return self
 end
 
