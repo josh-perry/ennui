@@ -198,7 +198,7 @@ function Dropdown:open()
     self.__menu:setVisible(true)
 
     -- Register menu as overlay
-    local host = self:__getHost()
+    local host = self:getHost()
 
     if host and host.registerOverlay then
         host:registerOverlay(self.__menu)
@@ -215,7 +215,7 @@ function Dropdown:close()
 
     -- Hide menu and unregister overlay
     self.__menu:setVisible(false)
-    local host = self:__getHost()
+    local host = self:getHost()
     if host and host.unregisterOverlay then
         host:unregisterOverlay(self.__menu)
     end
@@ -340,7 +340,7 @@ function Dropdown:onRender()
     local cornerRadius = self.props.cornerRadius
 
     -- Draw button background
-    local bgColor = self.state.isHovered and self.props.hoverColor or self.props.backgroundColor
+    local bgColor = self.props.isHovered and self.props.hoverColor or self.props.backgroundColor
     love.graphics.setColor(bgColor)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, cornerRadius, cornerRadius)
 
@@ -389,7 +389,7 @@ function Dropdown:onRender()
     end
 
     -- Draw focus indicator
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", self.x + 1, self.y + 1, self.width - 2, self.height - 2,

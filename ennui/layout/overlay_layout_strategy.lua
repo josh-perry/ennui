@@ -31,7 +31,7 @@ function OverlayLayoutStrategy:measure(widget, availableWidth, availableHeight)
     local contentHeight = availableHeight - widget.padding.top - widget.padding.bottom
 
     for _, child in ipairs(widget.children) do
-        if child.isVisible then
+        if child:isVisible() then
             child:measure(contentWidth, contentHeight)
         end
     end
@@ -63,7 +63,7 @@ end
 ---@param contentHeight number Height of content area (after padding)
 function OverlayLayoutStrategy:arrangeChildren(widget, contentX, contentY, contentWidth, contentHeight)
     for _, child in ipairs(widget.children) do
-        if child.isVisible then
+        if child:isVisible() then
             local childWidth = child.desiredWidth
             local childHeight = child.desiredHeight
 

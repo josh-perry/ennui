@@ -22,7 +22,7 @@ end
 ---Creates a new DockableWindow
 ---@return DockableWindow
 function DockableWindow.new()
-    local self = setmetatable(Window.new(), DockableWindow)
+    local self = setmetatable(Window.new(), DockableWindow) ---@cast self DockableWindow
 
     self:addProperty("isDockable", true)
     self.dockSpace = nil
@@ -202,7 +202,7 @@ end
 
 ---Get the host widget
 ---@return Host?
-function DockableWindow:__getHost()
+function DockableWindow:getHost()
     ---@type Host|Widget
     local current = self
 

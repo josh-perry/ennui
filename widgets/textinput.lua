@@ -215,7 +215,7 @@ end
 ---Update cursor blink
 ---@param dt number Delta time
 function TextInput:onUpdate(dt)
-    if self.state.isFocused then
+    if self.props.isFocused then
         self.props.cursorBlinkTime = self.props.cursorBlinkTime + dt
         if self.props.cursorBlinkTime >= 0.5 then
             self.props.cursorVisible = not self.props.cursorVisible
@@ -234,7 +234,7 @@ end
 ---Handle text input
 ---@param event TextInputEvent Text input event
 function TextInput:onTextInput(event)
-    if not self.state.isFocused or self.state.isDisabled then
+    if not self.props.isFocused or self.props.isDisabled then
         return
     end
 
@@ -254,7 +254,7 @@ end
 ---Handle key press
 ---@param event KeyboardEvent Keyboard event
 function TextInput:onKeyPressed(event)
-    if not self.state.isFocused or self.state.isDisabled then
+    if not self.props.isFocused or self.props.isDisabled then
         return
     end
 
@@ -338,6 +338,7 @@ function TextInput:onMousePressed(event)
     for i = 1, #displayText do
         local textWidth = self.props.font:getWidth(string.sub(displayText, 1, i))
         local dist = math.abs(clickX - textWidth)
+
         if dist < closestDist then
             closestDist = dist
             closestPos = i
@@ -369,13 +370,13 @@ end
 
 ---Render the text input
 function TextInput:onRender()
-    local borderColor = self.state.isFocused and self.props.focusedBorderColor or self.props.borderColor
+    local borderColor = self.props.isFocused and self.props.focusedBorderColor or self.props.borderColor
 
     love.graphics.setColor(self.props.inputBackgroundColor)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 
     love.graphics.setColor(borderColor)
-    love.graphics.setLineWidth(self.state.isFocused and 2 or 1)
+    love.graphics.setLineWidth(self.props.isFocused and 2 or 1)
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
     -- Save current scissor state
@@ -418,7 +419,7 @@ function TextInput:onRender()
         love.graphics.rectangle("fill", selX, textY, selWidth, self.props.font:getHeight())
     end
 
-    if self.state.isFocused and self.props.cursorVisible then
+    if self.props.isFocused and self.props.cursorVisible then
         local displayText = self:getDisplayText()
         local beforeCursor = string.sub(displayText, 1, self.props.cursorPosition)
         local textX = self.__textWidget.x + self.__textWidget.padding.left

@@ -4,6 +4,9 @@
 ---@field tabIndex number Tab order for focus navigation
 local FocusableMixin = {}
 
+local Mixin = require("ennui.utils.mixin")
+local ParentableMixin = require("ennui.mixins.parentable")
+
 ---Initialize focusable fields on an instance
 ---Call this from the constructor of classes using this mixin
 ---@param self table The instance to initialize
@@ -13,10 +16,8 @@ function FocusableMixin.initFocusable(self)
 end
 
 ---Set whether widget can receive focus
----@generic T
----@param self T
 ---@param focusable boolean Whether widget can receive focus
----@return T
+---@return self
 function FocusableMixin:setFocusable(focusable)
     self.focusable = focusable
     return self
@@ -29,10 +30,8 @@ function FocusableMixin:getFocusable()
 end
 
 ---Set the tab index for focus navigation
----@generic T
----@param self T
 ---@param index number Tab order (lower = earlier)
----@return T
+---@return self
 function FocusableMixin:setTabIndex(index)
     self.tabIndex = index
     return self
@@ -47,7 +46,12 @@ end
 ---Focus this widget
 function FocusableMixin:focus()
     if self.focusable then
-        local host = self:__getHost()
+        if not Mixin.hasMixin(self, ParentableMixin) then
+            return
+        end
+
+        ---@cast self ParentableMixin | FocusableMixin
+        local host = self:getHost()
 
         if host then
             host:setFocusedWidget(self)
@@ -57,7 +61,12 @@ end
 
 ---Blur (unfocus) this widget
 function FocusableMixin:blur()
-    local host = self:__getHost()
+    if not Mixin.hasMixin(self, ParentableMixin) then
+        return
+    end
+
+    ---@cast self ParentableMixin | FocusableMixin
+    local host = self:getHost()
 
     if host and host:getFocusedWidget() == self then
         host:setFocusedWidget(nil)
@@ -67,7 +76,13 @@ end
 ---Check if this widget is focused
 ---@return boolean
 function FocusableMixin:isFocused()
-    return self.state.isFocused
+    ---@diagnostic disable-next-line: undefined-field
+    if self.props then
+        ---@diagnostic disable-next-line: undefined-field
+        return self.props.isFocused
+    end
+
+    return false
 end
 
 return FocusableMixin

@@ -10,6 +10,7 @@ local PropertyType = {
 local PropertyMetadata = {}
 
 PropertyMetadata.properties = {
+    --TODO: not this, I don't like it
     -- Layout-affecting properties (trigger invalidateLayout)
     preferredWidth = { type = "layout" },
     preferredHeight = { type = "layout" },
@@ -23,6 +24,7 @@ PropertyMetadata.properties = {
     margin = { type = "layout" },
     horizontalAlignment = { type = "layout" },
     verticalAlignment = { type = "layout" },
+    isVisible = { type = "layout" },
 
     -- Inert properties (no invalidation)
     id = { type = "inert" },
@@ -31,7 +33,12 @@ PropertyMetadata.properties = {
     layoutStrategy = { type = "inert" },
     state = { type = "inert" },
 
-    --TODO: not this, I don't like it
+    -- Widget state properties (render-affecting)
+    isHovered = { type = "render" },
+    isFocused = { type = "render" },
+    isPressed = { type = "render" },
+    isDisabled = { type = "render" },
+
     -- Button properties (render-affecting)
     backgroundColor = { type = "render" },
     hoverColor = { type = "render" },

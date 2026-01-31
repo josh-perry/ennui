@@ -129,6 +129,7 @@ function Button:__calculateContentWidth()
             maxChildWidth = math.max(maxChildWidth, child.desiredWidth)
         end
     end
+
     return maxChildWidth + self.padding.left + self.padding.right + 20
 end
 
@@ -141,17 +142,18 @@ function Button:__calculateContentHeight()
             maxChildHeight = math.max(maxChildHeight, child.desiredHeight)
         end
     end
+
     return maxChildHeight + self.padding.top + self.padding.bottom + 10
 end
 
 ---Render the button
 function Button:onRender()
     local bgColor
-    if self.state.isDisabled then
+    if self.props.isDisabled then
         bgColor = self.props.disabledColor
-    elseif self.state.isPressed then
+    elseif self.props.isPressed then
         bgColor = self.props.pressedColor
-    elseif self.state.isHovered then
+    elseif self.props.isHovered then
         bgColor = self.props.hoverColor
     else
         bgColor = self.props.backgroundColor
@@ -168,7 +170,7 @@ function Button:onRender()
         self.props.cornerRadius
     )
 
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle(

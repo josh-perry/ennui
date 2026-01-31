@@ -60,7 +60,7 @@ function Slider.new(minValue, maxValue, initialValue)
 
     self:on("mousePressed", function(_, event)
         ---@cast event MouseEvent
-        if event.button == 1 and not self.state.isDisabled then
+        if event.button == 1 and not self.props.isDisabled then
             self.__isDragging = true
             self:updateValueFromMouse(event.x)
             return true
@@ -76,7 +76,7 @@ function Slider.new(minValue, maxValue, initialValue)
 
     self:on("mouseMoved", function(_, event)
         ---@cast event MouseEvent
-        if self.__isDragging and not self.state.isDisabled then
+        if self.__isDragging and not self.props.isDisabled then
             self:updateValueFromMouse(event.x)
             return true
         end
@@ -84,7 +84,7 @@ function Slider.new(minValue, maxValue, initialValue)
 
     self:on("keyPressed", function(_, event)
         ---@cast event KeyboardEvent
-        if self.state.isDisabled then return end
+        if self.props.isDisabled then return end
 
         local step = self.props.step > 0 and self.props.step or (self.props.maxValue - self.props.minValue) / 20
         if event.key == "left" then
@@ -252,9 +252,9 @@ function Slider:onRender()
 
     -- Draw thumb
     local thumbColor
-    if self.__isDragging or self.state.isPressed then
+    if self.__isDragging or self.props.isPressed then
         thumbColor = self.props.thumbPressedColor
-    elseif self.state.isHovered then
+    elseif self.props.isHovered then
         thumbColor = self.props.thumbHoverColor
     else
         thumbColor = self.props.thumbColor
@@ -265,7 +265,7 @@ function Slider:onRender()
     love.graphics.circle("fill", thumbX + thumbSize / 2, thumbY + thumbSize / 2, thumbSize / 2)
 
     -- Draw focus indicator
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.circle("line", thumbX + thumbSize / 2, thumbY + thumbSize / 2, thumbSize / 2 + 2)

@@ -95,14 +95,14 @@ function RadioButton.new(label, groupName, value)
     self:setFocusable(true)
 
     self:on("clicked", function()
-        if not self.state.isDisabled then
+        if not self.props.isDisabled then
             self:select()
         end
     end)
 
     self:on("keyPressed", function(_, event)
         if event.key == "space" or event.key == "return" then
-            if not self.state.isDisabled then
+            if not self.props.isDisabled then
                 self:select()
             end
             return true
@@ -252,7 +252,7 @@ function RadioButton:onRender()
     local radioY = self:__centerVertically(radioSize) + radioSize / 2
 
     -- Draw background circle
-    local bgColor = self.state.isHovered and self.props.hoverColor or self.props.backgroundColor
+    local bgColor = self.props.isHovered and self.props.hoverColor or self.props.backgroundColor
     love.graphics.setColor(bgColor)
     love.graphics.circle("fill", radioX, radioY, radioSize / 2)
 
@@ -268,7 +268,7 @@ function RadioButton:onRender()
     end
 
     -- Draw focus indicator
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.circle("line", radioX, radioY, radioSize / 2 + 3)

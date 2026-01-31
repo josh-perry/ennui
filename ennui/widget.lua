@@ -1,17 +1,10 @@
-local Size = require("ennui.size")
 local Reactive = require("ennui.reactive")
 local PropertyMetadata = require("ennui.property_metadata")
 local Scissor = require("ennui.utils.scissor")
 local Mixins = require("ennui.mixins")
 local Mixin = require("ennui.utils.mixin")
-local AABB = require("ennui.utils.aabb")
 
 ---@class WidgetState
----@field public isHovered boolean Mouse is over widget
----@field public isFocused boolean Widget has keyboard focus
----@field public isPressed boolean Mouse button is pressed on widget
----@field public isDisabled boolean Widget is disabled
----@field public isVisible boolean Whether widget is visible
 
 ---@class Padding
 ---@field public top number Top padding in pixels
@@ -25,29 +18,10 @@ local AABB = require("ennui.utils.aabb")
 ---@field public bottom number Bottom margin in pixels
 ---@field public left number Left margin in pixels
 
----@class Widget : StatefulMixin, ParentableMixin, DraggableMixin, FocusableMixin, EventEmitterMixin
+---@class Widget : StatefulMixin, ParentableMixin, PositionableMixin, LayoutableMixin, DraggableMixin, FocusableMixin, EventEmitterMixin
 ---@field public id string? Optional widget identifier
----@field public x number X position in pixels
----@field public y number Y position in pixels
----@field public width number Actual width in pixels
----@field public height number Actual height in pixels
----@field public preferredWidth number|Size Preferred width specification
----@field public preferredHeight number|Size Preferred height specification
----@field public desiredWidth number Measured desired width in pixels
----@field public desiredHeight number Measured desired height in pixels
----@field public minWidth number? Minimum width constraint
----@field public maxWidth number? Maximum width constraint
----@field public minHeight number? Minimum height constraint
----@field public maxHeight number? Maximum height constraint
----@field public aspectRatio number? Aspect ratio constraint (width/height)
----@field public sizeConstraint table? Size constraint specification
----@field public padding Padding Padding around content
----@field public margin Margin Margin around widget
----@field public state WidgetState Internal interaction state
 ---@field public isLayoutDirty boolean Whether layout needs recalculation
 ---@field public isRenderDirty boolean Whether widget needs redraw
----@field public horizontalAlignment "left"|"center"|"right"|"stretch" Horizontal alignment
----@field public verticalAlignment "top"|"center"|"bottom"|"stretch" Vertical alignment
 ---@field public layoutStrategy LayoutStrategy? Optional layout strategy for arranging children
 ---@field public isTabContext boolean Whether this widget creates a new tab focus scope
 ---@field private __hitTransparent boolean Whether widget passes through hit events to parent
@@ -63,7 +37,15 @@ setmetatable(Widget, {
     end
 })
 
-Mixin.extend(Widget, Mixins.Stateful, Mixins.Parentable, Mixins.Draggable, Mixins.Focusable, Mixins.EventEmitter)
+Mixin.extend(Widget,
+    Mixins.Stateful,
+    Mixins.Parentable,
+    Mixins.Positionable,
+    Mixins.Layoutable,
+    Mixins.Draggable,
+    Mixins.Focusable,
+    Mixins.EventEmitter
+)
 
 function Widget:__tostring()
     return "Widget"
@@ -75,24 +57,13 @@ function Widget.new()
 
     self:initStateful()
     self:initParentable()
+    self:initPositionable()
+    self:initLayoutable()
     self:initDraggable()
     self:initFocusable()
     self:initEventEmitter()
 
     self.id = nil
-    self.x = 0
-    self.y = 0
-    self.width = 0
-    self.height = 0
-    self.desiredWidth = 0
-    self.desiredHeight = 0
-    self.state = {
-        isHovered = false,
-        isFocused = false,
-        isPressed = false,
-        isDisabled = false,
-        isVisible = true
-    }
     self.isLayoutDirty = true
     self.isRenderDirty = true
     self.isTabContext = false
@@ -100,19 +71,11 @@ function Widget.new()
     self.__hitTransparent = false
     self.clipContent = false
 
-    self.__rawProps.preferredWidth = Size.auto()
-    self.__rawProps.preferredHeight = Size.auto()
-    self.__rawProps.minWidth = nil
-    self.__rawProps.maxWidth = nil
-    self.__rawProps.minHeight = nil
-    self.__rawProps.maxHeight = nil
-    self.__rawProps.aspectRatio = nil
-    self.__rawProps.sizeConstraint = nil
-    self.__rawProps.padding = { top = 0, right = 0, bottom = 0, left = 0 }
-    self.__rawProps.margin = { top = 0, right = 0, bottom = 0, left = 0 }
-    self.__rawProps.horizontalAlignment = "stretch"
-    self.__rawProps.verticalAlignment = "stretch"
-
+    self:addProperty("isHovered", false)
+    self:addProperty("isFocused", false)
+    self:addProperty("isPressed", false)
+    self:addProperty("isDisabled", false)
+    self:addProperty("isVisible", true)
     self:addProperty("isDocked", false)
 
     -- Create reactive proxy (Widget uses Reactive.createProxy, not State's custom proxy)
@@ -120,8 +83,6 @@ function Widget.new()
         self.__rawProps,
         nil,
         function(key, value, oldValue)
-            self[key] = value
-
             if PropertyMetadata.isLayoutProperty(key) then
                 self:invalidateLayout()
             elseif PropertyMetadata.isRenderProperty(key) then
@@ -132,21 +93,6 @@ function Widget.new()
 
     self.props.padding = self:__makeReactiveNested(self.__rawProps.padding, "padding")
     self.props.margin = self:__makeReactiveNested(self.__rawProps.margin, "margin")
-
-    -- Mirror reactive properties to direct properties for layout engine compatibility
-    -- These are kept in sync and allow the rest of the code to work unchanged
-    self.preferredWidth = self.__rawProps.preferredWidth
-    self.preferredHeight = self.__rawProps.preferredHeight
-    self.minWidth = self.__rawProps.minWidth
-    self.maxWidth = self.__rawProps.maxWidth
-    self.minHeight = self.__rawProps.minHeight
-    self.maxHeight = self.__rawProps.maxHeight
-    self.aspectRatio = self.__rawProps.aspectRatio
-    self.sizeConstraint = self.__rawProps.sizeConstraint
-    self.padding = self.__rawProps.padding
-    self.margin = self.__rawProps.margin
-    self.horizontalAlignment = self.__rawProps.horizontalAlignment
-    self.verticalAlignment = self.__rawProps.verticalAlignment
 
     return self
 end
@@ -163,207 +109,19 @@ end
 
 ---@generic T : Widget
 ---@param self T
----@param width number|string|Size Preferred width specification
----@param height number|string|Size Preferred height specification
----@return T
-function Widget:setSize(width, height, keepUniform)
-    ---@cast self Widget
-    self:setPreferredWidth(width)
-    self:setPreferredHeight(height)
-
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param width number|string|Size Preferred width specification
----@return T
-function Widget:setPreferredWidth(width)
-    ---@cast self Widget
-    self.props.preferredWidth = Size.normalise(width)
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param height number|string|Size Preferred height specification
----@return T
-function Widget:setPreferredHeight(height)
-    ---@cast self Widget
-    self.props.preferredHeight = Size.normalise(height)
-    return self
-end
-
----@generic T : Widget
----@param width number|string|Size Preferred width specification
----@return T
-function Widget:setWidth(width)
-    ---@cast self Widget
-    return self:setPreferredWidth(width)
-end
-
----@generic T : Widget
----@param height number|string|Size Preferred height specification
----@return T
-function Widget:setHeight(height)
-    return self:setPreferredHeight(height)
-end
-
----@generic T : Widget
----@param x number X position
----@param y number Y position
----@return T
-function Widget:setPosition(x, y)
-    self.x = x
-    self.y = y
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param top number Top padding (or all sides if only argument)
----@param right number? Right padding (or horizontal if 2 args)
----@param bottom number? Bottom padding
----@param left number? Left padding
----@return T
-function Widget:setPadding(top, right, bottom, left)
-    ---@cast self Widget
-
-    if not right then
-        -- 1 arg: all sides
-        self.props.padding.top = top
-        self.props.padding.right = top
-        self.props.padding.bottom = top
-        self.props.padding.left = top
-    elseif not bottom then
-        -- 2 args: vertical, horizontal
-        self.props.padding.top = top
-        self.props.padding.right = right
-        self.props.padding.bottom = top
-        self.props.padding.left = right
-    elseif left then
-        -- 4 args: top, right, bottom, left
-        self.props.padding.top = top
-        self.props.padding.right = right
-        self.props.padding.bottom = bottom
-        self.props.padding.left = left
-    else
-        error("setPadding requires 1, 2, or 4 arguments")
-    end
-
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param top number Top margin (or all sides if only argument)
----@param right number? Right margin (or horizontal if 2 args)
----@param bottom number? Bottom margin
----@param left number? Left margin
----@return T
-function Widget:setMargin(top, right, bottom, left)
-    ---@cast self Widget
-
-    if not right then
-        -- 1 arg: all sides
-        self.props.margin.top = top
-        self.props.margin.right = top
-        self.props.margin.bottom = top
-        self.props.margin.left = top
-    elseif not bottom then
-        -- 2 args: vertical, horizontal
-        self.props.margin.top = top
-        self.props.margin.right = right
-        self.props.margin.bottom = top
-        self.props.margin.left = right
-    elseif left then
-        -- 4 args: top, right, bottom, left
-        self.props.margin.top = top
-        self.props.margin.right = right
-        self.props.margin.bottom = bottom
-        self.props.margin.left = left
-    else
-        error("setMargin requires 1, 2, or 4 arguments")
-    end
-
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param width number Minimum width in pixels
----@return T
-function Widget:setMinWidth(width)
-    ---@cast self Widget
-    self.props.minWidth = width
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param width number Maximum width in pixels
----@return T
-function Widget:setMaxWidth(width)
-    ---@cast self Widget
-    self.props.maxWidth = width
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param height number Minimum height in pixels
----@return T
-function Widget:setMinHeight(height)
-    ---@cast self Widget
-    self.props.minHeight = height
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param height number Maximum height in pixels
----@return T
-function Widget:setMaxHeight(height)
-    ---@cast self Widget
-    self.props.maxHeight = height
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param ratio number Aspect ratio
----@return T
-function Widget:setAspectRatio(ratio)
-    ---@cast self Widget
-    self.props.aspectRatio = ratio
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param constraint table Size constraint specification
----@return T
-function Widget:setSizeConstraint(constraint)
-    ---@cast self Widget
-    self.props.sizeConstraint = constraint
-    return self
-end
-
----@generic T : Widget
----@param self T
 ---@param visible boolean Whether widget is visible
 ---@return T
 function Widget:setVisible(visible)
     ---@cast self Widget
-    if self.state.isVisible == visible then
+    if self.props.isVisible == visible then
         return self
     end
 
-    self.state.isVisible = visible
+    self.props.isVisible = visible
 
     -- If becoming invisible, clear focus from this widget and its descendants
     if not visible then
-        local host = self:__getHost()
+        local host = self:getHost()
         if host and host.focusedWidget then
             local current = host.focusedWidget
             -- Check if the focused widget is this widget or a descendant
@@ -387,32 +145,11 @@ end
 ---@return T
 function Widget:setDisabled(disabled)
     ---@cast self Widget
-    if self.state.isDisabled == disabled then
+    if self.props.isDisabled == disabled then
         return self
     end
 
-    self.state.isDisabled = disabled
-    self:invalidateRender()
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param alignment "left"|"center"|"right"|"stretch" Horizontal alignment
----@return T
-function Widget:setHorizontalAlignment(alignment)
-    ---@cast self Widget
-    self.props.horizontalAlignment = alignment
-    return self
-end
-
----@generic T : Widget
----@param self T
----@param alignment "top"|"center"|"bottom"|"stretch" Vertical alignment
----@return T
-function Widget:setVerticalAlignment(alignment)
-    ---@cast self Widget
-    self.props.verticalAlignment = alignment
+    self.props.isDisabled = disabled
     return self
 end
 
@@ -459,69 +196,24 @@ function Widget:getId()
     return self.id
 end
 
----@return number width
-function Widget:getWidth()
-    return self.width
-end
-
----@return number height
-function Widget:getHeight()
-    return self.height
-end
-
----@return number x, number y
-function Widget:getPosition()
-    return self.x, self.y
-end
-
----@return number width, number height
-function Widget:getSize()
-    return self.width, self.height
-end
-
----@return number x, number y, number width, number height
-function Widget:getBounds()
-    return self.x, self.y, self.width, self.height
-end
-
----@return table padding
-function Widget:getPadding()
-    return {
-        top = self.padding.top,
-        right = self.padding.right,
-        bottom = self.padding.bottom,
-        left = self.padding.left
-    }
-end
-
----@return table margin
-function Widget:getMargin()
-    return {
-        top = self.margin.top,
-        right = self.margin.right,
-        bottom = self.margin.bottom,
-        left = self.margin.left
-    }
-end
-
----@return string alignment
-function Widget:getHorizontalAlignment()
-    return self.horizontalAlignment
-end
-
----@return string alignment
-function Widget:getVerticalAlignment()
-    return self.verticalAlignment
-end
-
 ---@return boolean visible
+---@diagnostic disable-next-line: assign-type-mismatch
 function Widget:isVisible()
-    return self.state.isVisible
+    if self.props then
+        return not not self.props.isVisible
+    end
+
+    return false
 end
 
 ---@return boolean disabled
+---@diagnostic disable-next-line: assign-type-mismatch
 function Widget:isDisabled()
-    return self.state.isDisabled
+    if self.props then
+        return not not self.props.isDisabled
+    end
+
+    return false
 end
 
 ---@return LayoutStrategy? strategy
@@ -584,7 +276,7 @@ end
 ---@param child Widget The child that was removed
 function Widget:__onAfterRemoveChild(child)
     -- Clear focus if focused widget is being removed
-    local host = self:__getHost()
+    local host = self:getHost()
     if host and host.focusedWidget then
         local current = host.focusedWidget
         while current do
@@ -669,20 +361,6 @@ function Widget:__handleCaptureEvent(event)
     end
 end
 
-
----@protected
----@return Host? host
-function Widget:__getHost()
-    local current = self
-
-    while current and current.parent do
-        current = current.parent
-    end
-
-    ---@diagnostic disable-next-line: return-type-mismatch
-    return current
-end
-
 ---@param availableWidth number Available width in pixels
 ---@param availableHeight number Available height in pixels
 ---@return number desiredWidth
@@ -725,164 +403,6 @@ function Widget:measure(availableWidth, availableHeight)
     self.isLayoutDirty = false
 
     return desiredWidth, desiredHeight
-end
-
----@param availableWidth number Available width
----@return number desiredWidth
-function Widget:calculateDesiredWidth(availableWidth)
-    local width = self.preferredWidth
-
-    if type(width) == "number" then
-        return width
-    else
-        if width.type == "fixed" then
-            return width.value
-        elseif width.type == "percent" then
-            return availableWidth * width.value
-        elseif width.type == "auto" then
-            return self:__calculateContentWidth()
-        elseif width.type == "fill" then
-            return availableWidth
-        end
-    end
-
-    return 100
-end
-
----@param availableHeight number Available height
----@return number desiredHeight
-function Widget:calculateDesiredHeight(availableHeight)
-    local height = self.preferredHeight
-    if type(height) == "number" then
-        return height
-    else
-        if height.type == "fixed" then
-            return height.value
-        elseif height.type == "percent" then
-            return availableHeight * height.value
-        elseif height.type == "auto" then
-            return self:__calculateContentHeight()
-        elseif height.type == "fill" then
-            return availableHeight
-        end
-    end
-    return 100
-end
-
----@protected
----@param desiredWidth number? Desired width before constraints
----@param desiredHeight number? Desired height before constraints
----@return number constrainedWidth, number constrainedHeight
-function Widget:__applyConstraints(desiredWidth, desiredHeight)
-    if self.minWidth and self.minWidth > 0 then
-        desiredWidth = math.max(self.minWidth, desiredWidth)
-    end
-    if self.maxWidth and self.maxWidth > 0 then
-        desiredWidth = math.min(self.maxWidth, desiredWidth)
-    end
-    if self.minHeight and self.minHeight > 0 then
-        desiredHeight = math.max(self.minHeight, desiredHeight)
-    end
-    if self.maxHeight and self.maxHeight > 0 then
-        desiredHeight = math.min(self.maxHeight, desiredHeight)
-    end
-
-    if self.sizeConstraint then
-        local c = self.sizeConstraint
-
-        if not c then
-            ---@diagnostic disable-next-line: return-type-mismatch
-            return desiredWidth, desiredHeight
-        end
-
-        if c.type == "width_by_height" then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            desiredWidth = math.min(desiredWidth, desiredHeight)
-        elseif c.type == "height_by_width" then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            desiredHeight = math.min(desiredHeight, desiredWidth)
-        elseif c.type == "square" then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            local minDim = math.min(desiredWidth, desiredHeight)
-            desiredWidth = minDim
-            desiredHeight = minDim
-        elseif c.type == "max_both" then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            desiredWidth = math.min(desiredWidth, c.value)
-
-            ---@diagnostic disable-next-line: param-type-mismatch
-            desiredHeight = math.min(desiredHeight, c.value)
-        elseif c.type == "ratio" then
-            local ratioWidth = desiredHeight * c.value
-            local ratioHeight = desiredWidth / c.value
-            if ratioWidth <= desiredWidth then
-                desiredWidth = ratioWidth
-            else
-                desiredHeight = ratioHeight
-            end
-        end
-    end
-
-    if self.aspectRatio then
-        local ratioWidth = desiredHeight * self.aspectRatio
-        local ratioHeight = desiredWidth / self.aspectRatio
-
-        if ratioWidth <= desiredWidth then
-            desiredWidth = ratioWidth
-        else
-            desiredHeight = ratioHeight
-        end
-    end
-
-    assert(desiredWidth, "Desired width not defined after constraints")
-    assert(desiredHeight, "Desired height not defined after constraints")
-
-    return desiredWidth, desiredHeight
-end
-
----@protected
----@return number contentWidth
-function Widget:__calculateContentWidth()
-    -- Default: sum of children widths (containers override this)
-    local maxWidth = 0
-    for _, child in ipairs(self.children) do
-        if child.isVisible then
-            maxWidth = math.max(maxWidth, child.desiredWidth)
-        end
-    end
-    return maxWidth + self.padding.left + self.padding.right
-end
-
----@protected
----@return number contentHeight
-function Widget:__calculateContentHeight()
-    local maxHeight = 0
-
-    for _, child in ipairs(self.children) do
-        if child.isVisible then
-            maxHeight = math.max(maxHeight, child.desiredHeight)
-        end
-    end
-    return maxHeight + self.padding.top + self.padding.bottom
-end
-
----Get the content bounds (area inside padding)
----@protected
----@return number contentX, number contentY, number contentWidth, number contentHeight
-function Widget:__getContentBounds()
-    return self.x + self.padding.left,
-           self.y + self.padding.top,
-           self.width - self.padding.left - self.padding.right,
-           self.height - self.padding.top - self.padding.bottom
-end
-
----Calculate Y position to vertically center an element within content bounds
----@protected
----@param elementHeight number Height of the element to center
----@return number centerY The Y position that centers the element
-function Widget:__centerVertically(elementHeight)
-    local contentX, contentY, contentW, contentH = self:__getContentBounds()
-    return contentY + (contentH - elementHeight) / 2
 end
 
 ---@param x number X position
@@ -944,7 +464,7 @@ function Widget:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
     end
 
     for _, child in ipairs(self.children) do
-        if child.isVisible then
+        if child:isVisible() then
             local childWidth = child.desiredWidth
             local childHeight = child.desiredHeight
 
@@ -982,13 +502,6 @@ end
 
 function Widget:invalidateRender()
     self.isRenderDirty = true
-end
-
----@param x number Point X
----@param y number Point Y
----@return boolean
-function Widget:containsPoint(x, y)
-    return AABB.containsPoint(x, y, self.x, self.y, self.width, self.height)
 end
 
 ---@param x number Point X
@@ -1048,14 +561,6 @@ function Widget:__makeReactiveNested(rawTable, parentKey)
     )
 
     return proxy
-end
-
----Hook called after property is added (implements StatefulMixin hook)
----Mirrors the property to the widget instance for direct access
----@param name string Property name
----@param value any The stored value
-function Widget:__afterAddProperty(name, value)
-    self[name] = value
 end
 
 ---Bind a widget property to a computed property

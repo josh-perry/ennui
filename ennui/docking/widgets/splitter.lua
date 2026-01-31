@@ -5,7 +5,6 @@ local Widget = require("ennui.widget")
 ---@field thickness number Thickness in pixels (default 4)
 ---@field minSize number Minimum size for draggable region
 ---@field onSplitterDrag function? Callback when dragged
----@field isHovered boolean Whether mouse is over splitter
 local Splitter = setmetatable({}, Widget)
 Splitter.__index = Splitter
 setmetatable(Splitter, {
@@ -34,8 +33,6 @@ function Splitter.new(orientation)
     self:addProperty("normalColor", {0.3, 0.3, 0.3})
     self:addProperty("hoverColor", {0.5, 0.5, 0.5})
     self:addProperty("activeColor", {0.7, 0.7, 0.7})
-
-    self.isHovered = false
 
     -- Configure generic drag system for delta-based dragging
     self:setDraggable(true)
@@ -72,7 +69,6 @@ end
 ---Handle mouse entered
 ---@param event MouseEvent
 function Splitter:onMouseEntered(event)
-    self.isHovered = true
     self:invalidateRender()
 
     -- Change cursor
@@ -87,7 +83,6 @@ end
 ---@param event MouseEvent
 function Splitter:onMouseExited(event)
     if not self.props.isDragging then
-        self.isHovered = false
         self:invalidateRender()
         love.mouse.setCursor()
     end
@@ -97,8 +92,7 @@ end
 ---@param event MouseEvent
 function Splitter:onMouseMoved(event)
     if self:hitTest(event.x, event.y) then
-        if not self.isHovered then
-            self.isHovered = true
+        if not self.props.isHovered then
             self:invalidateRender()
 
             if self.orientation == "horizontal" then
@@ -108,8 +102,7 @@ function Splitter:onMouseMoved(event)
             end
         end
     else
-        if self.isHovered and not self:isDragging() then
-            self.isHovered = false
+        if self.props.isHovered and not self:isDragging() then
             self:invalidateRender()
             love.mouse.setCursor()
         end
@@ -119,7 +112,7 @@ end
 ---Handle mouse released
 ---@param event MouseEvent
 function Splitter:onMouseReleased(event)
-    if not self:isDragging() and not self.isHovered then
+    if not self:isDragging() and not self.props.isHovered then
         love.mouse.setCursor()
     end
 end
@@ -142,7 +135,7 @@ function Splitter:onRender()
 
     if self.props.isDragging then
         color = self.props.activeColor
-    elseif self.isHovered then
+    elseif self.props.isHovered then
         color = self.props.hoverColor
     end
 

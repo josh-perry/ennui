@@ -146,14 +146,14 @@ end
 ---@return Window self
 function Window:close()
     -- Clean up Host state before hiding
-    local host = self:__getHost()
+    local host = self:getHost()
     if host then
         -- Clear hover state if hovering over this window or its descendants
         if host.__lastHoveredWidget then
             local current = host.__lastHoveredWidget
             while current do
                 if current == self then
-                    host.__lastHoveredWidget.state.isHovered = false
+                    host.__lastHoveredWidget.props.isHovered = false
                     host.__lastHoveredWidget = nil
                     break
                 end
@@ -167,7 +167,7 @@ function Window:close()
                 local current = pressedWidget
                 while current do
                     if current == self then
-                        pressedWidget.state.isPressed = false
+                        pressedWidget.props.isPressed = false
                         host.__pressedWidget[button] = nil
                         break
                     end
@@ -250,7 +250,7 @@ end
 ---@return Widget? widget First focusable widget or nil
 function Window:__getFirstFocusableWidget()
     local function findFirst(widget)
-        if widget.focusable and widget:isVisible() and not widget.state.isDisabled then
+        if widget.focusable and widget:isVisible() and not widget.props.isDisabled then
             return widget
         end
         for _, child in ipairs(widget.children) do
@@ -279,7 +279,7 @@ end
 
 ---Get the Host instance
 ---@return Host?
-function Window:__getHost()
+function Window:getHost()
     local current = self.parent
     while current do
         if not current.parent then
@@ -305,7 +305,7 @@ function Window:onMousePressed(event)
     end
 
     if self:isInTitleBar(event.x, event.y) then
-        local host = self:__getHost()
+        local host = self:getHost()
         if host then
             if not (host.focusedWidget and self:__isDescendant(host.focusedWidget)) then
                 if self.__lastFocusedWidget and self:__isDescendant(self.__lastFocusedWidget) then
@@ -323,7 +323,7 @@ function Window:onMousePressed(event)
 
     -- If we get here, the click was on window content
     -- Check if a descendant widget already received focus during this event
-    local host = self:__getHost()
+    local host = self:getHost()
     if host and host.__focusSetDuringEvent then
         if host.focusedWidget and self:__isDescendant(host.focusedWidget) then
             return
@@ -408,7 +408,7 @@ function Window:__calculateContentHeight()
 end
 
 function Window:__collectFocusableWidgets(widget, widgets)
-    if widget.focusable and widget:isVisible() and not widget.state.isDisabled then
+    if widget.focusable and widget:isVisible() and not widget.props.isDisabled then
         table.insert(widgets, widget)
     end
 

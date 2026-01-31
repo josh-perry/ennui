@@ -1,33 +1,36 @@
 ---Mixin for drag interaction functionality
 ---@class DraggableMixin
 ---@field isDraggable boolean Whether widget can be dragged
----@field dragMode string Drag mode: "position" or "delta"
+---@field dragMode dragMode Drag mode: "position" or "delta"
 ---@field dragHandle table? Drag handle rectangle {x, y, width, height} relative to widget
 ---@field onDragStart function? Drag lifecycle callback
 ---@field onDrag function? Drag lifecycle callback
 ---@field onDragEnd function? Drag lifecycle callback
 local DraggableMixin = {}
 local AABB = require("ennui.utils.aabb")
+local Mixin = require("ennui.utils.mixin")
+local PositionableMixin = require("ennui.mixins.positionable")
+local ParentableMixin = require("ennui.mixins.parentable")
+
+---@alias dragMode "position"|"delta"
 
 ---Initialize draggable fields on an instance
 ---Call this from the constructor of classes using this mixin
 ---@param self table The instance to initialize
 function DraggableMixin.initDraggable(self)
     self.isDraggable = false
-    self.dragMode = "position" -- "position" or "delta"
-    self.dragHandle = nil -- {x, y, width, height} relative to widget
-    -- Drag callbacks
-    self.onDragStart = nil -- function(event) -> bool (return false to cancel)
-    self.onDrag = nil -- function(event, deltaX, deltaY) for delta mode, or function(event) for position mode
-    self.onDragEnd = nil -- function(event)
+    self.dragMode = "position"
+    self.dragHandle = nil
+
+    self.onDragStart = nil
+    self.onDrag = nil
+    self.onDragEnd = nil
 end
 
 ---Configure whether this widget is draggable
----@generic T
----@param self T
 ---@param draggable boolean Whether the widget can be dragged
 ---@param dragHandle table? Optional drag handle rectangle {x, y, width, height}
----@return T
+---@return self
 function DraggableMixin:setDraggable(draggable, dragHandle)
     self.isDraggable = draggable
 
@@ -39,10 +42,8 @@ function DraggableMixin:setDraggable(draggable, dragHandle)
 end
 
 ---Set the drag mode ("position" or "delta")
----@generic T
----@param self T
----@param mode string "position" for position-based dragging, "delta" for delta-based
----@return T
+---@param mode dragMode "position" for position-based dragging, "delta" for delta-based
+---@return self
 function DraggableMixin:setDragMode(mode)
     assert(mode == "position" or mode == "delta", "dragMode must be 'position' or 'delta'")
     self.dragMode = mode
@@ -50,21 +51,24 @@ function DraggableMixin:setDragMode(mode)
 end
 
 ---Set the drag handle rectangle
----@generic T
----@param self T
 ---@param rect table? Rectangle {x, y, width, height} relative to widget, or nil to allow drag from anywhere
----@return T
+---@return self
 function DraggableMixin:setDragHandle(rect)
     self.dragHandle = rect
     return self
 end
 
 ---Check if a point is within the drag handle
+---Requires PositionableMixin
 ---@param x number X coordinate
 ---@param y number Y coordinate
 ---@return boolean True if point is in drag handle
 function DraggableMixin:isInDragHandle(x, y)
-    -- Check if point is within widget bounds
+    if not Mixin.hasMixin(self, PositionableMixin) then
+        error("DraggableMixin:isInDragHandle requires DraggableMixin")
+    end
+
+    ---@cast self PositionableMixin | DraggableMixin
     if not AABB.containsPoint(x, y, self.x, self.y, self.width, self.height) then
         return false
     end
@@ -74,7 +78,6 @@ function DraggableMixin:isInDragHandle(x, y)
         return true
     end
 
-    -- Convert point to local coordinates
     local localX = x - self.x
     local localY = y - self.y
 
@@ -91,7 +94,12 @@ end
 ---Check if this widget is currently being dragged
 ---@return boolean True if widget is currently being dragged
 function DraggableMixin:isDragging()
-    local host = self:__getHost()
+    if not Mixin.hasMixin(self, ParentableMixin) then
+        error("DraggableMixin:isDragging requires ParentableMixin")
+    end
+
+    ---@cast self ParentableMixin | DraggableMixin
+    local host = self:getHost()
     return host and host.isWidgetDragged and host:isWidgetDragged(self) or false
 end
 

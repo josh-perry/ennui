@@ -86,14 +86,15 @@ function Checkbox.new(label)
     self:setFocusable(true)
 
     self:on("clicked", function()
-        if not self.state.isDisabled then
+        if not self.props.isDisabled then
             self.props.checked = not self.props.checked
         end
     end)
 
     self:on("keyPressed", function(_, event)
+        ---@cast event KeyboardEvent
         if event.key == "space" or event.key == "return" then
-            if not self.state.isDisabled then
+            if not self.props.isDisabled then
                 self.props.checked = not self.props.checked
             end
             return true
@@ -211,7 +212,7 @@ function Checkbox:onRender()
     local boxY = self:__centerVertically(boxSize)
 
     -- Draw background
-    local bgColor = self.state.isHovered and self.props.hoverColor or self.props.backgroundColor
+    local bgColor = self.props.isHovered and self.props.hoverColor or self.props.backgroundColor
     love.graphics.setColor(bgColor)
     love.graphics.rectangle("fill", boxX, boxY, boxSize, boxSize, 3, 3)
 
@@ -237,7 +238,7 @@ function Checkbox:onRender()
         love.graphics.setLineWidth(1)
     end
 
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", boxX - 2, boxY - 2, boxSize + 4, boxSize + 4, 4, 4)

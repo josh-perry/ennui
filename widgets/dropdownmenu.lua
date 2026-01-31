@@ -26,8 +26,8 @@ end
 function DropdownMenu.new()
     local self = setmetatable(Widget(), DropdownMenu) ---@cast self DropdownMenu
 
-    self.backgroundColor = {0.15, 0.15, 0.15, 1}
-    self.borderColor = {0.3, 0.3, 0.3, 1}
+    self:addProperty("backgroundColor", {0.15, 0.15, 0.15, 1})
+    self:addProperty("borderColor", {0.3, 0.3, 0.3, 1})
 
     self.__itemPanel = StackPanel()
         :setSize(Size.fill(), Size.auto())
@@ -80,8 +80,7 @@ end
 ---@param a number? Alpha component (0-1, default 1)
 ---@return DropdownMenu self
 function DropdownMenu:setBackgroundColor(r, g, b, a)
-    self.backgroundColor = {r, g, b, a or 1}
-    self:invalidateRender()
+    self.props.backgroundColor = {r, g, b, a or 1}
     return self
 end
 
@@ -92,8 +91,7 @@ end
 ---@param a number? Alpha component (0-1, default 1)
 ---@return DropdownMenu self
 function DropdownMenu:setBorderColor(r, g, b, a)
-    self.borderColor = {r, g, b, a or 1}
-    self:invalidateRender()
+    self.props.borderColor = {r, g, b, a or 1}
     return self
 end
 
@@ -127,17 +125,17 @@ function DropdownMenu:onRender()
         return
     end
 
-    love.graphics.setColor(self.backgroundColor)
+    love.graphics.setColor(self.props.backgroundColor)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 
-    love.graphics.setColor(self.borderColor)
+    love.graphics.setColor(self.props.borderColor)
     love.graphics.setLineWidth(1)
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
     for _, child in ipairs(self.__itemPanel.children) do
         if child:isVisible() then
             if child:isVisible() and child.height == 1 then
-                love.graphics.setColor(self.borderColor)
+                love.graphics.setColor(self.props.borderColor)
                 love.graphics.line(child.x, child.y + child.height / 2,
                                    child.x + child.width, child.y + child.height / 2)
             else

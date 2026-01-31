@@ -214,7 +214,9 @@ function Host:__initDrag(widget, x, y, button)
     self.__lastDragY = y
     self.__dragStarted = false
 
+    ---@diagnostic disable-next-line: undefined-field
     if widget.props.isDocked and widget.undock then
+        ---@diagnostic disable-next-line: undefined-field
         widget:undock()
     end
 
@@ -268,8 +270,7 @@ function Host:mousepressed(x, y, button, isTouch)
             self.__focusSetDuringEvent = true
         end
 
-        target.state.isPressed = true
-        target:invalidateRender()
+        target.props.isPressed = true
 
         local event = Event.createMouseEvent("mousePressed", x, y, button, target, isTouch)
         self:__dispatchEvent(event)
@@ -308,8 +309,7 @@ function Host:mousereleased(x, y, button, isTouch)
     local pressedWidget = self.__pressedWidget[button]
 
     if pressedWidget then
-        pressedWidget.state.isPressed = false
-        pressedWidget:invalidateRender()
+        pressedWidget.props.isPressed = false
 
         local event = Event.createMouseEvent("mouseReleased", x, y, button, pressedWidget, isTouch)
         self:__dispatchEvent(event)
@@ -376,16 +376,14 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
 
     if target ~= self.__lastHoveredWidget then
         if self.__lastHoveredWidget then
-            self.__lastHoveredWidget.state.isHovered = false
-            self.__lastHoveredWidget:invalidateRender()
+            self.__lastHoveredWidget.props.isHovered = false
 
             local event = Event.createMouseEvent("mouseExited", x, y, 1, self.__lastHoveredWidget, isTouch)
             self:__dispatchEvent(event)
         end
 
         if target and target ~= self then
-            target.state.isHovered = true
-            target:invalidateRender()
+            target.props.isHovered = true
 
             local event = Event.createMouseEvent("mouseEntered", x, y, 1, target, isTouch)
             self:__dispatchEvent(event)
@@ -514,8 +512,7 @@ function Host:setFocusedWidget(widget)
             oldWindow.__lastFocusedWidget = oldWidget
         end
 
-        oldWidget.state.isFocused = false
-        oldWidget:invalidateRender()
+        oldWidget.props.isFocused = false
 
         local event = Event.createFocusEvent("focusLost", oldWidget)
         event.currentTarget = oldWidget
@@ -528,8 +525,7 @@ function Host:setFocusedWidget(widget)
         local window = self:__findContainingTabContext(widget)
         self.focusedWindow = window
 
-        widget.state.isFocused = true
-        widget:invalidateRender()
+        widget.props.isFocused = true
 
         local event = Event.createFocusEvent("focusGained", widget)
         event.currentTarget = widget

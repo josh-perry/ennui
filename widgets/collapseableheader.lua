@@ -359,7 +359,7 @@ function CollapseableHeader:onRender()
 
     self.__titleWidget:onRender()
 
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", self.x + 1, self.y + 1, self.width - 2, headerHeight - 2)

@@ -168,4 +168,16 @@ function ParentableMixin:buildDescendantTree()
     return tree
 end
 
+---Get the root/host by traversing up the parent chain
+---@return any? host The root widget/host, or nil if no parent
+function ParentableMixin:getHost()
+    local current = self
+
+    while current and current.parent do
+        current = current.parent
+    end
+
+    return current
+end
+
 return ParentableMixin

@@ -401,7 +401,7 @@ function TreeViewNode:onRender()
     if self.props.selected and self:__getTreeView() then
         love.graphics.setColor(self:__getTreeView().props.selectionColor)
         love.graphics.rectangle("fill", self.x, self.y, self.width, rowHeight)
-    elseif self.state.isHovered then
+    elseif self.props.isHovered then
         local hoverColor = self:__getTreeView() and self:__getTreeView().props.hoverColor or {0.25, 0.25, 0.25, 1}
         love.graphics.setColor(hoverColor)
         love.graphics.rectangle("fill", self.x, self.y, self.width, rowHeight)
@@ -435,7 +435,7 @@ function TreeViewNode:onRender()
     self.__textWidget:onRender()
 
     -- Draw focus indicator
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(1)
         love.graphics.rectangle("line", self.x + 1, self.y + 1, self.width - 2, rowHeight - 2)

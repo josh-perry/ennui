@@ -266,7 +266,7 @@ function ComboBox:open()
     self.__menu:setVisible(true)
 
     -- Register menu as overlay
-    local host = self:__getHost()
+    local host = self:getHost()
     if host and host.registerOverlay then
         host:registerOverlay(self.__menu)
     end
@@ -280,10 +280,12 @@ function ComboBox:close()
     self.props.isOpen = false
 
     self.__menu:setVisible(false)
-    local host = self:__getHost()
+
+    local host = self:getHost()
     if host and host.unregisterOverlay then
         host:unregisterOverlay(self.__menu)
     end
+
     return self
 end
 

@@ -185,11 +185,11 @@ end
 ---Render the text button
 function TextButton:onRender()
     local bgColor
-    if self.state.isDisabled then
+    if self.props.isDisabled then
         bgColor = self.props.disabledColor
-    elseif self.state.isPressed then
+    elseif self.props.isPressed then
         bgColor = self.props.pressedColor
-    elseif self.state.isHovered then
+    elseif self.props.isHovered then
         bgColor = self.props.hoverColor
     else
         bgColor = self.props.backgroundColor
@@ -206,7 +206,7 @@ function TextButton:onRender()
         self.props.cornerRadius
     )
 
-    if self.state.isFocused then
+    if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle(
