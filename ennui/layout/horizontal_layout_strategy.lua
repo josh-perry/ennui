@@ -168,7 +168,7 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
                 childWidth = child.desiredWidth
             elseif child.preferredWidth.type == "fill" then
                 local weight = child.preferredWidth.weight or 1
-                childWidth = fillWidth * (weight / fillTotalWeight)
+                childWidth = fillTotalWeight > 0 and (fillWidth * (weight / fillTotalWeight)) or 0
             elseif child.preferredWidth.type == "percent" then
                 -- Calculate percent based on remaining space, not total space
                 childWidth = remainingWidth * child.preferredWidth.value

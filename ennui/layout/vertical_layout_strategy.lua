@@ -164,7 +164,7 @@ function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, cont
                 childHeight = child.desiredHeight
             elseif child.preferredHeight.type == "fill" then
                 local weight = child.preferredHeight.weight or 1
-                childHeight = fillHeight * (weight / fillTotalWeight)
+                childHeight = fillTotalWeight > 0 and (fillHeight * (weight / fillTotalWeight)) or 0
             elseif child.preferredHeight.type == "percent" then
                 -- Calculate percent based on remaining space, not total space
                 childHeight = remainingHeight * child.preferredHeight.value
