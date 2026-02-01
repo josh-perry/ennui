@@ -67,10 +67,27 @@ function Computed:update()
     end
 end
 
+---Unsubscribe a callback from updates
+---@param callback function The callback to remove
+function Computed:unsubscribe(callback)
+    for i, cb in ipairs(self.subscribers) do
+        if cb == callback then
+            table.remove(self.subscribers, i)
+            break
+        end
+    end
+end
+
 ---Subscribe to updates when this computed's value changes
 ---@param callback function Callback to invoke when value changes
+---@return function Unsubscribe function to remove this callback
 function Computed:subscribe(callback)
     table.insert(self.subscribers, callback)
+
+    local selfRef = self
+    return function()
+        selfRef:unsubscribe(callback)
+    end
 end
 
 ---Create a new Computed that transforms this computed's value
