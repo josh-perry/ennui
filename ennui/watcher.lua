@@ -6,7 +6,6 @@ local Reactive = require("ennui.reactive")
 ---@field getter function The getter function that returns the watched value
 ---@field callback function The callback to run when value changes
 ---@field immediate boolean Whether to run immediately on creation
----@field deep boolean Whether to deeply watch objects (not yet implemented)
 ---@field oldValue any The previous value (for computing old -> new)
 ---@field dependencies table<Dependency, boolean> Dependencies this watcher depends on
 local Watcher = {}
@@ -21,7 +20,7 @@ setmetatable(Watcher, {
 ---@param widget Widget The widget this watcher is attached to
 ---@param source string|function Property name or getter function
 ---@param callback function(newValue, oldValue) Callback when value changes
----@param options {immediate: boolean?, deep: boolean?}? Watcher options
+---@param options {immediate: boolean?}? Watcher options
 ---@return Watcher
 function Watcher.new(widget, source, callback, options)
     options = options or {}
@@ -30,7 +29,6 @@ function Watcher.new(widget, source, callback, options)
         widget = widget,
         callback = callback,
         immediate = options.immediate or false,
-        deep = options.deep or false,
         oldValue = nil,
         dependencies = {},
     }, Watcher)
