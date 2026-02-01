@@ -130,17 +130,6 @@ function DockableWindow:dockInto(targetDockSpace, zone)
     return success
 end
 
----Dock this window to a zone in the external dock space (legacy method)
----@param zone table Drop zone {type, bounds, targetNode, previewBounds}
----@return boolean success
-function DockableWindow:dock(zone)
-    if not self.dockSpace then
-        return false
-    end
-
-    return self:dockInto(self.dockSpace, zone)
-end
-
 ---Undock this window and restore floating state
 ---@return boolean success
 function DockableWindow:undock()

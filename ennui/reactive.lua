@@ -100,13 +100,7 @@ end
 ---@param rawTable table The underlying data table
 ---@param options ProxyOptions? Proxy configuration options
 ---@return table proxy The reactive proxy
----@overload fun(rawTable: table, onGet: function?, onSet: function?): table
-function Reactive.createProxy(rawTable, options, onSet)
-    -- Support legacy signature: createProxy(rawTable, onGet, onSet)
-    if type(options) == "function" or options == nil and onSet ~= nil then
-        options = { onGet = options, onSet = onSet }
-    end
-
+function Reactive.createProxy(rawTable, options)
     options = options or {}
 
     local dependencies = {}
