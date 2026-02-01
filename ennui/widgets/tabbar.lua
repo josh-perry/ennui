@@ -83,7 +83,7 @@ function TabBar:clearTabs()
     if self.isDraggingTab then
         self.draggedTabIndex = nil
         self.isDraggingTab = false
-        self._draggedWidget = nil
+        self.__draggedWidget = nil
     end
 
     self.tabs = {}
@@ -202,8 +202,8 @@ function TabBar:onMouseMoved(event)
         self.isDraggingTab = true
         local widget = self.tabs[self.draggedTabIndex].widget
         if widget then
-            self._draggedWidget = widget
-            self._draggedTabIndex = self.draggedTabIndex
+            self.__draggedWidget = widget
+            self.__draggedTabIndex = self.draggedTabIndex
 
             ---@diagnostic disable-next-line: undefined-field
             if widget.undock and widget.props.isDocked then
@@ -247,7 +247,7 @@ function TabBar:onMouseExited(event)
 
     self.draggedTabIndex = nil
     self.isDraggingTab = false
-    self._draggedWidget = nil
+    self.__draggedWidget = nil
 end
 
 ---Handle mouse pressed
@@ -279,7 +279,7 @@ end
 function TabBar:onMouseReleased(event)
     self.draggedTabIndex = nil
     self.isDraggingTab = false
-    self._draggedWidget = nil
+    self.__draggedWidget = nil
 end
 
 ---Calculate close button position for a tab
