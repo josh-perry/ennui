@@ -149,11 +149,13 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
         end
     end
 
-    local remainingWidth = contentWidth - totalFixedWidth
-    
+    local remainingWidth = math.max(0, contentWidth - totalFixedWidth)
+
+    local clampedPercentRatio = math.min(1.0, percentTotalRatio)
+
     -- Calculate how much space percent children need
-    local percentWidth = remainingWidth * percentTotalRatio
-    local fillWidth = remainingWidth - percentWidth
+    local percentWidth = remainingWidth * clampedPercentRatio
+    local fillWidth = math.max(0, remainingWidth - percentWidth)
 
     -- Second pass: Arrange children
     local currentX = contentX

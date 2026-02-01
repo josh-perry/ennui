@@ -146,11 +146,13 @@ function VerticalLayoutStrategy:arrangeChildren(widget, contentX, contentY, cont
         end
     end
 
-    local remainingHeight = contentHeight - totalFixedHeight
-    
+    local remainingHeight = math.max(0, contentHeight - totalFixedHeight)
+
+    local clampedPercentRatio = math.min(1.0, percentTotalRatio)
+
     -- Calculate how much space percent children need
-    local percentHeight = remainingHeight * percentTotalRatio
-    local fillHeight = remainingHeight - percentHeight
+    local percentHeight = remainingHeight * clampedPercentRatio
+    local fillHeight = math.max(0, remainingHeight - percentHeight)
 
     local currentY = contentY
     for i, child in ipairs(widget.children) do
