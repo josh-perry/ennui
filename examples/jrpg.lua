@@ -110,9 +110,11 @@ local CharacterInfo = function(characterState)
         :setSize(ennui.Size.auto(), ennui.Size.fill())
         :setSizeConstraint(ennui.SizeConstraint.square)
         :setVerticalAlignment("center")
-        :bindTo("horizontalAlignment", characterState:computed("row", function()
-            return characterState.props.row == "front" and "left" or "right"
-        end))
+        :setHorizontalAlignment(characterState.props.row == "front" and "left" or "right")
+
+    characterState:watch("row", function(newRow)
+        characterImage:setHorizontalAlignment(newRow == "front" and "left" or "right")
+    end)
 
     imageContainer:addChild(characterImage)
     characterHorizontalPanel:addChild(imageContainer)
@@ -213,7 +215,7 @@ do
                     print("Formation clicked")
                 end
 
-                for _, c in ipairs(gameState:getRaw("characters")) do
+                for _, c in gameState:ipairs("characters") do
                     local charStats = c.stats
                     charStats.currentHp = math.min(charStats.currentHp + 20, charStats.maxHp)
                     charStats.currentMp = math.min(charStats.currentMp + 10, charStats.maxMp)
