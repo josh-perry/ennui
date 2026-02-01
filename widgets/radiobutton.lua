@@ -101,6 +101,7 @@ function RadioButton.new(label, groupName, value)
     end)
 
     self:on("keyPressed", function(_, event)
+        ---@cast event KeyboardEvent
         if event.key == "space" or event.key == "return" then
             if not self.props.isDisabled then
                 self:select()

@@ -22,6 +22,7 @@ local AABB = require("ennui.utils.aabb")
 ---@field selectedIndex number Currently selected item index (0 = none)
 ---@field hoveredIndex number Currently hovered item index
 ---@field onItemSelected fun(index: number, item: MenuItem)? Callback when item is selected
+---@field __textWidget Text Internal text widget for rendering items
 local Menu = {}
 Menu.__index = Menu
 setmetatable(Menu, {
