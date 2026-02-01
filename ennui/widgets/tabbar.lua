@@ -40,7 +40,6 @@ function TabBar.new()
     self:addProperty("closeButtonSize", 14)
     self:addProperty("canDragTabs", false)
     self:addProperty("tabBarHeight", 30)
-    self:addProperty("activeIndex", 1)
     self:addProperty("showCloseButtons", false)
 
     self.onTabChanged = nil
@@ -83,7 +82,6 @@ function TabBar:clearTabs()
     if self.isDraggingTab then
         self.draggedTabIndex = nil
         self.isDraggingTab = false
-        self.__draggedWidget = nil
     end
 
     self.tabs = {}
@@ -202,9 +200,6 @@ function TabBar:onMouseMoved(event)
         self.isDraggingTab = true
         local widget = self.tabs[self.draggedTabIndex].widget
         if widget then
-            self.__draggedWidget = widget
-            self.__draggedTabIndex = self.draggedTabIndex
-
             ---@diagnostic disable-next-line: undefined-field
             if widget.undock and widget.props.isDocked then
                 ---@diagnostic disable-next-line: undefined-field
@@ -216,10 +211,7 @@ function TabBar:onMouseMoved(event)
             end
 
             if widget.isDraggable then
-                local host = widget.parent
-                while host and host.parent do
-                    host = host.parent
-                end
+                local host = self:getHost()
 
                 if host and type(host.__initDrag) == "function" then
                     if type(host.__ensureLayout) == "function" then
@@ -247,7 +239,6 @@ function TabBar:onMouseExited(event)
 
     self.draggedTabIndex = nil
     self.isDraggingTab = false
-    self.__draggedWidget = nil
 end
 
 ---Handle mouse pressed
@@ -279,7 +270,6 @@ end
 function TabBar:onMouseReleased(event)
     self.draggedTabIndex = nil
     self.isDraggingTab = false
-    self.__draggedWidget = nil
 end
 
 ---Calculate close button position for a tab
