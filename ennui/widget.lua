@@ -4,8 +4,6 @@ local Scissor = require("ennui.utils.scissor")
 local Mixins = require("ennui.mixins")
 local Mixin = require("ennui.utils.mixin")
 
----@class WidgetState
-
 ---@class Padding
 ---@field public top number Top padding in pixels
 ---@field public right number Right padding in pixels
@@ -24,8 +22,8 @@ local Mixin = require("ennui.utils.mixin")
 ---@field public isRenderDirty boolean Whether widget needs redraw
 ---@field public layoutStrategy LayoutStrategy? Optional layout strategy for arranging children
 ---@field public isTabContext boolean Whether this widget creates a new tab focus scope
----@field private __hitTransparent boolean Whether widget passes through hit events to parent
 ---@field public clipContent boolean Whether to clip children to widget bounds
+---@field private __hitTransparent boolean Whether widget passes through hit events to parent
 local Widget = {}
 Widget.__index = Widget
 setmetatable(Widget, {

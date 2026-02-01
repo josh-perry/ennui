@@ -2,8 +2,6 @@ local Widget = require("ennui.widget")
 local Size = require("ennui.size")
 
 ---@class Rectangle : Widget
----@field color number[] RGBA color tint
----@field radius number Corner radius
 local Rectangle = {}
 Rectangle.__index = Rectangle
 setmetatable(Rectangle, {
@@ -66,8 +64,8 @@ function Rectangle:onRender()
         self.y + 0.5,
         self.width - 0.5,
         self.height - 0.5,
-        self.radius,
-        self.radius
+        self.props.radius,
+        self.props.radius
     )
 
     love.graphics.setColor(self.props.borderColor)
@@ -78,8 +76,8 @@ function Rectangle:onRender()
         self.y + 0.5,
         self.width - 0.5,
         self.height - 0.5,
-        self.radius,
-        self.radius
+        self.props.radius,
+        self.props.radius
     )
 
     Widget.onRender(self)
