@@ -70,6 +70,7 @@ function Widget.new()
     self.layoutStrategy = nil
     self.__hitTransparent = false
     self.clipContent = false
+    self.__subscriptions = {}
 
     self:addProperty("isHovered", false)
     self:addProperty("isFocused", false)
@@ -583,9 +584,11 @@ function Widget:bindTo(propertyName, computed)
 
     setNestedProperty(computed:get())
 
-    computed:subscribe(function()
+    local unsubscribe = computed:subscribe(function()
         setNestedProperty(computed:get())
     end)
+
+    table.insert(self.__subscriptions, unsubscribe)
 
     return self
 end
@@ -644,7 +647,7 @@ function Widget:bindFrom(source, mapping, transform)
     return self
 end
 
----Clean up all watchers and computed properties
+---Clean up all watchers, computed properties and subscriptions
 ---Called automatically on unmount to prevent memory leaks
 ---Delegates to StatefulMixin:cleanupStateful()
 ---@private
@@ -652,6 +655,11 @@ end
 ---@param self T
 function Widget:__cleanupReactive()
     ---@cast self Widget
+    for _, unsubscribe in ipairs(self.__subscriptions) do
+        unsubscribe()
+    end
+
+    self.__subscriptions = {}
     self:cleanupStateful()
 end
 
