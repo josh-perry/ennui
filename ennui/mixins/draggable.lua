@@ -65,7 +65,7 @@ end
 ---@return boolean True if point is in drag handle
 function DraggableMixin:isInDragHandle(x, y)
     if not Mixin.hasMixin(self, PositionableMixin) then
-        error("DraggableMixin:isInDragHandle requires DraggableMixin")
+        error("DraggableMixin:isInDragHandle requires PositionableMixin")
     end
 
     ---@cast self PositionableMixin | DraggableMixin
