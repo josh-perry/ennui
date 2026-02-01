@@ -310,8 +310,7 @@ function State:pairs(path)
         return mt.__pairs(proxy)
     end
 
-    local k, _ = pairs(proxy)
-    return k
+    return pairs(proxy)
 end
 
 ---Create a computed that interpolates {property} placeholders in a template
