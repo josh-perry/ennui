@@ -197,6 +197,7 @@ function Host:onRender()
         self.__draggedWidget:onRender()
         love.graphics.setColor(1, 1, 1, 0.8)
         love.graphics.rectangle("fill", self.__draggedWidget.x, self.__draggedWidget.y, self.__draggedWidget.width, self.__draggedWidget.height)
+        love.graphics.setColor(1, 1, 1, 1)  -- Reset color
     end
 end
 
