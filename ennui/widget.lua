@@ -78,18 +78,15 @@ function Widget.new()
     self:addProperty("isVisible", true)
     self:addProperty("isDocked", false)
 
-    -- Create reactive proxy (Widget uses Reactive.createProxy, not State's custom proxy)
-    self.props = Reactive.createProxy(
-        self.__rawProps,
-        nil,
-        function(key, value, oldValue)
+    self.props = Reactive.createProxy(self.__rawProps, {
+        onSet = function(key, value, oldValue)
             if PropertyMetadata.isLayoutProperty(key) then
                 self:invalidateLayout()
             elseif PropertyMetadata.isRenderProperty(key) then
                 self:invalidateRender()
             end
-        end
-    )
+        end,
+    })
 
     self.props.padding = self:__makeReactiveNested(self.__rawProps.padding, "padding")
     self.props.margin = self:__makeReactiveNested(self.__rawProps.margin, "margin")
@@ -545,10 +542,8 @@ end
 ---@param parentKey string The parent property key (e.g., "padding")
 ---@return table proxy The reactive proxy for the nested table
 function Widget:__makeReactiveNested(rawTable, parentKey)
-    local proxy = Reactive.createProxy(
-        rawTable,
-        nil,
-        function(key, value, oldValue)
+    return Reactive.createProxy(rawTable, {
+        onSet = function(key, value, oldValue)
             -- When any nested property changes, invalidate based on parent property type
             local config = PropertyMetadata.getConfig(parentKey)
 
@@ -557,10 +552,8 @@ function Widget:__makeReactiveNested(rawTable, parentKey)
             elseif config.type == "render" then
                 self:invalidateRender()
             end
-        end
-    )
-
-    return proxy
+        end,
+    })
 end
 
 ---Bind a widget property to a computed property

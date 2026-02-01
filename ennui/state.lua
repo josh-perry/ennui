@@ -35,45 +35,9 @@ end
 
 local StateScope
 
--- Map from proxy to its underlying raw table
-local proxyToRaw = setmetatable({}, {__mode = "k"})
-
----@class StateDependency
----@field subscribers table<any, boolean> Set of watchers/computed that depend on this property
-local StateDependency = {}
-StateDependency.__index = StateDependency
-
-function StateDependency.new()
-    return setmetatable({ subscribers = {} }, StateDependency)
-end
-
-function StateDependency:depend(subscriber)
-    if subscriber then
-        self.subscribers[subscriber] = true
-
-        if subscriber.dependencies then
-            subscriber.dependencies[self] = true
-        end
-    end
-end
-
-function StateDependency:notify(forceUpdate)
-    for subscriber in pairs(self.subscribers) do
-        if subscriber and subscriber.update then
-            if forceUpdate and subscriber.forceUpdate then
-                subscriber:forceUpdate()
-            else
-                subscriber:update()
-            end
-        end
-    end
-end
-
 ---@class State : StatefulMixin
 ---@field props table Reactive properties table
----@field private __rawProps table<string, any> Underlying raw properties table (contains proxies for nested tables)
----@field private __dependencies table<string, StateDependency> Dependencies for each property
----@field private __nestedProps table<string, boolean> Set of property names that are nested/reactive tables
+---@field private __rawProps table<string, any> Underlying raw properties table
 ---@field private __watchers Watcher[] Active watchers
 ---@field private __computed table<string, Computed> Computed properties
 ---@field private __bindCache table<string, Computed> Cached Computed bindings
@@ -97,78 +61,20 @@ function State.new(initialProps)
     self:initStateful()
 
     -- State-specific fields
-    self.__dependencies = {}
-    self.__nestedProps = {}
     self.__bindCache = {}
 
-    self.props = self:__createProxy()
+    -- Create reactive proxy with nested support using unified Reactive system
+    self.props = Reactive.createProxy(self.__rawProps, {
+        nested = true,
+    })
 
     if initialProps then
         for name, value in pairs(initialProps) do
-            if type(value) == "table" then
-                self.__rawProps[name] = self:__makeNestedReactive(value, name)
-                self.__nestedProps[name] = true
-            else
-                self.__rawProps[name] = value
-            end
+            self.props[name] = value
         end
     end
 
     return self
-end
-
----Get or create a dependency for a property
----@private
----@param key string Property name
----@return StateDependency
-function State:__getDependency(key)
-    if not self.__dependencies[key] then
-        self.__dependencies[key] = StateDependency.new()
-    end
-    return self.__dependencies[key]
-end
-
----Notify subscribers of a property change
----@private
----@param key string Property name
-function State:__notifyProperty(key)
-    local forceUpdate = self.__nestedProps[key] or false
-    self:__getDependency(key):notify(forceUpdate)
-end
-
----Create the reactive proxy for props
----@private
----@return table
-function State:__createProxy()
-    local proxy = setmetatable({}, {
-        __index = function(_, key)
-            local collector = Reactive.getCurrentDep()
-            if collector then
-                self:__getDependency(key):depend(collector)
-            end
-            return self.__rawProps[key]
-        end,
-
-        __newindex = function(_, key, value)
-            local oldValue = self.__rawProps[key]
-            if value ~= oldValue then
-                self.__rawProps[key] = value
-                self:__notifyProperty(key)
-            else
-                self.__rawProps[key] = value
-            end
-        end,
-
-        __pairs = function(_)
-            return pairs(self.__rawProps)
-        end,
-
-        __len = function(_)
-            return #self.__rawProps
-        end,
-    })
-
-    return proxy
 end
 
 ---Get a cached Computed binding for a property path
@@ -185,71 +91,6 @@ function State:bind(path)
     end
 
     return self.__bindCache[path]
-end
-
----Create a reactive nested table that notifies the parent property when changed
----Recursively wraps nested tables for deep reactivity
----@private
----@param rawTable table The raw nested table
----@param parentKey string The parent property key (top-level key for dependency tracking)
----@return table proxy The reactive proxy for the nested table
-function State:__makeNestedReactive(rawTable, parentKey)
-    -- Recursively wrap nested tables first
-    for key, value in pairs(rawTable) do
-        if type(value) == "table" then
-            rawTable[key] = self:__makeNestedReactive(value, parentKey)
-        end
-    end
-
-    local proxy = setmetatable({}, {
-        __index = function(_, key)
-            local collector = Reactive.getCurrentDep()
-            if collector then
-                self:__getDependency(parentKey):depend(collector)
-            end
-            return rawTable[key]
-        end,
-
-        __newindex = function(_, key, value)
-            local oldValue = rawTable[key]
-            -- Wrap new table values in reactive proxy
-            if type(value) == "table" then
-                value = self:__makeNestedReactive(value, parentKey)
-            end
-            if value ~= oldValue then
-                rawTable[key] = value
-                self:__notifyProperty(parentKey)
-            else
-                rawTable[key] = value
-            end
-        end,
-
-        __pairs = function(_)
-            return pairs(rawTable)
-        end,
-
-        __len = function(_)
-            return #rawTable
-        end,
-    })
-
-    -- Store mapping so getRaw can retrieve the underlying table
-    proxyToRaw[proxy] = rawTable
-
-    return proxy
-end
-
----Hook to transform property values before storing (implements StatefulMixin hook)
----Tables are wrapped in nested reactivity
----@param name string Property name
----@param value any Initial value
----@return any transformedValue The value to store (potentially wrapped)
-function State:__beforeAddTransformPropertyValue(name, value)
-    if type(value) == "table" then
-        self.__nestedProps[name] = true
-        return self:__makeNestedReactive(value, name)
-    end
-    return value
 end
 
 ---Clean up all watchers and computed properties
@@ -273,12 +114,7 @@ end
 ---@return any The raw underlying table (or the value itself if not a proxy)
 function State:getRaw(path)
     local proxy = self:get(path)
-
-    if type(proxy) == "table" then
-        return proxyToRaw[proxy] or proxy
-    end
-
-    return proxy
+    return Reactive.getRaw(proxy)
 end
 
 ---Iterate over an array at a path
@@ -310,6 +146,7 @@ function State:pairs(path)
         return mt.__pairs(proxy)
     end
 
+    ---@diagnostic disable-next-line: redundant-return-value
     return pairs(proxy)
 end
 
@@ -407,7 +244,6 @@ function StateScope.new(root, path)
     self.__root = root
     self.__path = path
 
-    -- Create a proxy that delegates to root with path prefix
     self.props = setmetatable({}, {
         __index = function(_, key)
             local target = root:get(path)
