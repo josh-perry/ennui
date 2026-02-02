@@ -85,6 +85,11 @@ function TextInput:getText()
     return self.props.value
 end
 
+---Get the internal Text widget
+function TextInput:getTextWidget()
+    return self.__textWidget
+end
+
 ---Set placeholder text
 ---@param placeholder string Placeholder to display when empty
 ---@return TextInput self
