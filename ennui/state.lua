@@ -108,13 +108,24 @@ function State:get(path)
     return navigatePath(self.props, segments)
 end
 
----Get raw (non-reactive) value at a dot-notation path
+---Get raw (non-reactive) value at a dot-notation path (top-level only)
 ---Useful for iteration with pairs/ipairs since reactive proxies don't work with them in LuaJIT
+---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
 ---@param path string Dot-notation path
 ---@return any The raw underlying table (or the value itself if not a proxy)
 function State:getRaw(path)
     local proxy = self:get(path)
     return Reactive.getRaw(proxy)
+end
+
+---Get a deep copy of raw (non-reactive) value at a dot-notation path
+---Returns a disconnected copy with all nested proxies unwrapped to plain Lua tables
+---Useful for drag-and-drop, serialization, or any operation needing plain Lua tables
+---@param path string Dot-notation path
+---@return any The deeply unwrapped value (plain Lua tables all the way down)
+function State:getRawDeep(path)
+    local proxy = self:get(path)
+    return Reactive.getRawDeep(proxy)
 end
 
 ---Iterate over an array at a path
@@ -334,11 +345,20 @@ function StateScope:scope(path)
     return StateScope.new(self.__root, self:__fullPath(path))
 end
 
----Get raw (non-reactive) value at a relative path
+---Get raw (non-reactive) value at a relative path (top-level only)
+---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
 ---@param path string Property name or relative dot-notation path
 ---@return any The raw underlying table (or the value itself if not a proxy)
 function StateScope:getRaw(path)
     return self.__root:getRaw(self:__fullPath(path))
+end
+
+---Get a deep copy of raw (non-reactive) value at a relative path
+---Returns a disconnected copy with all nested proxies unwrapped to plain Lua tables
+---@param path string Property name or relative dot-notation path
+---@return any The deeply unwrapped value (plain Lua tables all the way down)
+function StateScope:getRawDeep(path)
+    return self.__root:getRawDeep(self:__fullPath(path))
 end
 
 ---Iterate over an array at a relative path, calling fn for each element with a StateScope

@@ -69,8 +69,9 @@ function Reactive.getCurrentDep()
     return currentDependencyCollector
 end
 
----Get the raw underlying table from a proxy
+---Get the raw underlying table from a proxy (top-level only)
 ---Useful for iteration with pairs/ipairs since reactive proxies don't work here
+---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
 ---@param proxy table The reactive proxy
 ---@return table The raw underlying table (or the proxy itself if not found)
 function Reactive.getRaw(proxy)
@@ -79,6 +80,26 @@ function Reactive.getRaw(proxy)
     end
 
     return proxy
+end
+
+---Get a deep copy of the raw underlying data with all nested proxies unwrapped
+---Returns a disconnected copy - modifications won't affect the original state
+---Useful for drag-and-drop, serialization, or any operation needing plain Lua tables
+---@param proxy any The reactive proxy (or any value)
+---@return any The deeply unwrapped value (plain Lua tables all the way down)
+function Reactive.getRawDeep(proxy)
+    if type(proxy) ~= "table" then
+        return proxy
+    end
+
+    local raw = proxyToRaw[proxy] or proxy
+    local result = {}
+
+    for key, value in pairs(raw) do
+        result[key] = Reactive.getRawDeep(value)
+    end
+
+    return result
 end
 
 ---Check if a table is a reactive proxy
