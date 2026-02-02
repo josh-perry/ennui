@@ -12,8 +12,13 @@ local Event = require("ennui.event")
 ---@field __dragOffsetY number Y offset for position-based dragging
 ---@field __lastDragX number Last X position for delta calculation
 ---@field __lastDragY number Last Y position for delta calculation
----@field __dragMode string? "position" or "delta"
+---@field __dragMode string? "position", "delta", or "ghost"
 ---@field __dragStarted boolean Whether drag has actually started
+---@field __dragStartX number Mouse X position when drag initiated
+---@field __dragStartY number Mouse Y position when drag initiated
+---@field __dragThreshold number Pixels to move before drag starts (default 3)
+---@field __ghostX number? Ghost widget X position (for ghost mode)
+---@field __ghostY number? Ghost widget Y position (for ghost mode)
 ---@field __overlayWidgets Widget[] Overlay widgets (hit-tested first, rendered last)
 local Host = setmetatable({}, {
     __index = Widget,
@@ -45,6 +50,11 @@ function Host.new()
     self.__lastDragY = 0
     self.__dragMode = nil
     self.__dragStarted = false
+    self.__dragStartX = 0
+    self.__dragStartY = 0
+    self.__dragThreshold = 3
+    self.__ghostX = nil
+    self.__ghostY = nil
     self.__overlayWidgets = {}
 
     return self
@@ -185,19 +195,51 @@ end
 
 ---@protected
 function Host:onRender()
-    -- Render all children except the dragged widget
+    -- In ghost mode, render dragged widget normally in its original position
+    -- In position mode, skip dragged widget (will render it later on top)
     for _, child in ipairs(self.children) do
-        if child:isVisible() and child ~= self.__draggedWidget then
-            child:onRender()
+        if child:isVisible() then
+            if self.__dragMode == "position" and child == self.__draggedWidget then
+                -- Skip - will render on top
+            else
+                child:onRender()
+            end
         end
     end
 
-    -- Render dragged widget last
-    if self.__draggedWidget and self.__draggedWidget:isVisible() then
-        self.__draggedWidget:onRender()
-        love.graphics.setColor(1, 1, 1, 0.8)
-        love.graphics.rectangle("fill", self.__draggedWidget.x, self.__draggedWidget.y, self.__draggedWidget.width, self.__draggedWidget.height)
-        love.graphics.setColor(1, 1, 1, 1)  -- Reset color
+    -- Render dragged widget with visual feedback
+    if self.__draggedWidget and self.__draggedWidget:isVisible() and self.__dragStarted then
+        local widget = self.__draggedWidget
+
+        if self.__dragMode == "position" then
+            -- Position mode: render widget at its new position on top
+            widget:onRender()
+
+            -- Add semi-transparent overlay to indicate dragging
+            love.graphics.setColor(1, 1, 1, 0.5)
+            love.graphics.rectangle("fill", widget.x, widget.y, widget.width, widget.height)
+            love.graphics.setColor(1, 1, 1, 1)
+
+        elseif self.__dragMode == "ghost" and self.__ghostX and self.__ghostY then
+            -- Ghost mode: render semi-transparent copy at ghost position
+            love.graphics.push()
+            love.graphics.translate(self.__ghostX - widget.x, self.__ghostY - widget.y)
+
+            -- Render with transparency
+            local r, g, b, a = love.graphics.getColor()
+            love.graphics.setColor(r, g, b, 0.6)
+            widget:onRender()
+            love.graphics.setColor(r, g, b, a)
+
+            love.graphics.pop()
+
+            -- Draw outline around ghost
+            love.graphics.setColor(0.4, 0.6, 1, 0.8)
+            love.graphics.setLineWidth(2)
+            love.graphics.rectangle("line", self.__ghostX, self.__ghostY, widget.width, widget.height)
+            love.graphics.setLineWidth(1)
+            love.graphics.setColor(1, 1, 1, 1)
+        end
     end
 end
 
@@ -213,7 +255,11 @@ function Host:__initDrag(widget, x, y, button)
     self.__dragOffsetY = y - widget.y
     self.__lastDragX = x
     self.__lastDragY = y
+    self.__dragStartX = x
+    self.__dragStartY = y
     self.__dragStarted = false
+    self.__ghostX = nil
+    self.__ghostY = nil
 
     ---@diagnostic disable-next-line: undefined-field
     if widget.props.isDocked and widget.undock then
@@ -239,14 +285,26 @@ function Host:__clearDrag()
     self.__dragOffsetY = 0
     self.__lastDragX = 0
     self.__lastDragY = 0
+    self.__dragStartX = 0
+    self.__dragStartY = 0
     self.__dragMode = nil
     self.__dragStarted = false
+    self.__ghostX = nil
+    self.__ghostY = nil
 end
 
 ---@param widget Widget
 ---@return boolean
 function Host:isWidgetDragged(widget)
     return self.__draggedWidget == widget
+end
+
+---Set the drag threshold (pixels of movement required before drag starts)
+---@param threshold number Pixels to move before drag starts (default 3)
+---@return Host self
+function Host:setDragThreshold(threshold)
+    self.__dragThreshold = threshold
+    return self
 end
 
 ---@param x number Mouse X
@@ -340,7 +398,12 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
     self:__ensureLayout()
 
     if self.__draggedWidget then
+        -- Check drag threshold before starting
         if not self.__dragStarted then
+            local dragDist = math.sqrt((x - self.__dragStartX)^2 + (y - self.__dragStartY)^2)
+            if dragDist < self.__dragThreshold then
+                return true -- Still in threshold, don't start dragging yet
+            end
             self.__dragStarted = true
         end
 
@@ -350,8 +413,41 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             local newX = x - self.__dragOffsetX
             local newY = y - self.__dragOffsetY
 
-            widget:setPosition(newX, newY)
+            -- Calculate the delta to move children
+            local deltaX = newX - widget.x
+            local deltaY = newY - widget.y
+
+            -- Update widget position
+            widget.x = newX
+            widget.y = newY
+
+            -- Recursively update all descendant positions to follow parent
+            local function updateChildrenPositions(parent, dx, dy)
+                for _, child in ipairs(parent.children) do
+                    child.x = child.x + dx
+                    child.y = child.y + dy
+                    updateChildrenPositions(child, dx, dy)
+                end
+            end
+            updateChildrenPositions(widget, deltaX, deltaY)
+
         elseif self.__dragMode == "delta" then
+            local deltaX = x - self.__lastDragX
+            local deltaY = y - self.__lastDragY
+
+            if widget.onDrag then
+                local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, deltaX, deltaY)
+                widget.onDrag(event, deltaX, deltaY)
+            end
+
+            self.__lastDragX = x
+            self.__lastDragY = y
+
+        elseif self.__dragMode == "ghost" then
+            -- Ghost mode: keep widget in place, track ghost position
+            self.__ghostX = x - self.__dragOffsetX
+            self.__ghostY = y - self.__dragOffsetY
+
             local deltaX = x - self.__lastDragX
             local deltaY = y - self.__lastDragY
 
@@ -364,6 +460,7 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             self.__lastDragY = y
         end
 
+        -- Call onDrag for position mode if handler exists
         if self.__dragMode == "position" and widget.onDrag then
             local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, dx, dy)
             widget.onDrag(event)

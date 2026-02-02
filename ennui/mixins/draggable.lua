@@ -12,7 +12,7 @@ local Mixin = require("ennui.utils.mixin")
 local PositionableMixin = require("ennui.mixins.positionable")
 local ParentableMixin = require("ennui.mixins.parentable")
 
----@alias dragMode "position"|"delta"
+---@alias dragMode "position"|"delta"|"ghost"
 
 ---Initialize draggable fields on an instance
 ---Call this from the constructor of classes using this mixin
@@ -41,11 +41,11 @@ function DraggableMixin:setDraggable(draggable, dragHandle)
     return self
 end
 
----Set the drag mode ("position" or "delta")
----@param mode dragMode "position" for position-based dragging, "delta" for delta-based
+---Set the drag mode ("position", "delta", or "ghost")
+---@param mode dragMode "position" for position-based dragging, "delta" for delta-based, "ghost" for visual-only dragging
 ---@return self
 function DraggableMixin:setDragMode(mode)
-    assert(mode == "position" or mode == "delta", "dragMode must be 'position' or 'delta'")
+    assert(mode == "position" or mode == "delta" or mode == "ghost", "dragMode must be 'position', 'delta', or 'ghost'")
     self.dragMode = mode
     return self
 end
