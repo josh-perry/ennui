@@ -1,7 +1,7 @@
 local ennui = require("ennui")
 
-local TextButton = require("widgets.textbutton")
-local Window = require("widgets.window")
+local TextButton = ennui.Widgets.Textbutton
+local Window = ennui.Widgets.Window
 
 local state = {
     clicks = 0

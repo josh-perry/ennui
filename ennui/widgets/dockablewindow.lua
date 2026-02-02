@@ -1,4 +1,4 @@
-local Window = require("widgets.window")
+local Window = require("ennui.widgets.window")
 
 ---@class DockableWindow : Window
 ---@field isDockable boolean Whether this can be docked

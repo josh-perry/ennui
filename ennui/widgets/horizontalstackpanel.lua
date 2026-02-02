@@ -1,5 +1,5 @@
-local ennui = require("ennui")
 local Widget = require("ennui.widget")
+local HorizontalLayout = require("ennui.layout.horizontal_layout_strategy")
 
 ---@class HorizontalStackPanel : Widget
 ---@operator call:HorizontalStackPanel
@@ -21,7 +21,7 @@ end
 function HorizontalStackPanel.new()
     local self = setmetatable(Widget.new(), HorizontalStackPanel) ---@cast self HorizontalStackPanel
 
-    self:setLayoutStrategy(ennui.Layout.Horizontal())
+    self:setLayoutStrategy(HorizontalLayout())
     self:setSize("auto", "fill")
 
     return self

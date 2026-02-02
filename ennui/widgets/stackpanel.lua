@@ -1,5 +1,5 @@
-local ennui = require("ennui")
 local Widget = require("ennui.widget")
+local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
 
 ---@class StackPanel : Widget
 ---@operator call:StackPanel
@@ -21,7 +21,7 @@ end
 function StackPanel.new()
     local self = setmetatable(Widget(), StackPanel) ---@cast self StackPanel
 
-    self:setLayoutStrategy(ennui.Layout.Vertical())
+    self:setLayoutStrategy(VerticalLayout())
     self:setSize("fill", "auto")
 
     return self

@@ -1,7 +1,7 @@
-local ennui = require("ennui")
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local Text = require("widgets.text")
+local Text = require("ennui.widgets.text")
+local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
 
 ---@class Group : Widget
 ---@field title string Group title text
@@ -53,7 +53,7 @@ function Group.new(title)
     end, { immediate = true })
 
     -- Set default layout strategy
-    local strategy = ennui.Layout.Vertical()
+    local strategy = VerticalLayout()
     self:setLayoutStrategy(strategy)
 
     -- Default padding

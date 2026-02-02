@@ -1,12 +1,12 @@
 local ennui = require("ennui")
 
-local StackPanel = require("widgets.stackpanel")
-local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local TextButton = require("widgets.textbutton")
-local Text = require("widgets.text")
-local Slider = require("widgets.slider")
-local Rectangle = require("widgets.rectangle")
-local Window = require("widgets.window")
+local StackPanel = ennui.Widgets.Stackpanel
+local HorizontalStackPanel = ennui.Widgets.Horizontalstackpanel
+local TextButton = ennui.Widgets.Textbutton
+local Text = ennui.Widgets.Text
+local Slider = ennui.Widgets.Slider
+local Rectangle = ennui.Widgets.Rectangle
+local Window = ennui.Widgets.Window
 
 local state = ennui.State({
     counter = 0,

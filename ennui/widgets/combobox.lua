@@ -1,7 +1,7 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local TextInput = require("widgets.textinput")
-local Menu = require("widgets.menu")
+local TextInput = require("ennui.widgets.textinput")
+local Menu = require("ennui.widgets.menu")
 
 ---@class ComboBoxItem
 ---@field label string Display text

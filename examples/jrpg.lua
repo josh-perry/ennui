@@ -1,11 +1,11 @@
 local ennui = require("ennui")
 
-local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local StackPanel = require("widgets.stackpanel")
-local TextButton = require("widgets.textbutton")
-local Text = require("widgets.text")
-local Rectangle = require("widgets.rectangle")
-local Image = require("widgets.image")
+local HorizontalStackPanel = ennui.Widgets.Horizontalstackpanel
+local StackPanel = ennui.Widgets.Stackpanel
+local TextButton = ennui.Widgets.Textbutton
+local Text = ennui.Widgets.Text
+local Rectangle = ennui.Widgets.Rectangle
+local Image = ennui.Widgets.Image
 
 -- Create a State object for reactive game data
 -- Tables are automatically made nested-reactive with deep reactivity

@@ -1,10 +1,10 @@
-local ennui = require("ennui")
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local Text = require("widgets.text")
-local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local Rectangle = require("widgets.rectangle")
+local Text = require("ennui.widgets.text")
+local HorizontalStackPanel = require("ennui.widgets.horizontalstackpanel")
+local Rectangle = require("ennui.widgets.rectangle")
 local AABB = require("ennui.utils.aabb")
+local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
 
 ---@class TreeViewNode : Widget
 ---@field label string Node label text
@@ -92,7 +92,7 @@ function TreeViewNode.new(label, value)
         self:invalidateLayout()
     end)
 
-    local strategy = ennui.Layout.Vertical()
+    local strategy = VerticalLayout()
     strategy.spacing = 0
     self:setLayoutStrategy(strategy)
 

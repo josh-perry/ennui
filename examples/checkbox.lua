@@ -1,9 +1,9 @@
 local ennui = require("ennui")
 
-local Checkbox = require("widgets.checkbox")
-local StackPanel = require("widgets.stackpanel")
-local Text = require("widgets.text")
-local Window = require("widgets.window")
+local Checkbox = ennui.Widgets.Checkbox
+local StackPanel = ennui.Widgets.Stackpanel
+local Text = ennui.Widgets.Text
+local Window = ennui.Widgets.Window
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())

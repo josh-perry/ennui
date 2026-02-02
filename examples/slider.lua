@@ -1,11 +1,11 @@
 local ennui = require("ennui")
 
-local Slider = require("widgets.slider")
-local StackPanel = require("widgets.stackpanel")
-local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local Text = require("widgets.text")
-local Rectangle = require("widgets.rectangle")
-local Window = require("widgets.window")
+local Slider = ennui.Widgets.Slider
+local StackPanel = ennui.Widgets.Stackpanel
+local HorizontalStackPanel = ennui.Widgets.Horizontalstackpanel
+local Text = ennui.Widgets.Text
+local Rectangle = ennui.Widgets.Rectangle
+local Window = ennui.Widgets.Window
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())

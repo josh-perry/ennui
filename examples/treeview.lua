@@ -1,10 +1,10 @@
 local ennui = require("ennui")
 
-local TreeView = require("widgets.treeview")
-local TreeViewNode = require("widgets.treeviewnode")
-local Text = require("widgets.text")
-local Window = require("widgets.window")
-local ScrollArea = require("widgets.scrollarea")
+local TreeView = ennui.Widgets.Treeview
+local TreeViewNode = ennui.Widgets.Treeviewnode
+local Text = ennui.Widgets.Text
+local Window = ennui.Widgets.Window
+local ScrollArea = ennui.Widgets.Scrollarea
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())

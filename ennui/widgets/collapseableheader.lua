@@ -1,9 +1,9 @@
-local ennui = require("ennui")
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local Text = require("widgets.text")
+local Text = require("ennui.widgets.text")
 local Scissor = require("ennui.utils.scissor")
 local AABB = require("ennui.utils.aabb")
+local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
 
 ---@class CollapseableHeader : Widget
 ---@field expanded boolean Whether the content is expanded
@@ -73,7 +73,7 @@ function CollapseableHeader.new(title, expanded)
         self:invalidateLayout()
     end)
 
-    local strategy = ennui.Layout.Vertical()
+    local strategy = VerticalLayout()
     self:setLayoutStrategy(strategy)
 
     self:setFocusable(true)

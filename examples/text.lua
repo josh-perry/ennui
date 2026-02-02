@@ -8,10 +8,10 @@ Morbi porttitor vulputate massa a lacinia. Interdum et malesuada fames ac ante i
 Fusce eget quam sed nibh lobortis finibus.
 ]]
 
-local Text = require("widgets.text")
-local StackPanel = require("widgets.stackpanel")
-local Rectangle = require("widgets.rectangle")
-local Window = require("widgets.window")
+local Text = ennui.Widgets.Text
+local StackPanel = ennui.Widgets.Stackpanel
+local Rectangle = ennui.Widgets.Rectangle
+local Window = ennui.Widgets.Window
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())

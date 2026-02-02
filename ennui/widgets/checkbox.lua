@@ -1,8 +1,8 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local Text = require("widgets.text")
-local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local Rectangle = require("widgets.rectangle")
+local Text = require("ennui.widgets.text")
+local HorizontalStackPanel = require("ennui.widgets.horizontalstackpanel")
+local Rectangle = require("ennui.widgets.rectangle")
 
 ---@class Checkbox : Widget
 ---@field checked boolean Whether the checkbox is checked
@@ -13,7 +13,7 @@ local Rectangle = require("widgets.rectangle")
 ---@field hoverColor number[] RGBA color for hover state
 ---@field textColor number[] RGBA color for the label text
 ---@field spacing number Spacing between box and label
----@field __textWidget Text Internal Text widget reference
+---@field __textWidget Widget Text Internal Text widget reference
 ---@field __layoutContainer HorizontalStackPanel Internal layout container
 ---@field __indicatorPlaceholder Rectangle Internal placeholder for checkbox indicator
 local Checkbox = {}

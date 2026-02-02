@@ -1,6 +1,6 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local Text = require("widgets.text")
+local Text = require("ennui.widgets.text")
 local AABB = require("ennui.utils.aabb")
 
 ---@class MenuItem

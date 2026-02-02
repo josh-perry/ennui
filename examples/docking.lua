@@ -1,14 +1,14 @@
 local ennui = require("ennui")
 
-local DockSpace = ennui.Docking.Widgets.DockSpace
-local DockableWindow = require("widgets.dockablewindow")
-local StackPanel = require("widgets.stackpanel")
-local Text = require("widgets.text")
-local Checkbox = require("widgets.checkbox")
-local Slider = require("widgets.slider")
-local TreeView = require("widgets.treeview")
-local TreeViewNode = require("widgets.treeviewnode")
-local Image = require("widgets.image")
+local DockSpace = ennui.Widgets.Dockspace
+local DockableWindow = ennui.Widgets.Dockablewindow
+local StackPanel = ennui.Widgets.Stackpanel
+local Text = ennui.Widgets.Text
+local Checkbox = ennui.Widgets.Checkbox
+local Slider = ennui.Widgets.Slider
+local TreeView = ennui.Widgets.Treeview
+local TreeViewNode = ennui.Widgets.Treeviewnode
+local Image = ennui.Widgets.Image
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())

@@ -1,6 +1,6 @@
 local DockLayoutStrategy = require("ennui.layout.dock_layout_strategy")
 local DockNode = require("ennui.docking.docknode")
-local Splitter = require("ennui.docking.widgets.splitter")
+local Splitter = require("ennui.widgets.splitter")
 local TabBar = require("ennui.widgets.tabbar")
 local Widget = require("ennui.widget")
 

@@ -1,6 +1,6 @@
-local ennui = require("ennui")
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
+local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
 
 ---@class TreeView : Widget
 ---@field selectedNode TreeViewNode? Currently selected node
@@ -33,7 +33,7 @@ function TreeView.new()
 
     self.selectedNode = nil
 
-    local strategy = ennui.Layout.Vertical()
+    local strategy = VerticalLayout()
     strategy.spacing = 0
     self:setLayoutStrategy(strategy)
 

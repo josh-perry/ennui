@@ -2,15 +2,15 @@ local debugger = {}
 
 local ennui = require("ennui")
 
-local ScrollArea = require("widgets.scrollarea")
-local Treeview = require("widgets.treeview")
-local TreeViewNode = require("widgets.treeviewnode")
-local Rectangle = require("widgets.rectangle")
-local Splitter = require("ennui.docking.widgets.splitter")
-local Tabbar = require("ennui.widgets.tabbar")
-local Text = require("widgets.text")
+local ScrollArea = ennui.Widgets.Scrollarea
+local Treeview = ennui.Widgets.Treeview
+local TreeViewNode = ennui.Widgets.Treeviewnode
+local Rectangle = ennui.Widgets.Rectangle
+local Splitter = ennui.Widgets.Splitter
+local Tabbar = ennui.Widgets.Tabbar
+local Text = ennui.Widgets.Text
 
-local Window = require("widgets.window")
+local Window = ennui.Widgets.Window
 
 local propertiesPanel = ennui.Widget()
     :setSize(ennui.Size.fill(), ennui.Size.fill())

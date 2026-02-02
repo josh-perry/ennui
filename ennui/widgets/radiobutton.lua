@@ -1,8 +1,8 @@
 local Widget = require("ennui.widget")
 local Size = require("ennui.size")
-local Text = require("widgets.text")
-local HorizontalStackPanel = require("widgets.horizontalstackpanel")
-local Rectangle = require("widgets.rectangle")
+local Text = require("ennui.widgets.text")
+local HorizontalStackPanel = require("ennui.widgets.horizontalstackpanel")
+local Rectangle = require("ennui.widgets.rectangle")
 
 ---@class RadioButton : Widget
 ---@field selected boolean Whether this radio button is selected

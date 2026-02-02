@@ -1,12 +1,12 @@
 local ennui = require("ennui")
 
-local CollapseableHeader = require("widgets.collapseableheader")
-local StackPanel = require("widgets.stackpanel")
-local ScrollArea = require("widgets.scrollarea")
-local Text = require("widgets.text")
-local Checkbox = require("widgets.checkbox")
-local Slider = require("widgets.slider")
-local Window = require("widgets.window")
+local CollapseableHeader = ennui.Widgets.Collapseableheader
+local StackPanel = ennui.Widgets.Stackpanel
+local ScrollArea = ennui.Widgets.Scrollarea
+local Text = ennui.Widgets.Text
+local Checkbox = ennui.Widgets.Checkbox
+local Slider = ennui.Widgets.Slider
+local Window = ennui.Widgets.Window
 
 local host = ennui.Widgets.Host()
     :setSize(love.graphics.getDimensions())
