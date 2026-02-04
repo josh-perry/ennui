@@ -3,6 +3,8 @@ local Computed = require("ennui.computed")
 local Mixins = require("ennui.mixins")
 local Mixin = require("ennui.utils.mixin")
 
+local uuid = require("ennui.utils.uuid")
+
 local function parsePath(path)
     local segments = {}
 
@@ -91,6 +93,13 @@ function State:bind(path)
     end
 
     return self.__bindCache[path]
+end
+
+---Generate a unique ID string.
+---Intended for use as the id field on data objects stored in State.
+---@return string
+function State.newId()
+    return uuid.uuid4()
 end
 
 ---Clean up all watchers and computed properties
@@ -182,7 +191,7 @@ end
 
 ---Create a scoped view into a nested path
 ---@param path string Dot-notation path (e.g., "characters.frog")
----@return StateScope A scoped view that acts like a State
+---@return StateScope # A scoped view that acts like a State
 function State:scope(path)
     return StateScope.new(self, path)
 end
