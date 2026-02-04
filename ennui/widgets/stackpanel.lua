@@ -1,5 +1,7 @@
 local Widget = require("ennui.widget")
 local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
+local Mixin = require("ennui.utils.mixin")
+local ListBindableMixin = require("ennui.mixins.listbindable")
 
 ---@class StackPanel : Widget
 ---@operator call:StackPanel
@@ -12,6 +14,8 @@ setmetatable(StackPanel, {
     end,
 })
 
+Mixin.extend(StackPanel, ListBindableMixin)
+
 function StackPanel:__tostring()
     return "StackPanel"
 end
@@ -23,6 +27,7 @@ function StackPanel.new()
 
     self:setLayoutStrategy(VerticalLayout())
     self:setSize("fill", "auto")
+    self:initListBindable()
 
     return self
 end
@@ -43,6 +48,11 @@ end
 ---@return number spacing
 function StackPanel:getSpacing()
     return self.layoutStrategy and self.layoutStrategy.spacing or 0
+end
+
+function StackPanel:onUnmount()
+    self:cleanupListBindable()
+    Widget.onUnmount(self)
 end
 
 return StackPanel

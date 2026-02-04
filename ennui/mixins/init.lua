@@ -22,4 +22,5 @@ return {
     Draggable = require("ennui.mixins.draggable"),
     Focusable = require("ennui.mixins.focusable"),
     EventEmitter = require("ennui.mixins.event_emitter"),
+    ListBindable = require("ennui.mixins.listbindable"),
 }

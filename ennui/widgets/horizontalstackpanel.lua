@@ -1,7 +1,9 @@
 local Widget = require("ennui.widget")
 local HorizontalLayout = require("ennui.layout.horizontal_layout_strategy")
+local Mixin = require("ennui.utils.mixin")
+local ListBindableMixin = require("ennui.mixins.listbindable")
 
----@class HorizontalStackPanel : Widget
+---@class HorizontalStackPanel : Widget, ListBindableMixin
 ---@operator call:HorizontalStackPanel
 local HorizontalStackPanel = {}
 HorizontalStackPanel.__index = HorizontalStackPanel
@@ -11,6 +13,8 @@ setmetatable(HorizontalStackPanel, {
         return class.new(...)
     end,
 })
+
+Mixin.extend(HorizontalStackPanel, ListBindableMixin)
 
 function HorizontalStackPanel:__tostring()
     return "HorizontalStackPanel"
@@ -23,6 +27,7 @@ function HorizontalStackPanel.new()
 
     self:setLayoutStrategy(HorizontalLayout())
     self:setSize("auto", "fill")
+    self:initListBindable()
 
     return self
 end
@@ -43,6 +48,11 @@ end
 ---@return number spacing
 function HorizontalStackPanel:getSpacing()
     return self.layoutStrategy and self.layoutStrategy.spacing or 0
+end
+
+function HorizontalStackPanel:onUnmount()
+    self:cleanupListBindable()
+    Widget.onUnmount(self)
 end
 
 return HorizontalStackPanel
