@@ -22,7 +22,28 @@ end
 ---@param availableHeight number Available height
 ---@return number desiredWidth, number desiredHeight
 function VerticalLayoutStrategy:measure(widget, availableWidth, availableHeight)
-    local contentWidth = availableWidth - widget.padding.left - widget.padding.right
+    local widthForChildren = availableWidth
+    local preferredWidth = widget.preferredWidth
+
+    if type(preferredWidth) == "number" then
+        widthForChildren = preferredWidth
+    elseif preferredWidth.type == "fixed" then
+        widthForChildren = preferredWidth.value
+    elseif preferredWidth.type == "percent" then
+        widthForChildren = availableWidth * preferredWidth.value
+    elseif preferredWidth.type == "fill" then
+        widthForChildren = availableWidth
+    end
+
+    if widget.minWidth and widget.minWidth > 0 then
+        widthForChildren = math.max(widthForChildren, widget.minWidth)
+    end
+
+    if widget.maxWidth and widget.maxWidth > 0 then
+        widthForChildren = math.min(widthForChildren, widget.maxWidth)
+    end
+
+    local contentWidth = widthForChildren - widget.padding.left - widget.padding.right
     local contentHeight = availableHeight - widget.padding.top - widget.padding.bottom
 
     local maxChildWidth = 0

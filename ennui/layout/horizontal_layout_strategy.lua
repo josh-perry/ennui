@@ -23,8 +23,29 @@ end
 ---@param availableHeight number Available height
 ---@return number desiredWidth, number desiredHeight
 function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeight)
+    local heightForChildren = availableHeight
+    local preferredHeight = widget.preferredHeight
+
+    if type(preferredHeight) == "number" then
+        heightForChildren = preferredHeight
+    elseif preferredHeight.type == "fixed" then
+        heightForChildren = preferredHeight.value
+    elseif preferredHeight.type == "percent" then
+        heightForChildren = availableHeight * preferredHeight.value
+    elseif preferredHeight.type == "fill" then
+        heightForChildren = availableHeight
+    end
+
+    if widget.minHeight and widget.minHeight > 0 then
+        heightForChildren = math.max(heightForChildren, widget.minHeight)
+    end
+
+    if widget.maxHeight and widget.maxHeight > 0 then
+        heightForChildren = math.min(heightForChildren, widget.maxHeight)
+    end
+
     local contentWidth = availableWidth - widget.padding.left - widget.padding.right
-    local contentHeight = availableHeight - widget.padding.top - widget.padding.bottom
+    local contentHeight = heightForChildren - widget.padding.top - widget.padding.bottom
 
     local maxChildHeight = 0
     local totalFixedWidth = 0
