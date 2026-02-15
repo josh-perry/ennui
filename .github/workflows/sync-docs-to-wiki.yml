@@ -18,7 +18,6 @@ jobs:
           fetch-depth: 2
 
       - name: Checkout wiki repository
-        if: steps.docs_changed.outputs.changed == 'true'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}.wiki
@@ -26,12 +25,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Copy docs to wiki
-        if: steps.docs_changed.outputs.changed == 'true'
         run: |
           rsync -av --delete --exclude='.git' docs/ wiki/
       
       - name: Commit and push to wiki
-        if: steps.docs_changed.outputs.changed == 'true'
         working-directory: wiki
         run: |
           git config user.name "github-actions[bot]"
