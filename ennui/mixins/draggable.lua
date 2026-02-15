@@ -6,6 +6,8 @@
 ---@field onDragStart function? Drag lifecycle callback
 ---@field onDrag function? Drag lifecycle callback
 ---@field onDragEnd function? Drag lifecycle callback
+---@field onDragOver function? Drop target callback
+---@field onDragLeave function? Drop target callback
 local DraggableMixin = {}
 local AABB = require("ennui.utils.aabb")
 local Mixin = require("ennui.utils.mixin")
@@ -25,6 +27,11 @@ function DraggableMixin.initDraggable(self)
     self.onDragStart = nil
     self.onDrag = nil
     self.onDragEnd = nil
+
+    self.isDropTarget = false
+    self.onDragOver = nil
+    self.onDragLeave = nil
+    self.onDrop = nil
 end
 
 ---Configure whether this widget is draggable
@@ -47,6 +54,14 @@ end
 function DraggableMixin:setDragMode(mode)
     assert(mode == "position" or mode == "delta" or mode == "ghost", "dragMode must be 'position', 'delta', or 'ghost'")
     self.dragMode = mode
+    return self
+end
+
+---Configure whether this widget is a drop target
+---@param dropTarget boolean Whether the widget can receive drops
+---@return self
+function DraggableMixin:setDropTarget(dropTarget)
+    self.isDropTarget = dropTarget
     return self
 end
 

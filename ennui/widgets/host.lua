@@ -19,6 +19,7 @@ local Event = require("ennui.event")
 ---@field __dragThreshold number Pixels to move before drag starts (default 3)
 ---@field __ghostX number? Ghost widget X position (for ghost mode)
 ---@field __ghostY number? Ghost widget Y position (for ghost mode)
+---@field __dragOverWidget Widget? Widget currently being dragged over (drop target)
 ---@field __overlayWidgets Widget[] Overlay widgets (hit-tested first, rendered last)
 local Host = setmetatable({}, {
     __index = Widget,
@@ -55,6 +56,7 @@ function Host.new()
     self.__dragThreshold = 3
     self.__ghostX = nil
     self.__ghostY = nil
+    self.__dragOverWidget = nil
     self.__overlayWidgets = {}
 
     return self
@@ -243,6 +245,56 @@ function Host:onRender()
     end
 end
 
+---Find the deepest draggable widget containing a point, ignoring hit transparency
+---@protected
+---@param x number Point X
+---@param y number Point Y
+---@return Widget? draggable
+function Host:__findDraggableAt(x, y)
+    local function search(widget)
+        if not widget:isVisible() then return nil end
+
+        -- Search children first so deeper draggables win
+        for i = #widget.children, 1, -1 do
+            local hit = search(widget.children[i])
+            if hit then return hit end
+        end
+
+        if widget.isDraggable and widget:containsPoint(x, y) then
+            return widget
+        end
+
+        return nil
+    end
+
+    return search(self)
+end
+
+---Find the deepest drop target widget containing a point, ignoring hit transparency.
+---Excludes the currently dragged widget.
+---@protected
+---@param x number Point X
+---@param y number Point Y
+---@return Widget? dropTarget
+function Host:__findDropTargetAt(x, y)
+    local function search(widget)
+        if not widget:isVisible() then return nil end
+        if not widget:containsPoint(x, y) then return nil end
+        if widget == self.__draggedWidget then return nil end
+
+        for i = #widget.children, 1, -1 do
+            local hit = search(widget.children[i])
+            if hit then return hit end
+        end
+
+        if widget.isDropTarget then return widget end
+
+        return nil
+    end
+
+    return search(self)
+end
+
 ---@protected
 ---@param widget Widget
 ---@param x number Mouse X
@@ -291,6 +343,7 @@ function Host:__clearDrag()
     self.__dragStarted = false
     self.__ghostX = nil
     self.__ghostY = nil
+    self.__dragOverWidget = nil
 end
 
 ---@param widget Widget
@@ -317,11 +370,12 @@ function Host:mousepressed(x, y, button, isTouch)
 
     self.__focusSetDuringEvent = false
 
-    if target and target ~= self then
-        if target.isDraggable and target:isInDragHandle(x, y) then
-            self:__initDrag(target, x, y, button)
-        end
+    local draggable = self:__findDraggableAt(x, y)
+    if draggable and draggable:isInDragHandle(x, y) then
+        self:__initDrag(draggable, x, y, button)
+    end
 
+    if target and target ~= self then
         self.__pressedWidget[button] = target
 
         if target:getFocusable() then
@@ -353,6 +407,18 @@ function Host:mousereleased(x, y, button, isTouch)
 
     if self.__draggedWidget then
         local widget = self.__draggedWidget --[[@as Widget]]
+
+        local dropTarget = self:__findDropTargetAt(x, y)
+
+        if dropTarget and dropTarget.onDrop then
+            local dropEvent = Event.createMouseEvent("drop", x, y, button, dropTarget, isTouch)
+            dropTarget.onDrop(dropEvent, widget)
+        end
+
+        if self.__dragOverWidget and self.__dragOverWidget.onDragLeave then
+            local leaveEvent = Event.createMouseEvent("dragLeave", x, y, button, self.__dragOverWidget, isTouch)
+            self.__dragOverWidget.onDragLeave(leaveEvent, widget)
+        end
 
         if widget.onDragEnd then
             local event = Event.createMouseEvent("mouseReleased", x, y, button, widget, isTouch)
@@ -413,23 +479,7 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             local newX = x - self.__dragOffsetX
             local newY = y - self.__dragOffsetY
 
-            -- Calculate the delta to move children
-            local deltaX = newX - widget.x
-            local deltaY = newY - widget.y
-
-            -- Update widget position
-            widget.x = newX
-            widget.y = newY
-
-            -- Recursively update all descendant positions to follow parent
-            local function updateChildrenPositions(parent, dx, dy)
-                for _, child in ipairs(parent.children) do
-                    child.x = child.x + dx
-                    child.y = child.y + dy
-                    updateChildrenPositions(child, dx, dy)
-                end
-            end
-            updateChildrenPositions(widget, deltaX, deltaY)
+            widget:arrange(newX, newY, widget.width, widget.height)
 
         elseif self.__dragMode == "delta" then
             local deltaX = x - self.__lastDragX
@@ -464,6 +514,21 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
         if self.__dragMode == "position" and widget.onDrag then
             local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, dx, dy)
             widget.onDrag(event)
+        end
+
+        local dropTarget = self:__findDropTargetAt(x, y)
+
+        if dropTarget ~= self.__dragOverWidget then
+            if self.__dragOverWidget and self.__dragOverWidget.onDragLeave then
+                local leaveEvent = Event.createMouseEvent("dragLeave", x, y, 1, self.__dragOverWidget, isTouch)
+                self.__dragOverWidget.onDragLeave(leaveEvent, widget)
+            end
+
+            self.__dragOverWidget = dropTarget
+            if dropTarget and dropTarget.onDragOver then
+                local overEvent = Event.createMouseEvent("dragOver", x, y, 1, dropTarget, isTouch)
+                dropTarget.onDragOver(overEvent, widget)
+            end
         end
 
         self:invalidateRender()

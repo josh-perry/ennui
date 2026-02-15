@@ -1,4 +1,5 @@
 local buttonExampleHost = require("examples.button")
+local dragExampleHost = require("examples.drag")
 local jrpg = require("examples.jrpg")
 local checkboxExampleHost = require("examples.checkbox")
 local sliderExampleHost = require("examples.slider")
@@ -22,6 +23,10 @@ return {
     {
         name = "Button",
         host = buttonExampleHost
+    },
+    {
+        name = "Drag",
+        host = dragExampleHost
     },
     {
         name = "JRPG",
