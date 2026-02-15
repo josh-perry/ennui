@@ -1,0 +1,41 @@
+name: Sync Docs to Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+
+jobs:
+  sync-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Checkout wiki repository
+        if: steps.docs_changed.outputs.changed == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Copy docs to wiki
+        if: steps.docs_changed.outputs.changed == 'true'
+        run: |
+          rsync -av --delete --exclude='.git' docs/ wiki/
+      
+      - name: Commit and push to wiki
+        if: steps.docs_changed.outputs.changed == 'true'
+        working-directory: wiki
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Sync docs from main repo (commit ${{ github.sha }})"
+          git push
