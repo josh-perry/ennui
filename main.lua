@@ -69,16 +69,7 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     example.host:draw()
 
-    if debugger.inspectingWidget then
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.rectangle(
-            "line",
-            debugger.inspectingWidget.x,
-            debugger.inspectingWidget.y,
-            debugger.inspectingWidget.width,
-            debugger.inspectingWidget.height
-        )
-    end
+    debugger:drawOverlay()
 
     love.graphics.setCanvas()
 
