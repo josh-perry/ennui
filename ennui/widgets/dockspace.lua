@@ -34,6 +34,10 @@ setmetatable(DockSpace, {
     end
 })
 
+function DockSpace:__tostring()
+    return "DockSpace"
+end
+
 ---Creates a new DockSpace
 ---@return DockSpace
 function DockSpace.new()
