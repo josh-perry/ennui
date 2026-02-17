@@ -18,6 +18,7 @@ local stateExampleHost = require("examples.state")
 local windowsExampleHost = require("examples.windows")
 local groupExampleHost = require("examples.group")
 local tabbarExampleHost = require("examples.tabbar")
+local dockingExampleHost = require("examples.docking")
 
 return {
     {
@@ -104,6 +105,6 @@ return {
     },
     {
         name = "Docking",
-        host = require("examples.docking")
+        host = dockingExampleHost
     }
 }
