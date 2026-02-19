@@ -451,8 +451,10 @@ function Widget:arrange(x, y, width, height)
             local ratioWidth = height * c.value
             local ratioHeight = width / c.value
             if ratioWidth <= width then
+                x = x + (width - ratioWidth) / 2
                 width = ratioWidth
             else
+                y = y + (height - ratioHeight) / 2
                 height = ratioHeight
             end
         end

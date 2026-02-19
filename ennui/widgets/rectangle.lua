@@ -68,17 +68,20 @@ function Rectangle:onRender()
         self.props.radius
     )
 
-    love.graphics.setColor(self.props.borderColor)
-    love.graphics.setLineWidth(1)
-    love.graphics.rectangle(
-        "line",
-        self.x + 0.5,
-        self.y + 0.5,
-        self.width - 0.5,
-        self.height - 0.5,
-        self.props.radius,
-        self.props.radius
-    )
+    local bw = self.props.borderWidth
+    if bw ~= 0 then
+        love.graphics.setColor(self.props.borderColor)
+        love.graphics.setLineWidth(bw or 1)
+        love.graphics.rectangle(
+            "line",
+            self.x + 0.5,
+            self.y + 0.5,
+            self.width - 0.5,
+            self.height - 0.5,
+            self.props.radius,
+            self.props.radius
+        )
+    end
 
     Widget.onRender(self)
 end

@@ -59,20 +59,24 @@ function HorizontalLayoutStrategy:measure(widget, availableWidth, availableHeigh
                 totalFixedWidth = totalFixedWidth + self.spacing
             end
 
-            child:measure(contentWidth, contentHeight)
+            local childContentHeight = contentHeight - child.margin.top - child.margin.bottom
+            child:measure(contentWidth, childContentHeight)
 
-            maxChildHeight = math.max(maxChildHeight, child.desiredHeight)
+            maxChildHeight = math.max(maxChildHeight, child.desiredHeight + child.margin.top + child.margin.bottom)
 
+            local horizontalMargin = child.margin.left + child.margin.right
             if type(child.preferredWidth) == "number" then
-                totalFixedWidth = totalFixedWidth + child.desiredWidth
+                totalFixedWidth = totalFixedWidth + child.desiredWidth + horizontalMargin
             else
                 if child.preferredWidth.type == "fill" then
                     fillCount = fillCount + 1
                     fillTotalWeight = fillTotalWeight + (child.preferredWidth.weight or 1)
+                    totalFixedWidth = totalFixedWidth + horizontalMargin
                 elseif child.preferredWidth.type == "percent" then
                     percentTotalRatio = percentTotalRatio + child.preferredWidth.value
+                    totalFixedWidth = totalFixedWidth + horizontalMargin
                 else
-                    totalFixedWidth = totalFixedWidth + child.desiredWidth
+                    totalFixedWidth = totalFixedWidth + child.desiredWidth + horizontalMargin
                 end
             end
         end
@@ -158,14 +162,17 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
                 totalFixedWidth = totalFixedWidth + self.spacing
             end
 
+            local horizontalMargin = child.margin.left + child.margin.right
             if type(child.preferredWidth) == "number" then
-                totalFixedWidth = totalFixedWidth + child.desiredWidth
+                totalFixedWidth = totalFixedWidth + child.desiredWidth + horizontalMargin
             elseif child.preferredWidth.type == "fill" then
                 fillTotalWeight = fillTotalWeight + (child.preferredWidth.weight or 1)
+                totalFixedWidth = totalFixedWidth + horizontalMargin
             elseif child.preferredWidth.type == "percent" then
                 percentTotalRatio = percentTotalRatio + child.preferredWidth.value
+                totalFixedWidth = totalFixedWidth + horizontalMargin
             else
-                totalFixedWidth = totalFixedWidth + child.desiredWidth
+                totalFixedWidth = totalFixedWidth + child.desiredWidth + horizontalMargin
             end
         end
     end
@@ -186,6 +193,8 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
                 currentX = currentX + self.spacing
             end
 
+            currentX = currentX + child.margin.left
+
             local childWidth
             if type(child.preferredWidth) == "number" then
                 childWidth = child.desiredWidth
@@ -200,19 +209,21 @@ function HorizontalLayoutStrategy:arrangeChildren(widget, contentX, contentY, co
             end
 
             local childHeight = child.desiredHeight
+            local availableHeight = contentHeight - child.margin.top - child.margin.bottom
 
-            local childY = contentY
+            local childY = contentY + child.margin.top
             if child.verticalAlignment == "center" then
-                childY = contentY + (contentHeight - childHeight) / 2
+                childY = contentY + child.margin.top + (availableHeight - childHeight) / 2
             elseif child.verticalAlignment == "bottom" then
-                childY = contentY + contentHeight - childHeight
+                childY = contentY + contentHeight - child.margin.bottom - childHeight
             elseif child.verticalAlignment == "stretch" then
-                childHeight = contentHeight
+                childY = contentY + child.margin.top
+                childHeight = availableHeight
             end
 
             child:arrange(currentX, childY, childWidth, childHeight)
 
-            currentX = currentX + childWidth
+            currentX = currentX + childWidth + child.margin.right
         end
     end
 end
