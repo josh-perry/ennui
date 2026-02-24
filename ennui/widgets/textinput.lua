@@ -6,7 +6,7 @@ local Text = require("ennui.widgets.text")
 ---@field text string Current text content
 ---@field placeholder string Placeholder text when empty
 ---@field isPassword boolean Whether to mask text with dots
----@field cursorPosition integer Cursor position (0 = before first char)
+---@field cursorPosition number Cursor position (0 = before first char)
 ---@field cursorBlinkTime number Time accumulator for cursor blink
 ---@field cursorVisible boolean Whether cursor is currently visible
 ---@field font love.Font Font to use
@@ -15,9 +15,10 @@ local Text = require("ennui.widgets.text")
 ---@field backgroundColor number[] RGBA color for background
 ---@field borderColor number[] RGBA color for border
 ---@field focusedBorderColor number[] RGBA color for border when focused
----@field selectionStart integer? Start of selection (nil if no selection)
----@field selectionEnd integer? End of selection (nil if no selection)
+---@field selectionStart number? Start of selection (nil if no selection)
+---@field selectionEnd number? End of selection (nil if no selection)
 ---@field __textWidget Text Child widget for text/placeholder rendering
+---@field __selectionAnchor number? Anchor point for drag/keyboard selection
 local TextInput = {}
 TextInput.__index = TextInput
 setmetatable(TextInput, {
@@ -50,8 +51,10 @@ function TextInput.new()
     self:addProperty("focusedBorderColor", {0.5, 0.7, 1, 1})
     self:addProperty("selectionStart", nil)
     self:addProperty("selectionEnd", nil)
+    self:addProperty("selectionColor", {0.3, 0.5, 0.8, 0.5})
 
     self:setFocusable(true)
+    self.__selectionAnchor = nil
 
     self.__textWidget = Text()
         :setFont(self.props.font)
@@ -76,6 +79,7 @@ function TextInput:setText(text)
         self:clearSelection()
         self:__updateTextWidget()
     end
+
     return self
 end
 
@@ -121,6 +125,7 @@ function TextInput:setFont(font)
         self.__textWidget:setFont(font)
         self:invalidateLayout()
     end
+
     return self
 end
 
@@ -133,6 +138,7 @@ end
 function TextInput:setTextColor(r, g, b, a)
     self.props.inputTextColor = {r, g, b, a or 1}
     self:__updateTextWidget()
+
     return self
 end
 
@@ -156,6 +162,7 @@ end
 ---@return TextInput self
 function TextInput:setBackgroundColor(r, g, b, a)
     self.props.inputBackgroundColor = {r, g, b, a or 1}
+
     return self
 end
 
@@ -177,7 +184,7 @@ function TextInput:__updateTextWidget()
     self:invalidateLayout()
 end
 
----Clear selection
+---Clear selection and anchor
 function TextInput:clearSelection()
     self.props.selectionStart = nil
     self.props.selectionEnd = nil
@@ -188,6 +195,7 @@ function TextInput:selectAll()
     self.props.selectionStart = 0
     self.props.selectionEnd = #self.props.value
     self.props.cursorPosition = #self.props.value
+    self.__selectionAnchor = nil
 end
 
 ---Get display text (masked if password mode)
@@ -199,13 +207,39 @@ function TextInput:getDisplayText()
     return self.props.value
 end
 
+---Replace the current selection with replacement text, then clear selection and anchor.
+---@param replacement string
+---@protected
+function TextInput:__replaceSelection(replacement)
+    local selStart = math.min(self.props.selectionStart, self.props.selectionEnd)
+    local selEnd   = math.max(self.props.selectionStart, self.props.selectionEnd)
+    self.props.value = string.sub(self.props.value, 1, selStart) .. replacement .. string.sub(self.props.value, selEnd + 1)
+    self.props.cursorPosition = selStart + #replacement
+
+    self:clearSelection()
+    self.__selectionAnchor = nil
+end
+
+---Update selectionStart/End from anchor to cursor, or clear if they match.
+---@protected
+function TextInput:__updateSelectionFromAnchor()
+    if self.props.cursorPosition ~= self.__selectionAnchor then
+        self.props.selectionStart = self.__selectionAnchor
+        self.props.selectionEnd   = self.props.cursorPosition
+    else
+        self:clearSelection()
+    end
+end
+
 ---Calculate content width (for auto sizing)
+---@private
 ---@return number contentWidth
 function TextInput:__calculateContentWidth()
     return 100 + self.padding.left + self.padding.right
 end
 
 ---Calculate content height (for auto sizing)
+---@private
 ---@return number contentHeight
 function TextInput:__calculateContentHeight()
     local maxChildHeight = 0
@@ -243,16 +277,18 @@ function TextInput:onTextInput(event)
         return
     end
 
-    local before = string.sub(self.props.value, 1, self.props.cursorPosition)
-    local after = string.sub(self.props.value, self.props.cursorPosition + 1)
-    self.props.value = before .. event.text .. after
-    self.props.cursorPosition = self.props.cursorPosition + #event.text
+    if self.props.selectionStart ~= nil then
+        self:__replaceSelection(event.text)
+    else
+        local before = string.sub(self.props.value, 1, self.props.cursorPosition)
+        local after = string.sub(self.props.value, self.props.cursorPosition + 1)
+        self.props.value = before .. event.text .. after
+        self.props.cursorPosition = self.props.cursorPosition + #event.text
+    end
 
     self.props.cursorVisible = true
     self.props.cursorBlinkTime = 0
-
     self:__updateTextWidget()
-
     event.value = self.props.value
 end
 
@@ -267,44 +303,82 @@ function TextInput:onKeyPressed(event)
     local textChanged = false
 
     if key == "backspace" then
-        if self.props.cursorPosition > 0 then
+        if self.props.selectionStart ~= nil then
+            self:__replaceSelection("")
+            textChanged = true
+            self:__updateTextWidget()
+        elseif self.props.cursorPosition > 0 then
             local before = string.sub(self.props.value, 1, self.props.cursorPosition - 1)
-            local after = string.sub(self.props.value, self.props.cursorPosition + 1)
+            local after  = string.sub(self.props.value, self.props.cursorPosition + 1)
             self.props.value = before .. after
             self.props.cursorPosition = self.props.cursorPosition - 1
             textChanged = true
             self:__updateTextWidget()
         end
-
     elseif key == "delete" then
-        if self.props.cursorPosition < #self.props.value then
+        if self.props.selectionStart ~= nil then
+            self:__replaceSelection("")
+            textChanged = true
+            self:__updateTextWidget()
+        elseif self.props.cursorPosition < #self.props.value then
             local before = string.sub(self.props.value, 1, self.props.cursorPosition)
-            local after = string.sub(self.props.value, self.props.cursorPosition + 2)
+            local after  = string.sub(self.props.value, self.props.cursorPosition + 2)
             self.props.value = before .. after
             textChanged = true
             self:__updateTextWidget()
         end
-
     elseif key == "left" then
-        if self.props.cursorPosition > 0 then
-            self.props.cursorPosition = self.props.cursorPosition - 1
-            self:invalidateRender()
+        if event.modifiers.shift then
+            if self.__selectionAnchor == nil then
+                self.__selectionAnchor = self.props.cursorPosition
+            end
+
+            self.props.cursorPosition = math.max(0, self.props.cursorPosition - 1)
+
+            self:__updateSelectionFromAnchor()
+        else
+            if self.props.selectionStart ~= nil then
+                self.props.cursorPosition = math.min(self.props.selectionStart, self.props.selectionEnd)
+                self:clearSelection()
+            elseif self.props.cursorPosition > 0 then
+                self.props.cursorPosition = self.props.cursorPosition - 1
+            end
+
+            self.__selectionAnchor = nil
         end
 
+        self:invalidateRender()
     elseif key == "right" then
-        if self.props.cursorPosition < #self.props.value then
-            self.props.cursorPosition = self.props.cursorPosition + 1
-            self:invalidateRender()
+        if event.modifiers.shift then
+            if self.__selectionAnchor == nil then
+                self.__selectionAnchor = self.props.cursorPosition
+            end
+
+            self.props.cursorPosition = math.min(self.props.cursorPosition + 1, #self.props.value)
+
+            self:__updateSelectionFromAnchor()
+        else
+            if self.props.selectionStart ~= nil then
+                self.props.cursorPosition = math.max(self.props.selectionStart, self.props.selectionEnd)
+                self:clearSelection()
+            elseif self.props.cursorPosition < #self.props.value then
+                self.props.cursorPosition = self.props.cursorPosition + 1
+            end
+
+            self.__selectionAnchor = nil
         end
 
+        self:invalidateRender()
     elseif key == "home" then
+        self:clearSelection()
+        self.__selectionAnchor = nil
         self.props.cursorPosition = 0
         self:invalidateRender()
-
     elseif key == "end" then
+        self:clearSelection()
+        self.__selectionAnchor = nil
         self.props.cursorPosition = #self.props.value
         self:invalidateRender()
-
     elseif key == "a" and event.modifiers.ctrl then
         self:selectAll()
         self:invalidateRender()
@@ -328,21 +402,22 @@ end
 ---Handle focus lost
 function TextInput:onFocusLost()
     self:clearSelection()
+    self.__selectionAnchor = nil
     self:invalidateRender()
 end
 
----Handle mouse pressed
----@param event MouseEvent Mouse event
-function TextInput:onMousePressed(event)
+---Calculate the character position closest to a given X coordinate
+---@param localX number X coordinate relative to the widget
+---@return number position Character position
+function TextInput:__xToPosition(localX)
     local displayText = self:getDisplayText()
-    local clickX = event.localX - self.padding.left
+    local clickX = localX - self.padding.left - self.__textWidget.padding.left
 
     local closestPos = 0
     local closestDist = math.abs(clickX)
 
     for i = 1, #displayText do
-        local textWidth = self.props.font:getWidth(string.sub(displayText, 1, i))
-        local dist = math.abs(clickX - textWidth)
+        local dist = math.abs(clickX - self.props.font:getWidth(string.sub(displayText, 1, i)))
 
         if dist < closestDist then
             closestDist = dist
@@ -350,11 +425,46 @@ function TextInput:onMousePressed(event)
         end
     end
 
-    self.props.cursorPosition = closestPos
+    return closestPos
+end
+
+---Handle mouse pressed
+---@param event MouseEvent Mouse event
+function TextInput:onMousePressed(event)
+    local position  = self:__xToPosition(event.localX)
+    self.props.cursorPosition = position
+    self.__selectionAnchor = position
+
     self:clearSelection()
+
     self.props.cursorVisible = true
     self.props.cursorBlinkTime = 0
     self:invalidateRender()
+end
+
+---Handle mouse moved (drag selection)
+---@param event MouseEvent Mouse event
+function TextInput:onMouseMoved(event)
+    if not self.__selectionAnchor or not love.mouse.isDown(1) then
+        return
+    end
+
+    local position = self:__xToPosition(event.localX)
+    self.props.cursorPosition = position
+
+    if position ~= self.__selectionAnchor then
+        self.props.selectionStart = self.__selectionAnchor
+        self.props.selectionEnd = position
+    else
+        self:clearSelection()
+    end
+
+    self:invalidateRender()
+end
+
+---Handle mouse released
+function TextInput:onMouseReleased()
+    self.__selectionAnchor = nil
 end
 
 ---Override hitTest to return TextInput itself, not the Text child
@@ -384,16 +494,12 @@ function TextInput:onRender()
     love.graphics.setLineWidth(self.props.isFocused and 2 or 1)
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
-    -- Save current scissor state
     local prevScissorX, prevScissorY, prevScissorW, prevScissorH = love.graphics.getScissor()
-
-    -- Calculate new scissor rect
     local newX = self.x + self.padding.left
     local newY = self.y + self.padding.top
     local newW = self.width - self.padding.left - self.padding.right
     local newH = self.height - self.padding.top - self.padding.bottom
 
-    -- Intersect with existing scissor if any
     if prevScissorX then
         local right = math.min(newX + newW, prevScissorX + prevScissorW)
         local bottom = math.min(newY + newH, prevScissorY + prevScissorH)
@@ -407,41 +513,35 @@ function TextInput:onRender()
 
     self.__textWidget:onRender()
 
-    if self.props.selectionStart and self.props.selectionEnd then
-        local displayText = self:getDisplayText()
+    local textX = self.__textWidget.x + self.__textWidget.padding.left
+    local textY = self.__textWidget.y + self.__textWidget.padding.top
+    local displayText = self:getDisplayText()
+
+    if self.props.selectionStart ~= nil then
         local selStart = math.min(self.props.selectionStart, self.props.selectionEnd)
         local selEnd = math.max(self.props.selectionStart, self.props.selectionEnd)
+        local selX = textX + self.props.font:getWidth(string.sub(displayText, 1, selStart))
+        local selWidth = self.props.font:getWidth(string.sub(displayText, selStart + 1, selEnd))
 
-        local beforeSel = string.sub(displayText, 1, selStart)
-        local selected = string.sub(displayText, selStart + 1, selEnd)
-
-        local textX = self.x + self.padding.left
-        local textY = self.y + self.padding.top
-        local selX = textX + self.props.font:getWidth(beforeSel)
-        local selWidth = self.props.font:getWidth(selected)
-
-        love.graphics.setColor(0.3, 0.5, 0.8, 0.5)
+        love.graphics.setColor(self.props.selectionColor)
         love.graphics.rectangle("fill", selX, textY, selWidth, self.props.font:getHeight())
     end
 
     if self.props.isFocused and self.props.cursorVisible then
-        local displayText = self:getDisplayText()
-        local beforeCursor = string.sub(displayText, 1, self.props.cursorPosition)
-        local textX = self.__textWidget.x + self.__textWidget.padding.left
-        local textY = self.__textWidget.y + self.__textWidget.padding.top
-        local cursorX = textX + self.props.font:getWidth(beforeCursor)
-
+        local cursorX = textX + self.props.font:getWidth(string.sub(displayText, 1, self.props.cursorPosition))
         love.graphics.setColor(self.props.inputTextColor)
         love.graphics.setLineWidth(1)
         love.graphics.line(cursorX, textY, cursorX, textY + self.props.font:getHeight())
     end
 
-    -- Restore previous scissor state
     if prevScissorX then
         love.graphics.setScissor(prevScissorX, prevScissorY, prevScissorW, prevScissorH)
     else
         love.graphics.setScissor()
     end
+
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setLineWidth(1)
 end
 
 return TextInput
