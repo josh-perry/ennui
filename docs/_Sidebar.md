@@ -1,46 +1,46 @@
-- [Home](Home.md)
+- [Home](Home)
 
-- [Built-in Widgets](built-in-widgets/Built-in-Widgets.md)
+- [Built-in Widgets](Built-in-Widgets)
 
-- [API Reference](api-reference/API-Reference.md)
+- [API Reference](API-Reference)
 
 ***
 
 ### Getting Started
-- [Installation](getting-started/Installation.md)
-- [Your First Widget](getting-started/Your-First-Widget.md)
+- [Installation](Installation)
+- [Your First Widget](Your-First-Widget)
 
 ### Core Concepts
-- [Host](core-concepts/Host.md)
-- [Method Chaining](core-concepts/Method-Chaining.md)
-- [Lifecycle](core-concepts/Lifecycle.md)
-- [Hierarchy](core-concepts/Hierarchy.md)
+- [Host](Host)
+- [Method Chaining](Method-Chaining)
+- [Lifecycle](Lifecycle)
+- [Hierarchy](Hierarchy)
 
 ### Layout
-- [Layout Strategies](layout/Layout-Strategies.md)
-- [Sizing](layout/Sizing.md)
-- [Padding, Margin, Alignment](layout/Padding,-Margin,-Alignment.md)
+- [Layout Strategies](Layout-Strategies)
+- [Sizing](Sizing)
+- [Padding, Margin, Alignment](Padding,-Margin,-Alignment)
 
 ### Events
-- [Mouse & Keyboard](events/Mouse-&-Keyboard.md)
-- [Gamepad](events/Gamepad.md)
-- [Event Propagation & Capture](events/Event-Propagation-&-Capture.md)
-- [One-time Events](events/One-time-Events.md)
+- [Mouse & Keyboard](Mouse-&-Keyboard)
+- [Gamepad](Gamepad)
+- [Event Propagation & Capture](Event-Propagation-&-Capture)
+- [One-time Events](One-time-Events)
 
 ### State
-- [Computed Properties](state/Computed-Properties.md)
-- [Watchers](state/Watchers.md)
-- [State Containers](state/State-Containers.md)
-- [Reactive List Binding](state/Reactive-List-Binding.md)
+- [Computed Properties](Computed-Properties)
+- [Watchers](Watchers)
+- [State Containers](State-Containers)
+- [Reactive List Binding](Reactive-List-Binding)
 
 ### Other stuff
-- [Dragon Drop](etc/Dragon-Drop.md)
-- [Focus](etc/Focus.md)
-- [Tab Contexts](etc/Tab-Contexts.md)
-- [Styling](etc/Styling.md)
+- [Dragon Drop](Dragon-Drop)
+- [Focus](Focus)
+- [Tab Contexts](Tab-Contexts)
+- [Styling](Styling)
 
 ### Docking
-- [DockNode & DockSpace](docking/DockNode-&-DockSpace.md)
-- [Building Dockable Layouts](docking/Building-Dockable-Layouts.md)
-- [Resizeable Layouts](docking/Resizeable-Layouts.md)
-- [Persistence](docking/Persistence.md)
+- [DockNode & DockSpace](DockNode-&-DockSpace)
+- [Building Dockable Layouts](Building-Dockable-Layouts)
+- [Resizeable Layouts](Resizeable-Layouts)
+- [Persistence](Persistence)
