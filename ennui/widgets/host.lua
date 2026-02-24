@@ -34,8 +34,11 @@ function Host:__tostring()
     return "Host"
 end
 
+---Create a new Host.
+---@param width number? Width in pixels (optional, defaults to love.graphics.getWidth())
+---@param height number? Height in pixels (optional, defaults to love.graphics.getHeight())
 ---@return Host
-function Host.new()
+function Host.new(width, height)
     local self = setmetatable(Widget(), Host) ---@cast self Host
 
     self.focusedWidget = nil
@@ -59,6 +62,7 @@ function Host.new()
     self.__dragOverWidget = nil
     self.__overlayWidgets = {}
 
+    self:setSize(width or love.graphics.getWidth(), height or love.graphics.getHeight())
     return self
 end
 

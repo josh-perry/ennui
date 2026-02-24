@@ -16,5 +16,6 @@ ennui.Size = require("ennui.size")
 ennui.SizeConstraint = require("ennui.size_constraint")
 ennui.Reactive = require("ennui.reactive")
 ennui.State = require("ennui.state")
+ennui.Host = require("ennui.widgets.host")
 
 return ennui
