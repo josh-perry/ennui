@@ -155,9 +155,11 @@ function TabBar:getTabAtPoint(x, y)
     local tabX = self.x
     for i, tab in ipairs(self.tabs) do
         local tabWidth = self:calculateTabWidth(i)
+
         if x >= tabX and x < tabX + tabWidth then
             return i
         end
+
         tabX = tabX + tabWidth
     end
 
@@ -290,16 +292,19 @@ end
 ---@param availableHeight number
 ---@return number, number
 function TabBar:measure(availableWidth, availableHeight)
-    -- Tab bar needs the full available height: 30px for the bar + remaining for content
     local contentHeight = availableHeight - self.height
 
-    -- Measure the active tab's content if it exists
     if #self.tabs > 0 and self.activeIndex >= 1 and self.activeIndex <= #self.tabs then
         local activeTab = self.tabs[self.activeIndex]
+
         if activeTab and activeTab.widget then
             activeTab.widget:measure(availableWidth, contentHeight)
         end
     end
+
+    self.desiredWidth = availableWidth
+    self.desiredHeight = availableHeight
+    self.isLayoutDirty = false
 
     return availableWidth, availableHeight
 end

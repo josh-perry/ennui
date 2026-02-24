@@ -373,42 +373,33 @@ function Widget:measure(availableWidth, availableHeight)
         return desiredWidth, desiredHeight
     end
 
-    local needsChildrenFirst = false
-    if type(self.preferredWidth) == "table" and self.preferredWidth.type == "auto" then
-        needsChildrenFirst = true
-    end
-    if type(self.preferredHeight) == "table" and self.preferredHeight.type == "auto" then
-        needsChildrenFirst = true
-    end
+    local widthIsAuto = type(self.preferredWidth) == "table" and self.preferredWidth.type == "auto"
+    local heightIsAuto = type(self.preferredHeight) == "table" and self.preferredHeight.type == "auto"
 
     local desiredWidth, desiredHeight, contentWidth, contentHeight
 
-    if needsChildrenFirst then
-        contentWidth = availableWidth - self.padding.left - self.padding.right
-        contentHeight = availableHeight - self.padding.top - self.padding.bottom
-
-        for _, child in ipairs(self.children) do
-            if child:isVisible() then
-                child:measure(contentWidth, contentHeight)
-            end
-        end
-
+    if not widthIsAuto then
         desiredWidth = self:calculateDesiredWidth(availableWidth)
-        desiredHeight = self:calculateDesiredHeight(availableHeight)
-    else
-        -- For fixed/fill sizing: calculate desired size first
-        desiredWidth = self:calculateDesiredWidth(availableWidth)
-        desiredHeight = self:calculateDesiredHeight(availableHeight)
-
         contentWidth = desiredWidth - self.padding.left - self.padding.right
-        contentHeight = desiredHeight - self.padding.top - self.padding.bottom
+    else
+        contentWidth = availableWidth - self.padding.left - self.padding.right
+    end
 
-        for _, child in ipairs(self.children) do
-            if child:isVisible() then
-                child:measure(contentWidth, contentHeight)
-            end
+    if not heightIsAuto then
+        desiredHeight = self:calculateDesiredHeight(availableHeight)
+        contentHeight = desiredHeight - self.padding.top - self.padding.bottom
+    else
+        contentHeight = availableHeight - self.padding.top - self.padding.bottom
+    end
+
+    for _, child in ipairs(self.children) do
+        if child:isVisible() then
+            child:measure(contentWidth, contentHeight)
         end
     end
+
+    desiredWidth = desiredWidth or self:calculateDesiredWidth(availableWidth)
+    desiredHeight = desiredHeight or self:calculateDesiredHeight(availableHeight)
 
     desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
 

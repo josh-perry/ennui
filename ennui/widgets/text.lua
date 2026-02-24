@@ -129,24 +129,16 @@ end
 ---@return number desiredWidth
 ---@return number desiredHeight
 function Text:measure(availableWidth, availableHeight)
-    -- Calculate width first
     local desiredWidth = self:calculateDesiredWidth(availableWidth)
-
-    -- Store it temporarily so calculateDesiredHeight can use it
     self.desiredWidth = desiredWidth
 
-    -- Now calculate height with knowledge of the width
     local desiredHeight = self:calculateDesiredHeight(availableHeight)
-
-    -- Apply constraints
     desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
 
-    -- Store final values
     self.desiredWidth = desiredWidth
     self.desiredHeight = desiredHeight
 
     self.isLayoutDirty = false
-
     return desiredWidth, desiredHeight
 end
 

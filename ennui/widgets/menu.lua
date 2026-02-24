@@ -154,9 +154,10 @@ end
 
 ---Override measure
 function Menu:measure(availableWidth, availableHeight)
-    local height = self:getMenuHeight()
     self.desiredWidth = availableWidth
-    self.desiredHeight = height
+    self.desiredHeight = self:getMenuHeight()
+
+    self.isLayoutDirty = false
     return self.desiredWidth, self.desiredHeight
 end
 

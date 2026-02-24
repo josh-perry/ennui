@@ -331,46 +331,16 @@ end
 ---@param availableHeight number
 ---@return number, number
 function DockSpace:measure(availableWidth, availableHeight)
-    local desiredWidth, desiredHeight
-
-    local prefWidth = self.preferredWidth
-    if type(prefWidth) == "number" then
-        desiredWidth = prefWidth
-    elseif type(prefWidth) == "table" then
-        if prefWidth.type == "fill" then
-            desiredWidth = availableWidth
-        elseif prefWidth.type == "fixed" then
-            desiredWidth = prefWidth.value
-        elseif prefWidth.type == "percent" then
-            desiredWidth = availableWidth * prefWidth.value
-        end
-    end
-
-    local prefHeight = self.preferredHeight
-    if type(prefHeight) == "number" then
-        desiredHeight = prefHeight
-    elseif type(prefHeight) == "table" then
-        if prefHeight.type == "fill" then
-            desiredHeight = availableHeight
-        elseif prefHeight.type == "fixed" then
-            desiredHeight = prefHeight.value
-        elseif prefHeight.type == "percent" then
-            desiredHeight = availableHeight * prefHeight.value
-        end
-    end
-
-    -- Always measure children so they have valid desiredWidth/Height for arrange
-    local contentWidth, contentHeight = 0, 0
     if self.layoutStrategy then
-        contentWidth, contentHeight = self.layoutStrategy:measure(self, availableWidth, availableHeight)
+        self.layoutStrategy:measure(self, availableWidth, availableHeight)
     end
 
-    -- Use measured content size if own size wasn't determined
-    desiredWidth = desiredWidth or contentWidth
-    desiredHeight = desiredHeight or contentHeight
+    local desiredWidth = self:calculateDesiredWidth(availableWidth)
+    local desiredHeight = self:calculateDesiredHeight(availableHeight)
 
     self.desiredWidth = desiredWidth
     self.desiredHeight = desiredHeight
+    self.isLayoutDirty = false
 
     return desiredWidth, desiredHeight
 end

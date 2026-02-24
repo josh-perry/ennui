@@ -68,6 +68,7 @@ function DockLayoutStrategy:measureNode(node, availableWidth, availableHeight)
         end
 
         local showTabBar = shouldShowTabBar(node)
+
         if showTabBar then
             local tabBarHeight = 30
             maxHeight = maxHeight + tabBarHeight

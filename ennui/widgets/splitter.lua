@@ -122,11 +122,17 @@ end
 ---@param availableHeight number
 ---@return number, number
 function Splitter:measure(availableWidth, availableHeight)
+    local desiredWidth, desiredHeight
     if self.orientation == "horizontal" then
-        return self.thickness, availableHeight
+        desiredWidth, desiredHeight = self.thickness, availableHeight
     else
-        return availableWidth, self.thickness
+        desiredWidth, desiredHeight = availableWidth, self.thickness
     end
+
+    self.desiredWidth = desiredWidth
+    self.desiredHeight = desiredHeight
+    self.isLayoutDirty = false
+    return desiredWidth, desiredHeight
 end
 
 ---Render the splitter

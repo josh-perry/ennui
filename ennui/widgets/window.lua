@@ -97,8 +97,16 @@ end
 ---@return number desiredWidth
 ---@return number desiredHeight
 function Window:measure(availableWidth, availableHeight)
-    local contentWidth = availableWidth - self.padding.left - self.padding.right
     local titleBarSpace = self.props.showTitleBar and self.props.titleBarHeight or 0
+
+    local widthIsAuto = type(self.preferredWidth) == "table" and self.preferredWidth.type == "auto"
+    local contentWidth
+    if widthIsAuto then
+        contentWidth = availableWidth - self.padding.left - self.padding.right
+    else
+        contentWidth = self:calculateDesiredWidth(availableWidth) - self.padding.left - self.padding.right
+    end
+
     local contentHeight = availableHeight - self.padding.top - self.padding.bottom - titleBarSpace
 
     if self.props.content then
@@ -109,22 +117,7 @@ function Window:measure(availableWidth, availableHeight)
     local desiredHeight = self:calculateDesiredHeight(availableHeight)
 
 
-    if self.minWidth and self.minWidth > 0 then
-        ---@diagnostic disable-next-line: cast-local-type
-        desiredWidth = math.max(self.minWidth, desiredWidth)
-    end
-    if self.maxWidth and self.maxWidth > 0 then
-        ---@diagnostic disable-next-line: cast-local-type
-        desiredWidth = math.min(self.maxWidth, desiredWidth)
-    end
-    if self.minHeight and self.minHeight > 0 then
-        ---@diagnostic disable-next-line: cast-local-type
-        desiredHeight = math.max(self.minHeight, desiredHeight)
-    end
-    if self.maxHeight and self.maxHeight > 0 then
-        ---@diagnostic disable-next-line: cast-local-type
-        desiredHeight = math.min(self.maxHeight, desiredHeight)
-    end
+    desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
 
     self.desiredWidth = desiredWidth
     self.desiredHeight = desiredHeight

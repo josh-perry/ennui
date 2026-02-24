@@ -346,7 +346,14 @@ end
 
 ---Override measure to calculate content size
 function ScrollArea:measure(availableWidth, availableHeight)
-    local contentWidth = availableWidth - self.padding.left - self.padding.right
+    -- TODO: reusaable function for this
+    local widthIsAuto = type(self.preferredWidth) == "table" and self.preferredWidth.type == "auto"
+    local contentWidth
+    if widthIsAuto then
+        contentWidth = availableWidth - self.padding.left - self.padding.right
+    else
+        contentWidth = self:calculateDesiredWidth(availableWidth) - self.padding.left - self.padding.right
+    end
     local contentHeight = availableHeight - self.padding.top - self.padding.bottom
 
     -- First pass: measure children to get content size

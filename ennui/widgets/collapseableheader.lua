@@ -247,7 +247,7 @@ function CollapseableHeader:measure(availableWidth, availableHeight)
 
     contentHeight = contentHeight + visibleChildHeight + (visibleChildHeight > 0 and self.padding.top + self.padding.bottom or 0)
 
-    local desiredWidth = availableWidth
+    local desiredWidth = self:calculateDesiredWidth(availableWidth)
     local desiredHeight = contentHeight
 
     desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)

@@ -283,7 +283,7 @@ function TreeViewNode:measure(availableWidth, availableHeight)
         end
     end
 
-    local desiredWidth = availableWidth
+    local desiredWidth = self:calculateDesiredWidth(availableWidth)
     local desiredHeight = totalHeight
 
     desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
