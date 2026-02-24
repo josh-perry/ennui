@@ -369,7 +369,7 @@ function CollapseableHeader:onRender()
     -- Render children if expanded (with clipping)
     if self.props.expanded or self.__currentHeight > 0 then
         local contentY = self.y + headerHeight
-        local contentHeight = self.__currentHeight
+        local contentHeight = self.height - headerHeight
 
         if contentHeight > 0 then
             local prevX, prevY, prevW, prevH = Scissor.push(self.x, contentY, self.width, contentHeight)
