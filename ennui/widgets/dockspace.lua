@@ -459,6 +459,7 @@ function DockSpace:updateTabBars()
 
             if not node.tabBar then
                 node.tabBar = TabBar(node)
+                node.tabBar.props.canDragTabs = true
                 self:addChild(node.tabBar)
             end
 
