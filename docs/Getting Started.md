@@ -1,3 +1,0 @@
-## Installation
-
-## Your first widget
