@@ -42,6 +42,7 @@ function Group.new(title)
     self.__titleWidget = Text()
         :setSize(Size.auto(), Size.auto())
 
+    -- TODO: :bindFrom
     self:watch("title", function(newTitle)
         self.__titleWidget.props.text = newTitle
         self:invalidateLayout()
@@ -52,11 +53,7 @@ function Group.new(title)
         self:invalidateRender()
     end, { immediate = true })
 
-    -- Set default layout strategy
-    local strategy = VerticalLayout()
-    self:setLayoutStrategy(strategy)
-
-    -- Default padding
+    self:setLayoutStrategy(VerticalLayout())
     self:setPadding(16)
 
     return self
@@ -255,7 +252,7 @@ function Group:onRender()
             self.y,
             self.__titleWidget.desiredWidth,
             titleHeight)
-        
+
         self.__titleWidget:onRender()
     else
         love.graphics.rectangle(
@@ -268,7 +265,6 @@ function Group:onRender()
             self.props.cornerRadius)
     end
 
-    -- Render children
     for _, child in ipairs(self.children) do
         if child:isVisible() then
             child:onRender()

@@ -29,18 +29,17 @@ function Splitter.new(orientation)
     self.minSize = 100
     self.onSplitterDrag = nil
 
-    -- State properties
     self:addProperty("normalColor", {0.3, 0.3, 0.3})
     self:addProperty("hoverColor", {0.5, 0.5, 0.5})
     self:addProperty("activeColor", {0.7, 0.7, 0.7})
 
-    -- Configure generic drag system for delta-based dragging
     self:setDraggable(true)
     self:setDragMode("delta")
 
     -- Set up drag callback to handle splitter movement
     self.onDrag = function(event, deltaX, deltaY)
         local delta = (self.orientation == "horizontal") and deltaX or deltaY
+
         if self.onSplitterDrag then
             self.onSplitterDrag(delta)
         end
@@ -71,7 +70,6 @@ end
 function Splitter:onMouseEntered(event)
     self:invalidateRender()
 
-    -- Change cursor
     if self.orientation == "horizontal" then
         love.mouse.setCursor(love.mouse.getSystemCursor("sizewe"))
     else

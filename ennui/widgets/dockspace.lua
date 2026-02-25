@@ -441,6 +441,7 @@ function DockSpace:updateTabBars()
 
             if #node.tabBar.tabs ~= #node.dockedWidgets then
                 node.tabBar:clearTabs()
+                node.tabBar.activeIndex = node.activeTabIndex
 
                 for i, widget in ipairs(node.dockedWidgets) do
                     local title = (widget.props and widget.props.title) or widget.id or ("Tab " .. i)

@@ -89,8 +89,7 @@ function ScrollArea:__handleMousePressed(event)
     local hBarX, hBarY, hBarW, hBarH = self:__getHorizontalScrollBarRect()
 
     -- Check vertical scroll bar
-    if self:__needsVerticalScroll() and
-       AABB.containsPoint(event.x, event.y, vBarX, vBarY, vBarW, vBarH) then
+    if self:__needsVerticalScroll() and AABB.containsPoint(event.x, event.y, vBarX, vBarY, vBarW, vBarH) then
         self.__isDraggingVertical = true
         self.__dragStartY = event.y
         self.__dragStartScrollY = self.props.scrollY
@@ -98,8 +97,7 @@ function ScrollArea:__handleMousePressed(event)
     end
 
     -- Check horizontal scroll bar
-    if self:__needsHorizontalScroll() and
-       AABB.containsPoint(event.x, event.y, hBarX, hBarY, hBarW, hBarH) then
+    if self:__needsHorizontalScroll() and AABB.containsPoint(event.x, event.y, hBarX, hBarY, hBarW, hBarH) then
         self.__isDraggingHorizontal = true
         self.__dragStartX = event.x
         self.__dragStartScrollX = self.props.scrollX
@@ -224,9 +222,11 @@ end
 ---@return number width
 function ScrollArea:__getViewportWidth()
     local width = self:__getBaseViewportWidth()
+
     if self:__needsVerticalScroll() then
         width = width - self.props.scrollBarWidth
     end
+
     return width
 end
 
@@ -234,9 +234,11 @@ end
 ---@return number height
 function ScrollArea:__getViewportHeight()
     local height = self:__getBaseViewportHeight()
+
     if self:__needsHorizontalScroll() then
         height = height - self.props.scrollBarWidth
     end
+
     return height
 end
 
@@ -297,10 +299,12 @@ function ScrollArea:scrollTo(x, y)
         local maxScrollX = math.max(0, self.__contentWidth - self:__getViewportWidth())
         self.props.scrollX = math.max(0, math.min(maxScrollX, x))
     end
+
     if y then
         local maxScrollY = math.max(0, self.__contentHeight - self:__getViewportHeight())
         self.props.scrollY = math.max(0, math.min(maxScrollY, y))
     end
+
     self:invalidateLayout()
     return self
 end
@@ -316,6 +320,8 @@ end
 function ScrollArea:scrollToBottom()
     return self:scrollTo(nil, self.__contentHeight)
 end
+
+-- TODO: scroll to child widget
 
 ---Set scroll bar width
 ---@param width number Width in pixels

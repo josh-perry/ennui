@@ -53,7 +53,7 @@ function Checkbox.new(label)
     -- Create indicator placeholder (invisible, just for layout)
     self.__indicatorPlaceholder = Rectangle()
         :setSize(self.props.boxSize, self.props.boxSize)
-        :setColor(0, 0, 0, 0) -- Invisible
+        :setColor(0, 0, 0, 0)
 
     self.__textWidget = Text()
         :setTextVerticalAlignment("center")
@@ -221,7 +221,7 @@ function Checkbox:onRender()
     love.graphics.setLineWidth(1)
     love.graphics.rectangle("line", boxX, boxY, boxSize, boxSize, 3, 3)
 
-    -- Draw check mark if checked
+    -- Draw check mark
     if self.props.checked then
         love.graphics.setColor(self.props.checkColor)
         love.graphics.setLineWidth(2)

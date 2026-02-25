@@ -59,13 +59,10 @@ Mixin.extend(State, Mixins.Stateful)
 function State.new(initialProps)
     local self = setmetatable({}, State)
 
-    -- Initialize StatefulMixin fields (__rawProps, __watchers, __computed)
     self:initStateful()
 
-    -- State-specific fields
     self.__bindCache = {}
 
-    -- Create reactive proxy with nested support using unified Reactive system
     self.props = Reactive.createProxy(self.__rawProps, {
         nested = true,
     })

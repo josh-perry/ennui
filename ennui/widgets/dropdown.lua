@@ -197,9 +197,7 @@ function Dropdown:open()
     self:__positionMenu()
     self.__menu:setVisible(true)
 
-    -- Register menu as overlay
     local host = self:getHost()
-
     if host and host.registerOverlay then
         host:registerOverlay(self.__menu)
     end
@@ -213,12 +211,13 @@ function Dropdown:close()
     if not self.props.isOpen then return self end
     self.props.isOpen = false
 
-    -- Hide menu and unregister overlay
     self.__menu:setVisible(false)
     local host = self:getHost()
+
     if host and host.unregisterOverlay then
         host:unregisterOverlay(self.__menu)
     end
+
     return self
 end
 
@@ -226,11 +225,13 @@ end
 ---@private
 function Dropdown:__positionMenu()
     local menuY
+
     if self.props.direction == "up" then
         menuY = self.y - self.__menu:getMenuHeight()
     else
         menuY = self.y + self.height
     end
+
     self.__menu.x = self.x
     self.__menu.y = menuY
     self.__menu.width = self.width
@@ -296,34 +297,42 @@ function Dropdown:onKeyPressed(event)
         else
             self:toggle()
         end
+
         return true
     elseif event.key == "escape" then
         self:close()
+
         return true
     elseif event.key == "up" then
         if self.props.isOpen then
             local idx = self.__menu.props.hoveredIndex - 1
+
             while idx >= 1 do
                 if not self.props.items[idx].isSeparator then
                     self.__menu.props.hoveredIndex = idx
                     break
                 end
+
                 idx = idx - 1
             end
         end
+
         return true
     elseif event.key == "down" then
         if self.props.isOpen then
             local idx = self.__menu.props.hoveredIndex + 1
+
             while idx <= #self.props.items do
                 if not self.props.items[idx].isSeparator then
                     self.__menu.props.hoveredIndex = idx
                     break
                 end
+
                 idx = idx + 1
             end
         else
             self:open()
+
             for i, item in ipairs(self.props.items) do
                 if not item.isSeparator then
                     self.__menu.props.hoveredIndex = i
@@ -331,6 +340,7 @@ function Dropdown:onKeyPressed(event)
                 end
             end
         end
+
         return true
     end
 end

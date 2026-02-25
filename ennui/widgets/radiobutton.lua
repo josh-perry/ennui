@@ -51,7 +51,7 @@ function RadioButton.new(label, groupName, value)
     self:addProperty("label", label or "")
     self:addProperty("value", value)
 
-    -- Create internal layout container
+    -- TODO: these should just be children
     self.__layoutContainer = HorizontalStackPanel()
         :setSpacing(self.props.spacing)
         :setSize(Size.auto(), Size.auto())
@@ -60,7 +60,7 @@ function RadioButton.new(label, groupName, value)
     -- Create indicator placeholder (invisible, just for layout)
     self.__indicatorPlaceholder = Rectangle()
         :setSize(self.props.radioSize, self.props.radioSize)
-        :setColor(0, 0, 0, 0) -- Invisible
+        :setColor(0, 0, 0, 0)
 
     -- Create text widget
     self.__textWidget = Text()
@@ -106,6 +106,7 @@ function RadioButton.new(label, groupName, value)
             if not self.props.isDisabled then
                 self:select()
             end
+
             return true
         end
     end)

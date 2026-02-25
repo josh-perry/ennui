@@ -133,6 +133,7 @@ function Reactive.createProxy(rawTable, options)
         if not dependencies[key] then
             dependencies[key] = Dependency.new()
         end
+
         return dependencies[key]
     end
 

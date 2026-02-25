@@ -153,7 +153,7 @@ function Window:close()
                 current = current.parent
             end
         end
-        
+
         -- Clear pressed widget state for any button if pressed on this window or descendants
         for button, pressedWidget in pairs(host.__pressedWidget) do
             if pressedWidget then
@@ -168,7 +168,7 @@ function Window:close()
                 end
             end
         end
-        
+
         -- Clear drag state if dragging this window or a descendant
         if host.__draggedWidget then
             local current = host.__draggedWidget
@@ -188,7 +188,7 @@ function Window:close()
             end
         end
     end
-    
+
     self:setVisible(false)
     return self
 end

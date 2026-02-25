@@ -60,14 +60,12 @@ function TreeViewNode.new(label, value)
     -- Create indent spacer (width will be set based on level)
     self.__indentSpacer = Rectangle()
         :setSize(0, 1)
-        :setColor(0, 0, 0, 0) -- Invisible
+        :setColor(0, 0, 0, 0)
 
-    -- Create icon placeholder
     self.__iconPlaceholder = Rectangle()
         :setSize(self.props.iconSize + 8, self.props.iconSize) -- icon + some padding
-        :setColor(0, 0, 0, 0) -- Invisible
+        :setColor(0, 0, 0, 0)
 
-    -- Create text widget
     self.__textWidget = Text()
         :setTextVerticalAlignment("center")
         :setSize(Size.auto(), Size.auto())
@@ -77,6 +75,7 @@ function TreeViewNode.new(label, value)
     self.__rowLayout:addChild(self.__iconPlaceholder)
     self.__rowLayout:addChild(self.__textWidget)
 
+    -- TODO: :bindFrom
     self:watch("label", function(newLabel)
         self.__textWidget.props.text = newLabel
         self:invalidateLayout()
@@ -107,22 +106,26 @@ function TreeViewNode:__getTreeView()
     if self.__treeViewCache then
         return self.__treeViewCache
     end
+
     local current = self.parent
     while current do
-        if current.selectNode then -- Duck-type check for TreeView
+        -- HACK: don't like this
+        if current.selectNode then
             self.__treeViewCache = current
             return current
         end
+
         current = current.parent
     end
+
     return nil
 end
 
 ---Called when node is mounted
 function TreeViewNode:onMount()
-    -- Calculate level based on parent chain
     local level = 0
     local current = self.parent
+
     while current do
         if current.props and current.props.level ~= nil then
             level = current.props.level + 1
@@ -130,11 +133,12 @@ function TreeViewNode:onMount()
         elseif current.selectNode then
             break
         end
+
         current = current.parent
     end
+
     self.props.level = level
 
-    -- Update indent spacer width
     self:__updateIndentWidth()
 end
 
@@ -153,6 +157,7 @@ function TreeViewNode:toggle()
         self.props.expanded = not self.props.expanded
         self:invalidateLayout()
     end
+
     return self
 end
 
@@ -253,7 +258,7 @@ function TreeViewNode:__getLevel()
         -- If parent is a TreeViewNode, count it as a level
         if current.props and current.props.label ~= nil then
             level = level + 1
-        elseif current.selectNode then
+        elseif current.selectNode then -- HACK: still don't like this
             -- Reached the TreeView, stop counting
             break
         end

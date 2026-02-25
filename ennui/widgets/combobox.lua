@@ -81,6 +81,7 @@ function ComboBox.new(items)
     end
 
     -- Sync properties to menu
+    -- TODO: :bindFrom
     self:watch("itemHeight", function(val)
         self.__menu.props.itemHeight = val
     end, { immediate = true })
@@ -260,16 +261,15 @@ function ComboBox:open()
     if self.props.isOpen then return self end
     self.props.isOpen = true
 
-    -- Filter and position menu
     self:__filterItems(self.__textInput:getText())
     self:__positionMenu()
     self.__menu:setVisible(true)
 
-    -- Register menu as overlay
     local host = self:getHost()
     if host and host.registerOverlay then
         host:registerOverlay(self.__menu)
     end
+
     return self
 end
 

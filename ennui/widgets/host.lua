@@ -217,6 +217,10 @@ function Host:onRender()
     if self.__draggedWidget and self.__draggedWidget:isVisible() and self.__dragStarted then
         local widget = self.__draggedWidget
 
+        if not widget then
+            return
+        end
+
         if self.__dragMode == "position" then
             -- Position mode: render widget at its new position on top
             widget:onRender()
@@ -471,13 +475,15 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
         -- Check drag threshold before starting
         if not self.__dragStarted then
             local dragDist = math.sqrt((x - self.__dragStartX)^2 + (y - self.__dragStartY)^2)
+
             if dragDist < self.__dragThreshold then
-                return true -- Still in threshold, don't start dragging yet
+                return true
             end
+
             self.__dragStarted = true
         end
 
-        local widget = self.__draggedWidget --[[@as Widget]]
+        local widget = self.__draggedWidget ---@cast widget Widget
 
         if self.__dragMode == "position" then
             local newX = x - self.__dragOffsetX
@@ -517,7 +523,7 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
         -- Call onDrag for position mode if handler exists
         if self.__dragMode == "position" and widget.onDrag then
             local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, dx, dy)
-            widget.onDrag(event)
+            widget.onDrag(event, dx, dy)
         end
 
         local dropTarget = self:__findDropTargetAt(x, y)
@@ -639,6 +645,7 @@ function Host:__dispatchEvent(event)
     ---@type Widget[]
     local ancestors = {}
     local current = target
+    -- TODO: utility function for this - caching?
     while current do
         table.insert(ancestors, 1, current)
         current = current.parent
@@ -675,6 +682,7 @@ function Host:setFocusedWidget(widget)
     if oldWidget then
         local oldWindow = self:__findContainingTabContext(oldWidget)
         if oldWindow then
+            -- TODO: shouldn't need to cast here...
             ---@cast oldWindow Window
             oldWindow.__lastFocusedWidget = oldWidget
         end
@@ -750,6 +758,7 @@ function Host:focusPrevious()
         if not self.focusedWidget then
             self:setFocusedWidget(focusable[1])
         end
+
         return
     end
 
@@ -764,7 +773,11 @@ function Host:focusPrevious()
     end
 
     local prevIndex = currentIndex - 1
-    if prevIndex < 1 then prevIndex = #focusable end
+
+    if prevIndex < 1 then
+        prevIndex = #focusable
+    end
+
     self:setFocusedWidget(focusable[prevIndex])
 end
 
@@ -773,6 +786,7 @@ end
 function Host:__getFocusableWidgets(tabContext)
     local focusable = {}
 
+    -- TODO: move this out, generating garbage
     local function collectFocusable(widget, isRootContext)
         if widget.isTabContext and not isRootContext then
             return
@@ -804,6 +818,7 @@ end
 ---@return Widget? tabContext The containing tab context, or nil if not in one
 function Host:__findContainingTabContext(widget)
     local current = widget
+
     while current do
         if current.isTabContext then
             return current

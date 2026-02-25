@@ -118,14 +118,17 @@ function Widget:setVisible(visible)
     -- If becoming invisible, clear focus from this widget and its descendants
     if not visible then
         local host = self:getHost()
+
         if host and host.focusedWidget then
             local current = host.focusedWidget
+
             -- Check if the focused widget is this widget or a descendant
             while current do
                 if current == self then
                     host:setFocusedWidget(nil)
                     break
                 end
+
                 current = current.parent
             end
         end
@@ -253,9 +256,11 @@ end
 function Widget:__onAfterAddChild(child)
     -- Assign tab indexes
     local maxSiblingIndex = self.tabIndex
+
     for _, sibling in ipairs(self.children) do
         if sibling ~= child then
             local siblingMax = getMaxTabIndexInSubtree(sibling)
+
             if siblingMax > maxSiblingIndex then
                 maxSiblingIndex = siblingMax
             end
@@ -273,18 +278,21 @@ end
 function Widget:__onAfterRemoveChild(child)
     -- Clear focus if focused widget is being removed
     local host = self:getHost()
+
     if host and host.focusedWidget then
+        -- TODO: utility function to check this, this logic is done in lots of places
         local current = host.focusedWidget
+
         while current do
             if current == child then
                 host:setFocusedWidget(nil)
                 break
             end
+
             current = current.parent
         end
     end
 
-    -- Invalidate layout
     self:invalidateLayout()
 end
 
@@ -420,6 +428,7 @@ end
 ---@param height number Final height
 function Widget:arrange(x, y, width, height)
     -- Apply size constraints to final dimensions
+    -- TODO: make this easier for widgets to do. This is easy to mess up and very boring.
     if self.sizeConstraint then
         local c = self.sizeConstraint
 
@@ -441,6 +450,7 @@ function Widget:arrange(x, y, width, height)
         elseif c.type == "ratio" then
             local ratioWidth = height * c.value
             local ratioHeight = width / c.value
+
             if ratioWidth <= width then
                 x = x + (width - ratioWidth) / 2
                 width = ratioWidth
@@ -557,7 +567,7 @@ end
 ---@return table proxy The reactive proxy for the nested table
 function Widget:__makeReactiveNested(rawTable, parentKey)
     return Reactive.createProxy(rawTable, {
-        onSet = function(key, value, oldValue)
+        onSet = function(_, _, _)
             -- When any nested property changes, invalidate based on parent property type
             local config = PropertyMetadata.getConfig(parentKey)
 
@@ -640,6 +650,7 @@ function Widget:bindFrom(source, mapping, transform)
         return self
     end
 
+    -- Mapping table syntax: bindFrom(source, { targetProp = "sourceProp", ... })
     for key, value in pairs(mapping) do
         local targetProperty, sourceProperty
         if type(key) == "number" then

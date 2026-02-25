@@ -40,7 +40,7 @@
 local Event = {}
 Event.__index = Event
 
---- Consume the event
+---Consume the event
 function Event:consume()
     self.consumed = true
     self.stopsPropagation = true
