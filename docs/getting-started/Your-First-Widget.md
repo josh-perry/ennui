@@ -15,7 +15,7 @@ local button = TextButton("Click me!")
 
 host:addChild(button)
 ```
-We define a `TextButton` widget and add it to the Host (which by default is going to fill the screen).
+We define a `TextButton` widget and add it to the `Host` (which by default is going to fill the screen).
 
 Then we need to tell the `Host` what is happening and allow it to draw:
 ```lua
