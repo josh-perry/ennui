@@ -137,11 +137,6 @@ function DockableWindow:undock()
         return false
     end
 
-    if self.width and self.height and self.width > 50 and self.height > 50 then
-        self.floatingBounds.width = self.width
-        self.floatingBounds.height = self.height
-    end
-
     if self.floatingBounds.width < 200 then
         self.floatingBounds.width = 300
     end

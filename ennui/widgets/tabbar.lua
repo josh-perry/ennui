@@ -202,6 +202,8 @@ function TabBar:onMouseMoved(event)
         self.isDraggingTab = true
         local widget = self.tabs[self.draggedTabIndex].widget
         if widget then
+            local host = self:getHost()
+
             ---@diagnostic disable-next-line: undefined-field
             if widget.undock and widget.props.isDocked then
                 ---@diagnostic disable-next-line: undefined-field
@@ -213,7 +215,6 @@ function TabBar:onMouseMoved(event)
             end
 
             if widget.isDraggable then
-                local host = self:getHost()
 
                 if host and type(host.__initDrag) == "function" then
                     if type(host.__ensureLayout) == "function" then
