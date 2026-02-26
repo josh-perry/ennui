@@ -23,88 +23,130 @@ local dockingExampleHost = require("examples.docking")
 return {
     {
         name = "Button",
-        host = buttonExampleHost
+        host = buttonExampleHost,
+        description = "Basic button interaction with click counting.",
+        tags = {"button", "interaction", "events"}
     },
     {
         name = "Drag",
-        host = dragExampleHost
+        host = dragExampleHost,
+        description = "Draggable widget examples.",
+        tags = {"drag", "interaction", "mouse"}
     },
     {
         name = "JRPG",
         host = jrpg.host,
         state = jrpg.state,
-        smallCanvas = true
+        smallCanvas = true,
+        description = "Retro RPG game demo rendered at 320x288.",
+        tags = {"game", "canvas", "smallcanvas", "demo"}
     },
     {
         name = "Checkbox",
-        host = checkboxExampleHost
+        host = checkboxExampleHost,
+        description = "Checkbox toggle controls.",
+        tags = {"checkbox", "toggle", "input"}
     },
     {
         name = "Slider",
-        host = sliderExampleHost
+        host = sliderExampleHost,
+        description = "Slider control for numeric value selection.",
+        tags = {"slider", "input", "numeric"}
     },
     {
         name = "TextInput",
-        host = textinputExampleHost
+        host = textinputExampleHost,
+        description = "Text input fields with editing and selection support.",
+        tags = {"textinput", "input", "text", "keyboard"}
     },
     {
         name = "Dropdown",
-        host = dropdownExampleHost
+        host = dropdownExampleHost,
+        description = "Dropdown menu for selecting from a list.",
+        tags = {"dropdown", "menu", "input", "selection"}
     },
     {
         name = "RadioButton",
-        host = radiobuttonExampleHost
+        host = radiobuttonExampleHost,
+        description = "Radio button groups for exclusive selection.",
+        tags = {"radiobutton", "selection", "input"}
     },
     {
         name = "TreeView",
-        host = treeviewExampleHost
+        host = treeviewExampleHost,
+        description = "Hierarchical tree view with collapsible nodes.",
+        tags = {"treeview", "hierarchy", "navigation"}
     },
     {
         name = "ScrollArea",
-        host = scrollareaExampleHost
+        host = scrollareaExampleHost,
+        description = "Scrollable content container with scroll bars.",
+        tags = {"scrollarea", "scroll", "container"}
     },
     {
         name = "CollapseableHeader",
-        host = collapseableheaderExampleHost
+        host = collapseableheaderExampleHost,
+        description = "Collapsible header sections for grouping content.",
+        tags = {"collapse", "header", "accordion"}
     },
     {
         name = "Text",
-        host = textExampleHost
+        host = textExampleHost,
+        description = "Text display widget with alignment and color options.",
+        tags = {"text", "display", "label"}
     },
     {
         name = "Image",
-        host = imageExampleHost
+        host = imageExampleHost,
+        description = "Image display widget.",
+        tags = {"image", "display"}
     },
     {
         name = "ComboBox",
-        host = comboboxExampleHost
+        host = comboboxExampleHost,
+        description = "Combo box combining text entry with a selection list.",
+        tags = {"combobox", "input", "selection", "text"}
     },
     {
         name = "Layouts",
-        host = layoutsExampleHost
+        host = layoutsExampleHost,
+        description = "Demonstration of layout strategies including grid and percentage sizing.",
+        tags = {"layout", "stackpanel", "grid", "sizing"}
     },
     {
         name = "Rectangle",
-        host = rectangleExampleHost
+        host = rectangleExampleHost,
+        description = "Rectangle shape widget with color and border styling.",
+        tags = {"rectangle", "shape", "drawing"}
     },
     {
         name = "State",
-        host = stateExampleHost
+        host = stateExampleHost,
+        description = "Reactive state management and property binding demonstration.",
+        tags = {"state", "reactive", "binding"}
     },
     {
         name = "Windows",
-        host = windowsExampleHost
+        host = windowsExampleHost,
+        description = "Draggable floating windows.",
+        tags = {"windows", "drag", "overlay"}
     },
     {
         name = "Group",
-        host = groupExampleHost
+        host = groupExampleHost,
+        description = "Widget grouping and containment.",
+        tags = {"group", "container"}
     },
     {
         name = "TabBar",
-        host = tabbarExampleHost
+        host = tabbarExampleHost,
+        description = "Tabbed interface for switching between views.",
+        tags = {"tabbar", "tabs", "navigation"}
     },
     {
         name = "Docking",
-        host = dockingExampleHost
+        host = dockingExampleHost,
+        description = "Dockable window system for flexible layouts.",
+        tags = {"docking", "windows", "layout"}
     }
 }
