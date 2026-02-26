@@ -24,7 +24,7 @@ local button = TextButton("Click me!")
 host:addChild(button)
 ```
 
-<video src="docs/img/hello-button.mp4"></video>
+<video src="https://github.com/user-attachments/assets/627331e2-f72e-48f8-9d86-a7bbbd9e0d92"></video>
 
 ## Inspector
 ![inspector](docs/img/inspector.png)
