@@ -159,6 +159,10 @@ function Host:__ensureLayout()
         self:measure(self.width, self.height)
         self:arrange(0, 0, self.width, self.height)
         self.isLayoutDirty = false
+        self.isArrangeDirty = false
+    elseif self.isArrangeDirty then
+        self:arrange(0, 0, self.width, self.height)
+        self.isArrangeDirty = false
     end
 end
 

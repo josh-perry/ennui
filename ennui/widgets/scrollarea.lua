@@ -133,7 +133,7 @@ function ScrollArea:__handleMouseMoved(event)
 
         self.props.scrollY = math.max(0, math.min(maxScroll,
             self.__dragStartScrollY + scrollRatio * maxScroll))
-        self:invalidateLayout()
+        self:invalidateArrange()
         return true
     end
 
@@ -149,7 +149,7 @@ function ScrollArea:__handleMouseMoved(event)
 
         self.props.scrollX = math.max(0, math.min(maxScroll,
             self.__dragStartScrollX + scrollRatio * maxScroll))
-        self:invalidateLayout()
+        self:invalidateArrange()
         return true
     end
 
@@ -184,7 +184,7 @@ function ScrollArea:onMouseWheel(event)
     end
 
     if scrolled then
-        self:invalidateLayout()
+        self:invalidateArrange()
         event:consume()
         return true
     end
@@ -305,7 +305,7 @@ function ScrollArea:scrollTo(x, y)
         self.props.scrollY = math.max(0, math.min(maxScrollY, y))
     end
 
-    self:invalidateLayout()
+    self:invalidateArrange()
     return self
 end
 
@@ -378,7 +378,11 @@ function ScrollArea:measure(availableWidth, availableHeight)
                 needsRestore = true
             end
 
-            child:measure(contentWidth, contentHeight)
+            if child.isLayoutDirty
+                or child.__lastMeasureAvailW ~= contentWidth
+                or child.__lastMeasureAvailH ~= contentHeight then
+                child:measure(contentWidth, contentHeight)
+            end
             maxChildWidth = math.max(maxChildWidth, child.desiredWidth)
             totalChildHeight = totalChildHeight + child.desiredHeight
 

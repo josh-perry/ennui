@@ -63,6 +63,7 @@ function Widget.new()
 
     self.id = nil
     self.isLayoutDirty = true
+    self.isArrangeDirty = false
     self.isRenderDirty = true
     self.isTabContext = false
     self.layoutStrategy = nil
@@ -370,6 +371,9 @@ end
 ---@return number desiredWidth
 ---@return number desiredHeight
 function Widget:measure(availableWidth, availableHeight)
+    self.__lastMeasureAvailW = availableWidth
+    self.__lastMeasureAvailH = availableHeight
+
     if self.layoutStrategy then
         local desiredWidth, desiredHeight = self.layoutStrategy:measure(self, availableWidth, availableHeight)
 
@@ -377,6 +381,7 @@ function Widget:measure(availableWidth, availableHeight)
         self.desiredHeight = desiredHeight
 
         self.isLayoutDirty = false
+        self.isArrangeDirty = false
 
         return desiredWidth, desiredHeight
     end
@@ -402,7 +407,11 @@ function Widget:measure(availableWidth, availableHeight)
 
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:measure(contentWidth, contentHeight)
+            if child.isLayoutDirty
+                or child.__lastMeasureAvailW ~= contentWidth
+                or child.__lastMeasureAvailH ~= contentHeight then
+                child:measure(contentWidth, contentHeight)
+            end
         end
     end
 
@@ -418,6 +427,7 @@ function Widget:measure(availableWidth, availableHeight)
     self.desiredHeight = desiredHeight
 
     self.isLayoutDirty = false
+    self.isArrangeDirty = false
 
     return desiredWidth, desiredHeight
 end
@@ -518,6 +528,14 @@ function Widget:invalidateLayout()
 
     if self.parent then
         self.parent:invalidateLayout()
+    end
+end
+
+function Widget:invalidateArrange()
+    self.isArrangeDirty = true
+
+    if self.parent then
+        self.parent:invalidateArrange()
     end
 end
 

@@ -285,6 +285,7 @@ function TreeViewNode:measure(availableWidth, availableHeight)
                 child:measure(availableWidth, availableHeight - totalHeight)
                 totalHeight = totalHeight + child.desiredHeight
             end
+
         end
     end
 
