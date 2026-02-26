@@ -569,13 +569,21 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
         self.__lastHoveredWidget = (target ~= self) and target or nil
     end
 
+    -- Case where the mouse is pressed and dragged outside of the widget
+    local pressedWidget = self.__pressedWidget[1]
+
+    if pressedWidget and pressedWidget ~= target then
+        local event = Event.createMouseEvent("mouseMoved", x, y, 1, pressedWidget, isTouch, dx, dy)
+        self:__dispatchEvent(event)
+    end
+
     if target and target ~= self then
         local event = Event.createMouseEvent("mouseMoved", x, y, 1, target, isTouch, dx, dy)
         self:__dispatchEvent(event)
         return true
     end
 
-    return false
+    return pressedWidget ~= nil
 end
 
 ---@param dx number Horizontal scroll amount
