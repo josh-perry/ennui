@@ -2,6 +2,12 @@
 ---@class ListBindableMixin
 local ListBindableMixin = {}
 
+---@class ListBindingConfig
+---@field key string? Property name on each item to use as the unique key (defaults to "id")
+---@field create fun(data: table, index: number): Widget Factory for new item widgets
+---@field update fun(widget: Widget, data: table, index: number)? Called to sync existing widgets
+---@field onRemove fun(widget: Widget, key: any)? Called just before a widget is removed
+
 ---Initialize list binding state. Call from the host widget's constructor.
 ---@param self table The widget instance
 function ListBindableMixin.initListBindable(self)
@@ -12,11 +18,7 @@ end
 ---Idempotent: calling again with the same path updates the source and reconciles.
 ---@param source State|StateScope The reactive data source
 ---@param path string Dot-notation path to the array, relative to source
----@param config table
----@param config.key string Property name on each item to use as the unique key
----@param config.create function(data: table, index: number) → Widget Factory for new item widgets
----@param config.update function(widget: Widget, data: table, index: number)? Called to sync existing widgets
----@param config.onRemove function(widget: Widget, key: any)? Called just before a widget is removed
+---@param config ListBindingConfig Configuration table for list binding
 ---@return self
 function ListBindableMixin:bindChildren(source, path, config)
     config.key = config.key or "id"
@@ -28,14 +30,16 @@ function ListBindableMixin:bindChildren(source, path, config)
         if existing.watcher then
             existing.watcher:unwatch()
         end
+
         existing.source = source
         existing.config = config
 
-        local self_ref = self
+        local selfRef = self
+
         existing.watcher = source:watch(function()
             return source:get(path)
         end, function()
-            self_ref:__reconcileList(existing)
+            selfRef:__reconcileList(existing)
         end)
 
         self:__reconcileList(existing)
@@ -50,17 +54,26 @@ function ListBindableMixin:bindChildren(source, path, config)
         watcher = nil,
     }
 
-    local self_ref = self
+    local selfRef = self
     binding.watcher = source:watch(function()
         return source:get(path)
     end, function()
-        self_ref:__reconcileList(binding)
+        selfRef:__reconcileList(binding)
     end)
 
     self.__listBindings[path] = binding
     self:__reconcileList(binding)
 
     return self
+end
+
+---Alias for bindChildren.
+---@param source State|StateScope The reactive data source
+---@param path string Dot-notation path to the array, relative to source
+---@param config ListBindingConfig Configuration table for list binding
+---@return self
+function ListBindableMixin:bindList(source, path, config)
+    return self:bindChildren(source, path, config)
 end
 
 ---Get the key -> widget map for a bound list path.

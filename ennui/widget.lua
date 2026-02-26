@@ -16,7 +16,7 @@ local Mixin = require("ennui.utils.mixin")
 ---@field public bottom number Bottom margin in pixels
 ---@field public left number Left margin in pixels
 
----@class Widget : StatefulMixin, ParentableMixin, PositionableMixin, LayoutableMixin, DraggableMixin, FocusableMixin, EventEmitterMixin
+---@class Widget : StatefulMixin, ParentableMixin, PositionableMixin, LayoutableMixin, DraggableMixin, FocusableMixin, EventEmitterMixin, ListBindableMixin
 ---@field public id string? Optional widget identifier
 ---@field public isLayoutDirty boolean Whether layout needs recalculation
 ---@field public isRenderDirty boolean Whether widget needs redraw
@@ -42,7 +42,8 @@ Mixin.extend(Widget,
     Mixins.Layoutable,
     Mixins.Draggable,
     Mixins.Focusable,
-    Mixins.EventEmitter
+    Mixins.EventEmitter,
+    Mixins.ListBindable
 )
 
 function Widget:__tostring()
@@ -60,6 +61,7 @@ function Widget.new()
     self:initDraggable()
     self:initFocusable()
     self:initEventEmitter()
+    self:initListBindable()
 
     self.id = nil
     self.isLayoutDirty = true
@@ -717,6 +719,7 @@ end
 ---@param self T
 function Widget:onUnmount()
     ---@cast self Widget
+    self:cleanupListBindable()
     self:__cleanupReactive()
 end
 

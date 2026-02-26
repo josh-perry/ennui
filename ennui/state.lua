@@ -186,6 +186,13 @@ function State:format(template)
     end)
 end
 
+---Create an anonymous computed property (not cached on the state)
+---@param getter function() Function that computes and returns the value
+---@return Computed The computed instance
+function State:computedInline(getter)
+    return Computed(getter)
+end
+
 ---Create a scoped view into a nested path
 ---@param path string Dot-notation path (e.g., "characters.frog")
 ---@return StateScope # A scoped view that acts like a State
