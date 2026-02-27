@@ -8,6 +8,7 @@
 ---@field onDragEnd function? Drag lifecycle callback
 ---@field onDragOver function? Drop target callback
 ---@field onDragLeave function? Drop target callback
+---@field onDrop function? Drop target callback
 local DraggableMixin = {}
 local AABB = require("ennui.utils.aabb")
 local Mixin = require("ennui.utils.mixin")
