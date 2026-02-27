@@ -115,7 +115,6 @@ function State:get(path)
 end
 
 ---Get raw (non-reactive) value at a dot-notation path (top-level only)
----Useful for iteration with pairs/ipairs since reactive proxies don't work with them in LuaJIT
 ---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
 ---@param path string Dot-notation path
 ---@return any The raw underlying table (or the value itself if not a proxy)
@@ -138,33 +137,14 @@ end
 ---@param path string Dot-notation path to an array
 ---@return function Iterator function
 function State:ipairs(path)
-    local proxy = self:get(path)
-    local i = 0
-
-    return function()
-        i = i + 1
-
-        local v = proxy[i]
-
-        if v ~= nil then
-            return i, v
-        end
-    end
+    return self:get(path):ipairs()
 end
 
 ---Iterate over a table at a path
 ---@param path string Dot-notation path to a table
 ---@return function Iterator function
 function State:pairs(path)
-    local proxy = self:get(path)
-    local mt = getmetatable(proxy)
-
-    if mt and mt.__pairs then
-        return mt.__pairs(proxy)
-    end
-
-    ---@diagnostic disable-next-line: redundant-return-value
-    return pairs(proxy)
+    return self:get(path):pairs()
 end
 
 ---Create a computed that interpolates {property} placeholders in a template
@@ -188,7 +168,7 @@ end
 
 ---Create an anonymous computed property (not cached on the state)
 ---@param getter function() Function that computes and returns the value
----@return Computed The computed instance
+---@return Computed # The computed instance
 function State:computedInline(getter)
     return Computed(getter)
 end
@@ -281,12 +261,6 @@ function StateScope.new(root, path)
                 target[key] = value
             end
         end,
-
-        __pairs = function(_)
-            local target = root:get(path)
-            if target then return pairs(target) end
-            return pairs({})
-        end,
     })
 
     return self
@@ -347,6 +321,9 @@ function StateScope:format(template)
     end)
 end
 
+---Create an anonymous computed property (not cached on the state)
+---@param getter function() Function that computes and returns the value
+---@return Computed # The computed instance
 function StateScope:computedInline(getter)
     return Computed(getter)
 end
@@ -372,6 +349,20 @@ end
 ---@return any The deeply unwrapped value (plain Lua tables all the way down)
 function StateScope:getRawDeep(path)
     return self.__root:getRawDeep(self:__fullPath(path))
+end
+
+---Iterate over an array at a relative path
+---@param path string Dot-notation path relative to current scope
+---@return function Iterator function
+function StateScope:ipairs(path)
+    return self:get(path):ipairs()
+end
+
+---Iterate over a table at a relative path
+---@param path string Dot-notation path relative to current scope
+---@return function Iterator function
+function StateScope:pairs(path)
+    return self:get(path):pairs()
 end
 
 ---Iterate over an array at a relative path, calling fn for each element with a StateScope

@@ -1,5 +1,11 @@
----Reactive property system using Lua proxy tables
+---Reactive property system using proxy tables
 ---Enables automatic change detection and dependency tracking for computed properties and watchers
+
+---@class ProxyOptions
+---@field onGet function? Called when property is accessed: onGet(key)
+---@field onSet function? Called when property changes: onSet(key, newValue, oldValue)
+---@field nested boolean? If true, automatically wrap table values in nested proxies
+---@field nestedNotify function? Called when nested property changes: nestedNotify(forceUpdate)
 
 ---@class Dependency
 ---@field subscribers table<any, boolean> Set of watchers/computed that depend on this property
@@ -43,13 +49,105 @@ function Dependency:notify(forceUpdate)
     end
 end
 
----@class Reactive
-local Reactive = {}
-
 local currentDependencyCollector = nil
 local dependencyStack = {}
 
 local proxyToRaw = setmetatable({}, { __mode = "k" })
+
+---@class ProxyInternals
+---@field raw table Raw underlying table
+---@field getDep fun(key: any): Dependency Dependency getter scoped to the owning createProxy call
+---@field isNested boolean Whether this proxy wraps a nested table (not the top-level rawTable)
+---@field parentKey any? For nested proxies: the parent key whose dependency to notify on change
+---@field onGet (fun(key: any))? Top-level only: called on property access
+---@field onSet (fun(key: any, newValue: any, oldValue: any))? Top-level only: called on property change
+---@field nestedNotify (fun(forceUpdate: boolean))? Nested only: extra callback on nested change
+---@field makeNested (fun(t: table, key: any): ReactiveProxy)? Wraps plain tables in nested proxies; nil if not needed
+
+---@type table<ReactiveProxy, ProxyInternals>
+local proxyInternals = setmetatable({}, { __mode = "k" })
+
+---The normal pairs/ipairs bypass __index, so they see empty proxies and lose dependency tracking.
+---So we need to do it ourselves.
+---@class ReactiveProxy
+local ReactiveProxy = {}
+
+ReactiveProxy.__index = function(self, key)
+    local method = rawget(ReactiveProxy, key)
+    if method ~= nil then return method end
+
+    local internal = proxyInternals[self]
+    local collector = currentDependencyCollector
+
+    if collector then
+        internal.getDep(internal.isNested and internal.parentKey or key):depend(collector)
+    end
+
+    if internal.onGet then internal.onGet(key) end
+    return internal.raw[key]
+end
+
+ReactiveProxy.__newindex = function(self, key, value)
+    assert(rawget(ReactiveProxy, key) == nil, ("'%s' is a proxy method and cannot be used as a data key"):format(key))
+
+    local internal = proxyInternals[self]
+    local raw = internal.raw
+    local oldValue = raw[key]
+
+    if type(value) == "table" and proxyInternals[value] == nil and internal.makeNested then
+        value = internal.makeNested(value, internal.isNested and internal.parentKey or key)
+    end
+
+    if value ~= oldValue then
+        raw[key] = value
+        if internal.isNested then
+            internal.getDep(internal.parentKey):notify(true)
+            if internal.nestedNotify then internal.nestedNotify(true) end
+        else
+            if internal.onSet then internal.onSet(key, value, oldValue) end
+            internal.getDep(key):notify(type(value) == "table" or type(oldValue) == "table")
+        end
+    else
+        raw[key] = value
+    end
+end
+
+ReactiveProxy.__len = function(self)
+    return #proxyInternals[self].raw
+end
+
+---Iterate over the proxy as an array, tracking dependencies
+---@return fun(): integer?, any?
+function ReactiveProxy:ipairs()
+    local n = #self
+    local i = 0
+
+    return function()
+        i = i + 1
+        if i <= n then
+            return i, self[i]
+        end
+    end
+end
+
+---Iterate over all keys in the proxy, tracking dependencies per value
+---@return fun(): any, any
+function ReactiveProxy:pairs()
+    local proxy = self
+    local raw = proxyInternals[self].raw
+    local key = nil
+
+    return function()
+        key = next(raw, key)
+
+        if key ~= nil then
+            return key, proxy[key]
+        end
+    end
+end
+
+---@class Reactive
+local Reactive = {}
 
 ---Push a dependency collector onto the stack
 ---@param collector any Watcher or Computed instance
@@ -70,7 +168,6 @@ function Reactive.getCurrentDep()
 end
 
 ---Get the raw underlying table from a proxy (top-level only)
----Useful for iteration with pairs/ipairs since reactive proxies don't work here
 ---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
 ---@param proxy table The reactive proxy
 ---@return table The raw underlying table (or the proxy itself if not found)
@@ -84,7 +181,6 @@ end
 
 ---Get a deep copy of the raw underlying data with all nested proxies unwrapped
 ---Returns a disconnected copy - modifications won't affect the original state
----Useful for drag-and-drop, serialization, or any operation needing plain Lua tables
 ---@param proxy any The reactive proxy (or any value)
 ---@return any The deeply unwrapped value (plain Lua tables all the way down)
 function Reactive.getRawDeep(proxy)
@@ -109,21 +205,16 @@ function Reactive.isProxy(t)
     return type(t) == "table" and proxyToRaw[t] ~= nil
 end
 
----@class ProxyOptions
----@field onGet function? Called when property is accessed: onGet(key)
----@field onSet function? Called when property changes: onSet(key, newValue, oldValue)
----@field nested boolean? If true, automatically wrap table values in nested proxies
----@field nestedNotify function? Called when nested property changes: nestedNotify(forceUpdate)
-
 ---Create a reactive proxy table
 ---Properties accessed through the proxy are tracked as dependencies
 ---Properties set through the proxy trigger change detection
 ---@param rawTable table The underlying data table
 ---@param options ProxyOptions? Proxy configuration options
----@return table proxy The reactive proxy
+---@return ReactiveProxy
 function Reactive.createProxy(rawTable, options)
     options = options or {}
 
+    ---@type table<string, Dependency>
     local dependencies = {}
 
     ---Get or create a dependency for a given key
@@ -131,7 +222,7 @@ function Reactive.createProxy(rawTable, options)
     ---@return Dependency
     local function getDependency(key)
         if not dependencies[key] then
-            dependencies[key] = Dependency.new()
+            dependencies[key] = Dependency()
         end
 
         return dependencies[key]
@@ -140,52 +231,25 @@ function Reactive.createProxy(rawTable, options)
     ---Create a nested proxy for table values
     ---@param nestedTable table
     ---@param parentKey string
-    ---@return table
+    ---@return ReactiveProxy
     local function makeNestedProxy(nestedTable, parentKey)
-        -- Recursively wrap nested tables first
         for key, value in pairs(nestedTable) do
             if type(value) == "table" and not Reactive.isProxy(value) then
                 nestedTable[key] = makeNestedProxy(value, parentKey)
             end
         end
 
-        local nestedProxy = setmetatable({}, {
-            __index = function(_, key)
-                local collector = currentDependencyCollector
-                if collector then
-                    getDependency(parentKey):depend(collector)
-                end
-                return nestedTable[key]
-            end,
-
-            __newindex = function(_, key, value)
-                local oldValue = nestedTable[key]
-                if type(value) == "table" and not Reactive.isProxy(value) then
-                    value = makeNestedProxy(value, parentKey)
-                end
-                if value ~= oldValue then
-                    nestedTable[key] = value
-
-                    getDependency(parentKey):notify(true)
-
-                    if options.nestedNotify then
-                        options.nestedNotify(true)
-                    end
-                else
-                    nestedTable[key] = value
-                end
-            end,
-
-            __pairs = function(_)
-                return pairs(nestedTable)
-            end,
-
-            __len = function(_)
-                return #nestedTable
-            end,
-        })
-
+        local nestedProxy = setmetatable({}, ReactiveProxy)
         proxyToRaw[nestedProxy] = nestedTable
+        proxyInternals[nestedProxy] = {
+            raw = nestedTable,
+            getDep = getDependency,
+            isNested = true,
+            parentKey = parentKey,
+            nestedNotify = options.nestedNotify,
+            makeNested = makeNestedProxy,
+        }
+
         return nestedProxy
     end
 
@@ -197,51 +261,17 @@ function Reactive.createProxy(rawTable, options)
         end
     end
 
-    local proxy = setmetatable({}, {
-        __index = function(_, key)
-            if currentDependencyCollector then
-                getDependency(key):depend(currentDependencyCollector)
-            end
-
-            if options.onGet then
-                options.onGet(key)
-            end
-
-            return rawTable[key]
-        end,
-
-        __newindex = function(_, key, value)
-            local oldValue = rawTable[key]
-
-            if options.nested and type(value) == "table" and not Reactive.isProxy(value) then
-                value = makeNestedProxy(value, key)
-            end
-
-            if value ~= oldValue then
-                rawTable[key] = value
-
-                if options.onSet then
-                    options.onSet(key, value, oldValue)
-                end
-
-                -- Use forceUpdate for nested table changes
-                local isNestedChange = type(value) == "table" or type(oldValue) == "table"
-                getDependency(key):notify(isNestedChange)
-            else
-                rawTable[key] = value
-            end
-        end,
-
-        __pairs = function(_)
-            return pairs(rawTable)
-        end,
-
-        __len = function(_)
-            return #rawTable
-        end,
-    })
-
+    local proxy = setmetatable({}, ReactiveProxy) ---@cast proxy ReactiveProxy
     proxyToRaw[proxy] = rawTable
+    proxyInternals[proxy] = {
+        raw = rawTable,
+        getDep = getDependency,
+        isNested = false,
+        onGet = options.onGet,
+        onSet = options.onSet,
+        makeNested = options.nested and makeNestedProxy or nil,
+    }
+
     return proxy
 end
 

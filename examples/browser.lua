@@ -352,12 +352,12 @@ filterInput:watch("value", function(text)
 
     local filtered = {}
 
-    for _, item in ipairs(allItems) do
+    for _, item in browserState:ipairs("allItems") do
         local nameMatch = item.name:lower():find(text, 1, true)
         local tagMatch = false
 
         if not nameMatch then
-            for _, tag in ipairs(item.tags) do
+            for _, tag in item.tags:ipairs() do
                 if tag:lower():find(text, 1, true) then
                     tagMatch = true
                     break
