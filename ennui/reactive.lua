@@ -119,13 +119,16 @@ end
 ---Iterate over the proxy as an array, tracking dependencies
 ---@return fun(): integer?, any?
 function ReactiveProxy:ipairs()
-    local n = #self
     local i = 0
 
     return function()
         i = i + 1
-        if i <= n then
-            return i, self[i]
+
+        local v = self[i]
+
+        -- cant use # here!
+        if v ~= nil then
+            return i, v
         end
     end
 end
