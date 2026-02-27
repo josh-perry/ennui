@@ -1,10 +1,11 @@
+local EnnuiRoot = (...):sub(1, (...):len() - (".mixins.stateful"):len())
 ---Mixin for reactive property management
 ---Optional hooks:
 ---  - __beforeAddTransformPropertyValue(name, value) - transform value before storing
 ---  - __afterAddProperty(name, value) - called after property is added
 
-local Watcher = require("ennui.watcher")
-local Computed = require("ennui.computed")
+local Watcher = require(EnnuiRoot .. ".watcher")
+local Computed = require(EnnuiRoot .. ".computed")
 
 ---@class StatefulMixin
 ---@field __rawProps table<string, any> Underlying property storage

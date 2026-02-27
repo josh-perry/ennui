@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local TextInput = require("ennui.widgets.textinput")
-local Menu = require("ennui.widgets.menu")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.combobox"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local TextInput = require(EnnuiRoot .. ".widgets.textinput")
+local Menu = require(EnnuiRoot .. ".widgets.menu")
 
 ---@class ComboBoxItem
 ---@field label string Display text

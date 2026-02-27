@@ -1,4 +1,5 @@
-local Widget = require("ennui.widget")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.button"):len())
+local Widget = require(EnnuiRoot .. ".widget")
 
 ---@class Button : Widget
 ---@field backgroundColor number[] RGBA color for normal state

@@ -1,4 +1,5 @@
-local Widget = require("ennui.widget")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.text"):len())
+local Widget = require(EnnuiRoot .. ".widget")
 
 ---@class Text : Widget
 ---@field text string Text to display

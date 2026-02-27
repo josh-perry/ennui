@@ -1,4 +1,5 @@
-local Widget = require("ennui.widget")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.tabbar"):len())
+local Widget = require(EnnuiRoot .. ".widget")
 
 ---@class Tab
 ---@field title string Tab title

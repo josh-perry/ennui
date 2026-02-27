@@ -1,8 +1,9 @@
-local Reactive = require("ennui.reactive")
-local PropertyMetadata = require("ennui.property_metadata")
-local Scissor = require("ennui.utils.scissor")
-local Mixins = require("ennui.mixins")
-local Mixin = require("ennui.utils.mixin")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widget"):len())
+local Reactive = require(EnnuiRoot .. ".reactive")
+local PropertyMetadata = require(EnnuiRoot .. ".property_metadata")
+local Scissor = require(EnnuiRoot .. ".utils.scissor")
+local Mixins = require(EnnuiRoot .. ".mixins")
+local Mixin = require(EnnuiRoot .. ".utils.mixin")
 
 ---@class Padding
 ---@field public top number Top padding in pixels

@@ -1,6 +1,6 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.treeview"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local VerticalLayout = require(EnnuiRoot .. ".layout.vertical_layout_strategy")
 
 ---@class TreeView : Widget
 ---@field selectedNode TreeViewNode? Currently selected node

@@ -1,3 +1,4 @@
+local EnnuiRoot = (...):sub(1, (...):len() - (".mixins.positionable"):len())
 ---Mixin for position and size properties
 ---@class PositionableMixin
 ---@field x number X position in pixels
@@ -5,7 +6,7 @@
 ---@field width number Actual width in pixels
 ---@field height number Actual height in pixels
 local PositionableMixin = {}
-local AABB = require("ennui.utils.aabb")
+local AABB = require(EnnuiRoot .. ".utils.aabb")
 
 ---Initialize positionable fields on an instance
 ---Call this from the constructor of classes using this mixin

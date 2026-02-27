@@ -1,10 +1,11 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Text = require("ennui.widgets.text")
-local HorizontalStackPanel = require("ennui.widgets.horizontalstackpanel")
-local Rectangle = require("ennui.widgets.rectangle")
-local AABB = require("ennui.utils.aabb")
-local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.treeviewnode"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Text = require(EnnuiRoot .. ".widgets.text")
+local HorizontalStackPanel = require(EnnuiRoot .. ".widgets.horizontalstackpanel")
+local Rectangle = require(EnnuiRoot .. ".widgets.rectangle")
+local AABB = require(EnnuiRoot .. ".utils.aabb")
+local VerticalLayout = require(EnnuiRoot .. ".layout.vertical_layout_strategy")
 
 ---@class TreeViewNode : Widget
 ---@field label string Node label text

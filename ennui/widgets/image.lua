@@ -1,5 +1,5 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.image"):len())
+local Widget = require(EnnuiRoot .. ".widget")
 
 ---@class Image : Widget
 ---@field drawable love.Image|love.Canvas? Drawable to display (Image or Canvas)
@@ -48,11 +48,11 @@ function Image:getDrawable()
     return self.props.image
 end
 
----Set image from file path
----@param path string Path to image file
+---Set image from file EnnuiRoot
+---@param EnnuiRoot string EnnuiRoot to image file
 ---@return Image self
-function Image:setImagePath(path)
-    local image = love.graphics.newImage(path)
+function Image:setImagePath(EnnuiRoot)
+    local image = love.graphics.newImage(EnnuiRoot)
     return self:setDrawable(image)
 end
 

@@ -1,3 +1,5 @@
+local EnnuiRoot = (...):sub(1, (...):len() - (".mixins.draggable"):len())
+
 ---Mixin for drag interaction functionality
 ---@class DraggableMixin
 ---@field isDraggable boolean Whether widget can be dragged
@@ -10,10 +12,10 @@
 ---@field onDragLeave function? Drop target callback
 ---@field onDrop function? Drop target callback
 local DraggableMixin = {}
-local AABB = require("ennui.utils.aabb")
-local Mixin = require("ennui.utils.mixin")
-local PositionableMixin = require("ennui.mixins.positionable")
-local ParentableMixin = require("ennui.mixins.parentable")
+local AABB = require(EnnuiRoot .. ".utils.aabb")
+local Mixin = require(EnnuiRoot .. ".utils.mixin")
+local PositionableMixin = require(EnnuiRoot .. ".mixins.positionable")
+local ParentableMixin = require(EnnuiRoot .. ".mixins.parentable")
 
 ---@alias dragMode "position"|"delta"|"ghost"
 

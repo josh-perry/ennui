@@ -1,4 +1,5 @@
-local Reactive = require("ennui.reactive")
+local EnnuiRoot = (...):sub(1, (...):len() - (".computed"):len())
+local Reactive = require(EnnuiRoot .. ".reactive")
 
 ---@class Computed
 ---@field getter function The function that computes the value

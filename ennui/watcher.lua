@@ -1,5 +1,6 @@
+local EnnuiRoot = (...):sub(1, (...):len() - (".watcher"):len())
 ---Watcher system for explicit reactions to property changes
-local Reactive = require("ennui.reactive")
+local Reactive = require(EnnuiRoot .. ".reactive")
 
 ---@class Watcher
 ---@field widget Widget The widget this watcher is attached to

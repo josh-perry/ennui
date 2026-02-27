@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Text = require("ennui.widgets.text")
-local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.group"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Text = require(EnnuiRoot .. ".widgets.text")
+local VerticalLayout = require(EnnuiRoot .. ".layout.vertical_layout_strategy")
 
 ---@class Group : Widget
 ---@field title string Group title text

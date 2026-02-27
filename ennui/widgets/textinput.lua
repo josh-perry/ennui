@@ -1,6 +1,7 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Text = require("ennui.widgets.text")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.textinput"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Text = require(EnnuiRoot .. ".widgets.text")
 
 ---@class TextInput : Widget
 ---@field text string Current text content

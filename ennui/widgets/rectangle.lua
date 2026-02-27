@@ -1,5 +1,6 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.rectangle"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
 
 ---@class Rectangle : Widget
 local Rectangle = {}

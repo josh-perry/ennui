@@ -1,4 +1,5 @@
-local Widget = require("ennui.widget")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.splitter"):len())
+local Widget = require(EnnuiRoot .. ".widget")
 
 ---@class Splitter : Widget
 ---@field orientation "horizontal"|"vertical" Splitter orientation

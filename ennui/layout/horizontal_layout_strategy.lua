@@ -1,4 +1,5 @@
-local LayoutStrategy = require("ennui.layout.layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".layout.horizontal_layout_strategy"):len())
+local LayoutStrategy = require(EnnuiRoot .. ".layout.layout_strategy")
 
 ---@class HorizontalLayoutStrategy : LayoutStrategy
 local HorizontalLayoutStrategy = {}

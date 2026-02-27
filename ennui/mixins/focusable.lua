@@ -1,11 +1,12 @@
+local EnnuiRoot = (...):sub(1, (...):len() - (".mixins.focusable"):len())
 ---Mixin for focus management
 ---@class FocusableMixin
 ---@field focusable boolean Whether this can receive focus
 ---@field tabIndex number Tab order for focus navigation
 local FocusableMixin = {}
 
-local Mixin = require("ennui.utils.mixin")
-local ParentableMixin = require("ennui.mixins.parentable")
+local Mixin = require(EnnuiRoot .. ".utils.mixin")
+local ParentableMixin = require(EnnuiRoot .. ".mixins.parentable")
 
 ---Initialize focusable fields on an instance
 ---Call this from the constructor of classes using this mixin

@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local StackPanel = require("ennui.widgets.stackpanel")
-local TextButton = require("ennui.widgets.textbutton")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.dropdownmenu"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local StackPanel = require(EnnuiRoot .. ".widgets.stackpanel")
+local TextButton = require(EnnuiRoot .. ".widgets.textbutton")
 
 ---@class DropdownMenu : Widget
 ---@field __itemPanel StackPanel Panel to hold menu items

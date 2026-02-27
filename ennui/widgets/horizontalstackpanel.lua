@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local HorizontalLayout = require("ennui.layout.horizontal_layout_strategy")
-local Mixin = require("ennui.utils.mixin")
-local ListBindableMixin = require("ennui.mixins.listbindable")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.horizontalstackpanel"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local HorizontalLayout = require(EnnuiRoot .. ".layout.horizontal_layout_strategy")
+local Mixin = require(EnnuiRoot .. ".utils.mixin")
+local ListBindableMixin = require(EnnuiRoot .. ".mixins.listbindable")
 
 ---@class HorizontalStackPanel : Widget, ListBindableMixin
 ---@operator call:HorizontalStackPanel

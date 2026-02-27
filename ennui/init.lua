@@ -1,21 +1,22 @@
+local EnnuiRoot = (...):gsub("%.init$", "")
 local ennui = {}
 
-ennui.Widget = require("ennui.widget")
-ennui.Constants = require("ennui.constants")
-ennui.Event = require("ennui.event")
-ennui.Docking = require("ennui.docking")
-ennui.Widgets = require("ennui.widgets")
+ennui.Widget = require(EnnuiRoot .. ".widget")
+ennui.Constants = require(EnnuiRoot .. ".constants")
+ennui.Event = require(EnnuiRoot .. ".event")
+ennui.Docking = require(EnnuiRoot .. ".docking")
+ennui.Widgets = require(EnnuiRoot .. ".widgets")
 ennui.Layout = {
-    Vertical = require("ennui.layout.vertical_layout_strategy"),
-    Horizontal = require("ennui.layout.horizontal_layout_strategy"),
-    Grid = require("ennui.layout.grid_layout_strategy"),
-    Overlay = require("ennui.layout.overlay_layout_strategy"),
-    Dock = require("ennui.layout.dock_layout_strategy")
+    Vertical = require(EnnuiRoot .. ".layout.vertical_layout_strategy"),
+    Horizontal = require(EnnuiRoot .. ".layout.horizontal_layout_strategy"),
+    Grid = require(EnnuiRoot .. ".layout.grid_layout_strategy"),
+    Overlay = require(EnnuiRoot .. ".layout.overlay_layout_strategy"),
+    Dock = require(EnnuiRoot .. ".layout.dock_layout_strategy")
 }
-ennui.Size = require("ennui.size")
-ennui.SizeConstraint = require("ennui.size_constraint")
-ennui.Reactive = require("ennui.reactive")
-ennui.State = require("ennui.state")
-ennui.Host = require("ennui.widgets.host")
+ennui.Size = require(EnnuiRoot .. ".size")
+ennui.SizeConstraint = require(EnnuiRoot .. ".size_constraint")
+ennui.Reactive = require(EnnuiRoot .. ".reactive")
+ennui.State = require(EnnuiRoot .. ".state")
+ennui.Host = require(EnnuiRoot .. ".widgets.host")
 
 return ennui

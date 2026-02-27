@@ -1,3 +1,4 @@
+local EnnuiRoot = (...):sub(1, (...):len() - (".mixins.layoutable"):len())
 ---Mixin for layout-related properties and behavior
 ---Expects the consuming class to implement:
 ---  - invalidateLayout()
@@ -18,10 +19,10 @@
 ---@field horizontalAlignment "left"|"center"|"right"|"stretch" Horizontal alignment
 ---@field verticalAlignment "top"|"center"|"bottom"|"stretch" Vertical alignment
 local LayoutableMixin = {}
-local Size = require("ennui.size")
-local Mixin = require("ennui.utils.mixin")
-local ParentableMixin = require("ennui.mixins.parentable")
-local PositionableMixin = require("ennui.mixins.positionable")
+local Size = require(EnnuiRoot .. ".size")
+local Mixin = require(EnnuiRoot .. ".utils.mixin")
+local ParentableMixin = require(EnnuiRoot .. ".mixins.parentable")
+local PositionableMixin = require(EnnuiRoot .. ".mixins.positionable")
 
 ---Initialize layoutable fields on an instance
 ---Call this from the constructor of classes using this mixin

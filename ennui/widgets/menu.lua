@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Text = require("ennui.widgets.text")
-local AABB = require("ennui.utils.aabb")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.menu"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Text = require(EnnuiRoot .. ".widgets.text")
+local AABB = require(EnnuiRoot .. ".utils.aabb")
 
 ---@class MenuItem
 ---@field label string Display text

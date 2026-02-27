@@ -1,4 +1,5 @@
-local Window = require("ennui.widgets.window")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.dockablewindow"):len())
+local Window = require(EnnuiRoot .. ".widgets.window")
 
 ---@class DockableWindow : Window
 ---@field isDockable boolean Whether this can be docked

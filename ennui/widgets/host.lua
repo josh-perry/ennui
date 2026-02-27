@@ -1,5 +1,6 @@
-local Widget = require("ennui.widget")
-local Event = require("ennui.event")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.host"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Event = require(EnnuiRoot .. ".event")
 
 ---@class Host : Widget
 ---@field focusedWidget Widget? Currently focused widget

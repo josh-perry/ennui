@@ -1,8 +1,9 @@
-local DockLayoutStrategy = require("ennui.layout.dock_layout_strategy")
-local DockNode = require("ennui.docking.docknode")
-local Splitter = require("ennui.widgets.splitter")
-local TabBar = require("ennui.widgets.tabbar")
-local Widget = require("ennui.widget")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.dockspace"):len())
+local DockLayoutStrategy = require(EnnuiRoot .. ".layout.dock_layout_strategy")
+local DockNode = require(EnnuiRoot .. ".docking.docknode")
+local Splitter = require(EnnuiRoot .. ".widgets.splitter")
+local TabBar = require(EnnuiRoot .. ".widgets.tabbar")
+local Widget = require(EnnuiRoot .. ".widget")
 
 ---Check if a tab bar should be shown for a leaf node
 ---Show if more than 1 widget, OR if exactly 1 widget that is docked

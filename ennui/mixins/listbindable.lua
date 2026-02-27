@@ -15,15 +15,15 @@ function ListBindableMixin.initListBindable(self)
 end
 
 ---Bind a reactive list to child widgets.
----Idempotent: calling again with the same path updates the source and reconciles.
+---Idempotent: calling again with the same EnnuiRoot updates the source and reconciles.
 ---@param source State|StateScope The reactive data source
----@param path string Dot-notation path to the array, relative to source
+---@param EnnuiRoot string Dot-notation EnnuiRoot to the array, relative to source
 ---@param config ListBindingConfig Configuration table for list binding
 ---@return self
-function ListBindableMixin:bindChildren(source, path, config)
+function ListBindableMixin:bindChildren(source, EnnuiRoot, config)
     config.key = config.key or "id"
 
-    local existing = self.__listBindings[path]
+    local existing = self.__listBindings[EnnuiRoot]
 
     if existing then
         -- Re-bind: swap source, replace watcher, reconcile
@@ -37,7 +37,7 @@ function ListBindableMixin:bindChildren(source, path, config)
         local selfRef = self
 
         existing.watcher = source:watch(function()
-            return source:get(path)
+            return source:get(EnnuiRoot)
         end, function()
             selfRef:__reconcileList(existing)
         end)
@@ -48,7 +48,7 @@ function ListBindableMixin:bindChildren(source, path, config)
 
     local binding = {
         source = source,
-        path = path,
+        EnnuiRoot = EnnuiRoot,
         config = config,
         keyToWidget = {},
         watcher = nil,
@@ -56,12 +56,12 @@ function ListBindableMixin:bindChildren(source, path, config)
 
     local selfRef = self
     binding.watcher = source:watch(function()
-        return source:get(path)
+        return source:get(EnnuiRoot)
     end, function()
         selfRef:__reconcileList(binding)
     end)
 
-    self.__listBindings[path] = binding
+    self.__listBindings[EnnuiRoot] = binding
     self:__reconcileList(binding)
 
     return self
@@ -69,19 +69,19 @@ end
 
 ---Alias for bindChildren.
 ---@param source State|StateScope The reactive data source
----@param path string Dot-notation path to the array, relative to source
+---@param EnnuiRoot string Dot-notation EnnuiRoot to the array, relative to source
 ---@param config ListBindingConfig Configuration table for list binding
 ---@return self
-function ListBindableMixin:bindList(source, path, config)
-    return self:bindChildren(source, path, config)
+function ListBindableMixin:bindList(source, EnnuiRoot, config)
+    return self:bindChildren(source, EnnuiRoot, config)
 end
 
----Get the key -> widget map for a bound list path.
+---Get the key -> widget map for a bound list EnnuiRoot.
 ---Useful for looking up live widgets by data key (e.g. for hit-testing during drag).
----@param path string The path used in bindChildren
+---@param EnnuiRoot string The EnnuiRoot used in bindChildren
 ---@return table<any, Widget>
-function ListBindableMixin:getBoundWidgets(path)
-    local binding = self.__listBindings[path]
+function ListBindableMixin:getBoundWidgets(EnnuiRoot)
+    local binding = self.__listBindings[EnnuiRoot]
     return binding and binding.keyToWidget or {}
 end
 
@@ -91,7 +91,7 @@ function ListBindableMixin:__reconcileList(binding)
     local config = binding.config
     local source = binding.source
     local keyToWidget = binding.keyToWidget
-    local raw = source:getRawDeep(binding.path) or {}
+    local raw = source:getRawDeep(binding.EnnuiRoot) or {}
 
     -- Build key -> index from current data
     local newKeys = {}

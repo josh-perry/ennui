@@ -1,6 +1,6 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local AABB = require("ennui.utils.aabb")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.window"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local AABB = require(EnnuiRoot .. ".utils.aabb")
 
 ---@class Window : Widget
 ---@field title string Window title text

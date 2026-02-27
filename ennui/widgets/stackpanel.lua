@@ -1,5 +1,6 @@
-local Widget = require("ennui.widget")
-local VerticalLayout = require("ennui.layout.vertical_layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.stackpanel"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local VerticalLayout = require(EnnuiRoot .. ".layout.vertical_layout_strategy")
 
 ---@class StackPanel : Widget
 ---@operator call:StackPanel

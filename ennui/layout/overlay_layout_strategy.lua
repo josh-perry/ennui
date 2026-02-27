@@ -1,4 +1,5 @@
-local LayoutStrategy = require("ennui.layout.layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".layout.overlay_layout_strategy"):len())
+local LayoutStrategy = require(EnnuiRoot .. ".layout.layout_strategy")
 
 ---@class OverlayLayoutStrategy : LayoutStrategy
 ---A layout strategy that allows children to overlap the parent's content.

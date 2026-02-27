@@ -1,4 +1,5 @@
-local LayoutStrategy = require("ennui.layout.layout_strategy")
+local EnnuiRoot = (...):sub(1, (...):len() - (".layout.grid_layout_strategy"):len())
+local LayoutStrategy = require(EnnuiRoot .. ".layout.layout_strategy")
 
 ---@class GridLayoutStrategy : LayoutStrategy
 ---@field columns number? Number of columns in the grid (nil = auto-calculate)

@@ -1,6 +1,7 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Text = require("ennui.widgets.text")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.textbutton"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Text = require(EnnuiRoot .. ".widgets.text")
 
 ---@class TextButton : Widget
 ---@field textColor number[] RGBA color for text

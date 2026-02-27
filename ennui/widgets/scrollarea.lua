@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Scissor = require("ennui.utils.scissor")
-local AABB = require("ennui.utils.aabb")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.scrollarea"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Scissor = require(EnnuiRoot .. ".utils.scissor")
+local AABB = require(EnnuiRoot .. ".utils.aabb")
 
 ---@class ScrollArea : Widget
 ---@field scrollX number Current horizontal scroll position

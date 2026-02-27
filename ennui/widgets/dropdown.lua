@@ -1,7 +1,8 @@
-local Widget = require("ennui.widget")
-local Size = require("ennui.size")
-local Text = require("ennui.widgets.text")
-local Menu = require("ennui.widgets.menu")
+local EnnuiRoot = (...):sub(1, (...):len() - (".widgets.dropdown"):len())
+local Widget = require(EnnuiRoot .. ".widget")
+local Size = require(EnnuiRoot .. ".size")
+local Text = require(EnnuiRoot .. ".widgets.text")
+local Menu = require(EnnuiRoot .. ".widgets.menu")
 
 ---@class DropdownItem
 ---@field label string Display text

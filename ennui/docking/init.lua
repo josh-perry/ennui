@@ -1,3 +1,5 @@
+local EnnuiRoot = (...):gsub("%.init$", "")
+
 return {
-    DockNode = require("ennui.docking.docknode")
+    DockNode = require(EnnuiRoot .. ".docknode")
 }
