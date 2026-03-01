@@ -39,6 +39,7 @@ local propertiesPanel = ennui.Widget()
 
 local debuggerWindow = Window("Inspector")
     :setSize(1000, 700)
+    :setVisible(false)
 
 local leftPanelWidth = 180
 local splitterWidth = 4
