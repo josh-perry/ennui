@@ -6,20 +6,20 @@ local Mixin = require(EnnuiRoot .. ".utils.mixin")
 
 local uuid = require(EnnuiRoot .. ".utils.uuid")
 
-local function parseEnnuiRoot(EnnuiRoot)
+local function parsePath(path)
     local segments = {}
 
-    for segment in EnnuiRoot:gmatch("[^.]+") do
+    for segment in path:gmatch("[^.]+") do
         table.insert(segments, segment)
     end
 
     return segments
 end
 
-local function navigateEnnuiRoot(obj, EnnuiRootSegments)
+local function navigatePath(obj, pathSegments)
     local current = obj
 
-    for _, segment in ipairs(EnnuiRootSegments) do
+    for _, segment in ipairs(pathSegments) do
         if not current then
             return nil
         end
@@ -77,20 +77,20 @@ function State.new(initialProps)
     return self
 end
 
----Get a cached Computed binding for a property EnnuiRoot
----Supports dot-notation EnnuiRoots: state:bind("employment.jobTitle")
----@param EnnuiRoot string Property name or dot-notation EnnuiRoot
+---Get a cached Computed binding for a property path
+---Supports dot-notation paths: state:bind("employment.jobTitle")
+---@param path string Property name or dot-notation path
 ---@return Computed
-function State:bind(EnnuiRoot)
-    if not self.__bindCache[EnnuiRoot] then
-        local segments = parseEnnuiRoot(EnnuiRoot)
+function State:bind(path)
+    if not self.__bindCache[path] then
+        local segments = parsePath(path)
 
-        self.__bindCache[EnnuiRoot] = Computed(function()
-            return navigateEnnuiRoot(self.props, segments)
+        self.__bindCache[path] = Computed(function()
+            return navigatePath(self.props, segments)
         end)
     end
 
-    return self.__bindCache[EnnuiRoot]
+    return self.__bindCache[path]
 end
 
 ---Generate a unique ID string.
@@ -107,45 +107,45 @@ function State:cleanup()
     self:cleanupStateful()
 end
 
----Get value at a dot-notation EnnuiRoot
----@param EnnuiRoot string Dot-notation EnnuiRoot (e.g., "characters.frog.currentHp")
----@return any The value at the EnnuiRoot (reactive proxy for tables)
-function State:get(EnnuiRoot)
-    local segments = parseEnnuiRoot(EnnuiRoot)
-    return navigateEnnuiRoot(self.props, segments)
+---Get value at a dot-notation path
+---@param path string Dot-notation path (e.g., "characters.frog.currentHp")
+---@return any The value at the path (reactive proxy for tables)
+function State:get(path)
+    local segments = parsePath(path)
+    return navigatePath(self.props, segments)
 end
 
----Get raw (non-reactive) value at a dot-notation EnnuiRoot (top-level only)
+---Get raw (non-reactive) value at a dot-notation path (top-level only)
 ---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
----@param EnnuiRoot string Dot-notation EnnuiRoot
+---@param path string Dot-notation path
 ---@return any The raw underlying table (or the value itself if not a proxy)
-function State:getRaw(EnnuiRoot)
-    local proxy = self:get(EnnuiRoot)
+function State:getRaw(path)
+    local proxy = self:get(path)
     return Reactive.getRaw(proxy)
 end
 
----Get a deep copy of raw (non-reactive) value at a dot-notation EnnuiRoot
+---Get a deep copy of raw (non-reactive) value at a dot-notation path
 ---Returns a disconnected copy with all nested proxies unwrapped to plain Lua tables
 ---Useful for drag-and-drop, serialization, or any operation needing plain Lua tables
----@param EnnuiRoot string Dot-notation EnnuiRoot
+---@param path string Dot-notation path
 ---@return any The deeply unwrapped value (plain Lua tables all the way down)
-function State:getRawDeep(EnnuiRoot)
-    local proxy = self:get(EnnuiRoot)
+function State:getRawDeep(path)
+    local proxy = self:get(path)
     return Reactive.getRawDeep(proxy)
 end
 
----Iterate over an array at a EnnuiRoot
----@param EnnuiRoot string Dot-notation EnnuiRoot to an array
+---Iterate over an array at a path
+---@param path string Dot-notation path to an array
 ---@return function Iterator function
-function State:ipairs(EnnuiRoot)
-    return self:get(EnnuiRoot):ipairs()
+function State:ipairs(path)
+    return self:get(path):ipairs()
 end
 
----Iterate over a table at a EnnuiRoot
----@param EnnuiRoot string Dot-notation EnnuiRoot to a table
+---Iterate over a table at a path
+---@param path string Dot-notation path to a table
 ---@return function Iterator function
-function State:pairs(EnnuiRoot)
-    return self:get(EnnuiRoot):pairs()
+function State:pairs(path)
+    return self:get(path):pairs()
 end
 
 ---Create a computed that interpolates {property} placeholders in a template
@@ -174,46 +174,46 @@ function State:computedInline(getter)
     return Computed(getter)
 end
 
----Create a scoped view into a nested EnnuiRoot
----@param EnnuiRoot string Dot-notation EnnuiRoot (e.g., "characters.frog")
+---Create a scoped view into a nested path
+---@param path string Dot-notation path (e.g., "characters.frog")
 ---@return StateScope # A scoped view that acts like a State
-function State:scope(EnnuiRoot)
-    return StateScope.new(self, EnnuiRoot)
+function State:scope(path)
+    return StateScope.new(self, path)
 end
 
----Iterate over an array at a EnnuiRoot, calling fn for each element with a StateScope
----@param EnnuiRoot string Dot-notation EnnuiRoot to an array
+---Iterate over an array at a path, calling fn for each element with a StateScope
+---@param path string Dot-notation path to an array
 ---@param fn function(scope: StateScope, index: number) Function called for each element
-function State:forEach(EnnuiRoot, fn)
-    local raw = self:getRaw(EnnuiRoot)
+function State:forEach(path, fn)
+    local raw = self:getRaw(path)
 
     if type(raw) ~= "table" then
         return
     end
 
     for i = 1, #raw do
-        local scopeEnnuiRoot = ("%s.%s"):format(EnnuiRoot, i)
-        local scope = self:scope(scopeEnnuiRoot)
+        local scopepath = ("%s.%s"):format(path, i)
+        local scope = self:scope(scopepath)
 
         fn(scope, i)
     end
 end
 
----Map over an array at a EnnuiRoot, collecting results
----@param EnnuiRoot string Dot-notation EnnuiRoot to an array
+---Map over an array at a path, collecting results
+---@param path string Dot-notation path to an array
 ---@param fn function(scope: StateScope, index: number): any Function called for each element
 ---@return table results Array of results from fn
-function State:map(EnnuiRoot, fn)
+function State:map(path, fn)
     local results = {}
-    local raw = self:getRaw(EnnuiRoot)
+    local raw = self:getRaw(path)
 
     if type(raw) ~= "table" then
         return results
     end
 
     for i = 1, #raw do
-        local scopeEnnuiRoot = ("%s.%s"):format(EnnuiRoot, i)
-        local scope = self:scope(scopeEnnuiRoot)
+        local scopepath = ("%s.%s"):format(path, i)
+        local scope = self:scope(scopepath)
 
         results[i] = fn(scope, i)
     end
@@ -223,41 +223,41 @@ end
 
 ---@class StateScope
 ---@field private __root State The root state
----@field private __EnnuiRoot string The dot-notation EnnuiRoot
+---@field private __path string The dot-notation path
 ---@field props table Proxy to access scoped properties
 StateScope = {}
 StateScope.__index = StateScope
 
----Build the full EnnuiRoot from scope EnnuiRoot and relative EnnuiRoot
+---Build the full path from scope path and relative path
 ---@private
----@param relativeEnnuiRoot string? Relative EnnuiRoot to append
+---@param relativepath string? Relative path to append
 ---@return string
-function StateScope:__fullEnnuiRoot(relativeEnnuiRoot)
-    if not relativeEnnuiRoot or relativeEnnuiRoot == "" then
-        return self.__EnnuiRoot
+function StateScope:__fullpath(relativepath)
+    if not relativepath or relativepath == "" then
+        return self.__path
     end
-    return self.__EnnuiRoot .. "." .. relativeEnnuiRoot
+    return self.__path .. "." .. relativepath
 end
 
 ---Create a new scoped view of a State
 ---@param root State The root state
----@param EnnuiRoot string Dot-notation EnnuiRoot
+---@param path string Dot-notation path
 ---@return StateScope
-function StateScope.new(root, EnnuiRoot)
+function StateScope.new(root, path)
     local self = setmetatable({}, StateScope) ---@cast self StateScope
 
     self.__root = root
-    self.__EnnuiRoot = EnnuiRoot
+    self.__path = path
 
     self.props = setmetatable({}, {
         __index = function(_, key)
-            local target = root:get(EnnuiRoot)
+            local target = root:get(path)
             if not target then return nil end
             return target[key]
         end,
 
         __newindex = function(_, key, value)
-            local target = root:get(EnnuiRoot)
+            local target = root:get(path)
             if target then
                 target[key] = value
             end
@@ -267,19 +267,19 @@ function StateScope.new(root, EnnuiRoot)
     return self
 end
 
----Get a cached Computed binding for a property EnnuiRoot
----Delegates to root State with full EnnuiRoot (caching happens there)
----@param EnnuiRoot string Property name or dot-notation EnnuiRoot
+---Get a cached Computed binding for a property path
+---Delegates to root State with full path (caching happens there)
+---@param path string Property name or dot-notation path
 ---@return Computed
-function StateScope:bind(EnnuiRoot)
-    return self.__root:bind(self:__fullEnnuiRoot(EnnuiRoot))
+function StateScope:bind(path)
+    return self.__root:bind(self:__fullpath(path))
 end
 
----Get value at a relative EnnuiRoot
----@param EnnuiRoot string Property name or relative dot-notation EnnuiRoot
----@return any The value at the EnnuiRoot
-function StateScope:get(EnnuiRoot)
-    return self.__root:get(self:__fullEnnuiRoot(EnnuiRoot))
+---Get value at a relative path
+---@param path string Property name or relative dot-notation path
+---@return any The value at the path
+function StateScope:get(path)
+    return self.__root:get(self:__fullpath(path))
 end
 
 ---Watch a property for changes (relative to scope)
@@ -303,7 +303,7 @@ end
 ---@param getter function() Function that computes and returns the value
 ---@return Computed The computed instance
 function StateScope:computed(name, getter)
-    return self.__root:computed(self.__EnnuiRoot .. "_" .. name, getter)
+    return self.__root:computed(self.__path .. "_" .. name, getter)
 end
 
 ---Create a computed that interpolates {property} placeholders (relative to scope)
@@ -330,55 +330,55 @@ function StateScope:computedInline(getter)
 end
 
 ---Create a nested scoped view (relative to current scope)
----@param EnnuiRoot string Dot-notation EnnuiRoot relative to current scope
+---@param path string Dot-notation path relative to current scope
 ---@return StateScope A new scoped view
-function StateScope:scope(EnnuiRoot)
-    return StateScope.new(self.__root, self:__fullEnnuiRoot(EnnuiRoot))
+function StateScope:scope(path)
+    return StateScope.new(self.__root, self:__fullpath(path))
 end
 
----Get raw (non-reactive) value at a relative EnnuiRoot (top-level only)
+---Get raw (non-reactive) value at a relative path (top-level only)
 ---Note: Nested values may still be proxies. Use getRawDeep() for fully unwrapped data.
----@param EnnuiRoot string Property name or relative dot-notation EnnuiRoot
+---@param path string Property name or relative dot-notation path
 ---@return any The raw underlying table (or the value itself if not a proxy)
-function StateScope:getRaw(EnnuiRoot)
-    return self.__root:getRaw(self:__fullEnnuiRoot(EnnuiRoot))
+function StateScope:getRaw(path)
+    return self.__root:getRaw(self:__fullpath(path))
 end
 
----Get a deep copy of raw (non-reactive) value at a relative EnnuiRoot
+---Get a deep copy of raw (non-reactive) value at a relative path
 ---Returns a disconnected copy with all nested proxies unwrapped to plain Lua tables
----@param EnnuiRoot string Property name or relative dot-notation EnnuiRoot
+---@param path string Property name or relative dot-notation path
 ---@return any The deeply unwrapped value (plain Lua tables all the way down)
-function StateScope:getRawDeep(EnnuiRoot)
-    return self.__root:getRawDeep(self:__fullEnnuiRoot(EnnuiRoot))
+function StateScope:getRawDeep(path)
+    return self.__root:getRawDeep(self:__fullpath(path))
 end
 
----Iterate over an array at a relative EnnuiRoot
----@param EnnuiRoot string Dot-notation EnnuiRoot relative to current scope
+---Iterate over an array at a relative path
+---@param path string Dot-notation path relative to current scope
 ---@return function Iterator function
-function StateScope:ipairs(EnnuiRoot)
-    return self:get(EnnuiRoot):ipairs()
+function StateScope:ipairs(path)
+    return self:get(path):ipairs()
 end
 
----Iterate over a table at a relative EnnuiRoot
----@param EnnuiRoot string Dot-notation EnnuiRoot relative to current scope
+---Iterate over a table at a relative path
+---@param path string Dot-notation path relative to current scope
 ---@return function Iterator function
-function StateScope:pairs(EnnuiRoot)
-    return self:get(EnnuiRoot):pairs()
+function StateScope:pairs(path)
+    return self:get(path):pairs()
 end
 
----Iterate over an array at a relative EnnuiRoot, calling fn for each element with a StateScope
----@param EnnuiRoot string Dot-notation EnnuiRoot relative to current scope
+---Iterate over an array at a relative path, calling fn for each element with a StateScope
+---@param path string Dot-notation path relative to current scope
 ---@param fn function(scope: StateScope, index: number) Function called for each element
-function StateScope:forEach(EnnuiRoot, fn)
-    self.__root:forEach(self:__fullEnnuiRoot(EnnuiRoot), fn)
+function StateScope:forEach(path, fn)
+    self.__root:forEach(self:__fullpath(path), fn)
 end
 
----Map over an array at a relative EnnuiRoot, collecting results
----@param EnnuiRoot string Dot-notation EnnuiRoot relative to current scope
+---Map over an array at a relative path, collecting results
+---@param path string Dot-notation path relative to current scope
 ---@param fn function(scope: StateScope, index: number): any Function called for each element
 ---@return table results Array of results from fn
-function StateScope:map(EnnuiRoot, fn)
-    return self.__root:map(self:__fullEnnuiRoot(EnnuiRoot), fn)
+function StateScope:map(path, fn)
+    return self.__root:map(self:__fullpath(path), fn)
 end
 
 return State
