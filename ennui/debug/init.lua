@@ -1,6 +1,7 @@
 local debugger = {}
 
-local ennui = require("ennui")
+local EnnuiRoot = (...):sub(1, (...):len() - (".debug"):len())
+local ennui = require(EnnuiRoot)
 
 local ScrollArea = ennui.Widgets.Scrollarea
 local Treeview = ennui.Widgets.Treeview

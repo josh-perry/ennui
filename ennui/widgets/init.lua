@@ -2,7 +2,8 @@ local EnnuiRoot = (...):gsub("%.init$", "")
 EnnuiRoot = string.sub(EnnuiRoot, 1, string.len(EnnuiRoot) - string.len(".widgets"))
 
 local getFilesRecursively = require(EnnuiRoot .. ".utils.getFilesRecursively")
-local widgetFiles = getFilesRecursively("ennui/widgets")
+local ennuiPath = EnnuiRoot:gsub("%.", "/")
+local widgetFiles = getFilesRecursively(ennuiPath .. "/widgets")
 
 local widgets = {}
 
