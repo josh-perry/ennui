@@ -54,10 +54,6 @@ tabBar:addTab("General", generalPanel)
 tabBar:addTab("Audio", audioPanel)
 tabBar:addTab("Display", displayPanel)
 
-tabBar.onTabChanged = function(index)
-    print("Switched to tab " .. index)
-end
-
 window:setContent(tabBar)
 host:addChild(window)
 

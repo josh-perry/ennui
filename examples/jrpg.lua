@@ -211,10 +211,6 @@ do
             :setBackgroundColor(0, 0, 0, 0)
             :setFont(font)
             :onClick(function()
-                if v == "Formation" then
-                    print("Formation clicked")
-                end
-
                 for _, c in gameState:ipairs("characters") do
                     local charStats = c.stats
                     charStats.currentHp = math.min(charStats.currentHp + 20, charStats.maxHp)

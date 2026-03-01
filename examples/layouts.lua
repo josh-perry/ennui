@@ -133,8 +133,6 @@ for i = 1, 9 do
     local leftPercent = i / 10
     local rightPercent = (10 - i) / 10
 
-    print(leftPercent, rightPercent)
-
     local leftBox = Rectangle()
         :setSize(ennui.Size.percent(leftPercent), ennui.Size.fill())
         :setColor(0.5, 0.3, 0.5)
