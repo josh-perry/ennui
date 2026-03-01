@@ -11,6 +11,7 @@ local ScrollArea = ennui.Widgets.Scrollarea
 local TreeView = ennui.Widgets.Treeview
 local TreeViewNode = ennui.Widgets.Treeviewnode
 local TextInput = ennui.Widgets.Textinput
+local TextButton = ennui.Widgets.Textbutton
 local Text = ennui.Widgets.Text
 local Splitter = ennui.Widgets.Splitter
 
@@ -147,7 +148,7 @@ function ExamplePreview:onRender()
 end
 
 local function transformCoords(self, x, y)
-    if not self._example or not self._example.smallCanvas then
+    if not self.props.example or not self.props.example.smallCanvas then
         return x - self.x, y - self.y
     end
 
@@ -245,9 +246,17 @@ local scrollArea = ScrollArea()
 local treeView = TreeView()
     :setSize(Size.fill(), Size.auto())
 
+local inspectorButton = TextButton("Toggle Inspector")
+    :setSize(Size.fill(), Size.auto())
+    :setMargin(5)
+    :onClick(function()
+        debugger:toggle()
+    end)
+
 scrollArea:addChild(treeView)
 leftPanel:addChild(filterInput)
 leftPanel:addChild(scrollArea)
+leftPanel:addChild(inspectorButton)
 
 -- Splitter
 local splitter = Splitter("horizontal")

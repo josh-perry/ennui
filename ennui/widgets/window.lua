@@ -140,6 +140,7 @@ end
 function Window:close()
     -- Clean up Host state before hiding
     local host = self:getHost()
+
     if host then
         -- Clear hover state if hovering over this window or its descendants
         if host.__lastHoveredWidget then
@@ -150,6 +151,7 @@ function Window:close()
                     host.__lastHoveredWidget = nil
                     break
                 end
+
                 current = current.parent
             end
         end
@@ -164,6 +166,7 @@ function Window:close()
                         host.__pressedWidget[button] = nil
                         break
                     end
+
                     current = current.parent
                 end
             end
@@ -184,6 +187,7 @@ function Window:close()
                     host.__dragStarted = false
                     break
                 end
+
                 current = current.parent
             end
         end

@@ -132,7 +132,6 @@ local padMiddleRow = HorizontalStackPanel()
 
 local paddingBox = Rectangle()
     :setColor(unpack(colours.padding))
-    --:setBorderColor(unpack(colors.paddingBorder))
     :setBorderWidth(1)
     :setSize(Size.fill(), Size.fill())
     :setLayoutStrategy(ennui.Layout.Vertical())
@@ -354,6 +353,10 @@ function debugger:drawOverlay()
 
     love.graphics.setColor(unpack(colours.overlay))
     love.graphics.rectangle("line", w.x, w.y, w.width, w.height)
+end
+
+function debugger:toggle()
+    debuggerWindow:setVisible(not debuggerWindow:isVisible())
 end
 
 return debugger
