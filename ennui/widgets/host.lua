@@ -189,11 +189,11 @@ end
 
 function Host:draw()
     self:__ensureLayout()
-    self:onRender()
+    self:render()
 
     for _, widget in ipairs(self.__overlayWidgets) do
         if widget:isVisible() then
-            widget:onRender()
+            widget:render()
         end
     end
 end
@@ -201,11 +201,16 @@ end
 ---@param dt number Delta time in seconds
 function Host:update(dt)
     self:__ensureLayout()
-    self:onUpdate(dt)
+
+    for _, child in ipairs(self.children) do
+        if child:isVisible() then
+            child:update(dt)
+        end
+    end
 end
 
 ---@protected
-function Host:onRender()
+function Host:render()
     -- In ghost mode, render dragged widget normally in its original position
     -- In position mode, skip dragged widget (will render it later on top)
     for _, child in ipairs(self.children) do
@@ -213,7 +218,7 @@ function Host:onRender()
             if self.__dragMode == "position" and child == self.__draggedWidget then
                 -- Skip - will render on top
             else
-                child:onRender()
+                child:render()
             end
         end
     end
@@ -228,7 +233,7 @@ function Host:onRender()
 
         if self.__dragMode == "position" then
             -- Position mode: render widget at its new position on top
-            widget:onRender()
+            widget:render()
 
             -- Add semi-transparent overlay to indicate dragging
             love.graphics.setColor(1, 1, 1, 0.5)
@@ -243,7 +248,7 @@ function Host:onRender()
             -- Render with transparency
             local r, g, b, a = love.graphics.getColor()
             love.graphics.setColor(r, g, b, 0.6)
-            widget:onRender()
+            widget:render()
             love.graphics.setColor(r, g, b, a)
 
             love.graphics.pop()

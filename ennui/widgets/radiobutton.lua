@@ -248,7 +248,7 @@ function RadioButton:__calculateContentHeight()
 end
 
 ---Render the radio button
-function RadioButton:onRender()
+function RadioButton:render()
     local radioSize = self.props.radioSize
     -- Use the indicator placeholder's position for drawing the actual radio circle
     local radioX = self.__indicatorPlaceholder.x + radioSize / 2
@@ -280,7 +280,7 @@ function RadioButton:onRender()
 
     -- Render label
     if self.__textWidget:isVisible() then
-        self.__textWidget:onRender()
+        self.__textWidget:render()
     end
 end
 

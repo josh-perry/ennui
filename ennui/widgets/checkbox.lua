@@ -207,7 +207,7 @@ function Checkbox:__calculateContentHeight()
 end
 
 ---Render the checkbox
-function Checkbox:onRender()
+function Checkbox:render()
     local boxSize = self.props.boxSize
     local boxX = self.__indicatorPlaceholder.x
     local boxY = self:__centerVertically(boxSize)
@@ -247,7 +247,7 @@ function Checkbox:onRender()
     end
 
     if self.__textWidget:isVisible() then
-        self.__textWidget:onRender()
+        self.__textWidget:render()
     end
 end
 

@@ -189,7 +189,7 @@ function Group:arrange(x, y, width, height)
 end
 
 ---Render the group
-function Group:onRender()
+function Group:render()
     local titleHeight = self:__getTitleHeight()
     local borderY = self.y + titleHeight / 2
 
@@ -254,7 +254,7 @@ function Group:onRender()
             self.__titleWidget.desiredWidth,
             titleHeight)
 
-        self.__titleWidget:onRender()
+        self.__titleWidget:render()
     else
         love.graphics.rectangle(
             "line",
@@ -268,7 +268,7 @@ function Group:onRender()
 
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:onRender()
+            child:render()
         end
     end
 end

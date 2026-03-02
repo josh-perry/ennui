@@ -184,7 +184,7 @@ function TextButton:__calculateContentHeight()
 end
 
 ---Render the text button
-function TextButton:onRender()
+function TextButton:render()
     local bgColor
     if self.props.isDisabled then
         bgColor = self.props.disabledColor
@@ -223,7 +223,7 @@ function TextButton:onRender()
     end
 
     if self.__textWidget:isVisible() then
-        self.__textWidget:onRender()
+        self.__textWidget:render()
     end
 end
 

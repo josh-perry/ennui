@@ -51,9 +51,9 @@ function HorizontalStackPanel:getSpacing()
     return self.layoutStrategy and self.layoutStrategy.spacing or 0
 end
 
-function HorizontalStackPanel:onUnmount()
+function HorizontalStackPanel:unmount()
     self:cleanupListBindable()
-    Widget.onUnmount(self)
+    Widget.unmount(self)
 end
 
 return HorizontalStackPanel

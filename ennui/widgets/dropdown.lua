@@ -347,7 +347,7 @@ function Dropdown:onKeyPressed(event)
 end
 
 ---Render the dropdown button
-function Dropdown:onRender()
+function Dropdown:render()
     local cornerRadius = self.props.cornerRadius
 
     -- Draw button background
@@ -377,7 +377,7 @@ function Dropdown:onRender()
         self.width - self.padding.left - self.padding.right - 28,
         self.height
     )
-    self.__textWidget:onRender()
+    self.__textWidget:render()
 
     -- Draw dropdown arrow
     local iconSize = 8

@@ -341,7 +341,7 @@ function TabBar:arrangeChildren(contentX, contentY, contentWidth, contentHeight)
 end
 
 ---Render the tab bar
-function TabBar:onRender()
+function TabBar:render()
     -- Only draw the tab bar header, not the full height
     love.graphics.setColor(self.props.backgroundColor)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.props.tabBarHeight)
@@ -388,7 +388,7 @@ function TabBar:onRender()
     -- Render child widgets (the tab content)
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:onRender()
+            child:render()
         end
     end
 end

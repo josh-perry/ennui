@@ -135,7 +135,7 @@ function Splitter:measure(availableWidth, availableHeight)
 end
 
 ---Render the splitter
-function Splitter:onRender()
+function Splitter:render()
     local color = self.props.normalColor
 
     if self.props.isDragging then

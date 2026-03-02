@@ -121,7 +121,7 @@ function DropdownMenu:__calculateContentHeight()
 end
 
 ---Render the dropdown menu
-function DropdownMenu:onRender()
+function DropdownMenu:render()
     if not self:isVisible() then
         return
     end
@@ -140,7 +140,7 @@ function DropdownMenu:onRender()
                 love.graphics.line(child.x, child.y + child.height / 2,
                                    child.x + child.width, child.y + child.height / 2)
             else
-                child:onRender()
+                child:render()
             end
         end
     end

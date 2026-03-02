@@ -163,7 +163,7 @@ function Menu:measure(availableWidth, availableHeight)
 end
 
 ---Render the menu
-function Menu:onRender()
+function Menu:render()
     local cornerRadius = self.props.cornerRadius
     local menuHeight = self:getMenuHeight()
 
@@ -206,7 +206,7 @@ function Menu:onRender()
                 self.width - self.padding.left - self.padding.right - 16,
                 self.props.itemHeight
             )
-            self.__textWidget:onRender()
+            self.__textWidget:render()
 
             currentY = currentY + self.props.itemHeight
         end

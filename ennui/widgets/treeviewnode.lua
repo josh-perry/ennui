@@ -123,7 +123,7 @@ function TreeViewNode:__getTreeView()
 end
 
 ---Called when node is mounted
-function TreeViewNode:onMount()
+function TreeViewNode:mount()
     local level = 0
     local current = self.parent
 
@@ -401,7 +401,7 @@ function TreeViewNode:onKeyPressed(event)
 end
 
 ---Render the tree view node
-function TreeViewNode:onRender()
+function TreeViewNode:render()
     local rowHeight = self:__getRowHeight()
 
     -- Draw selection/hover background
@@ -439,7 +439,7 @@ function TreeViewNode:onRender()
     end
 
     -- Render the text widget (positioned by row layout)
-    self.__textWidget:onRender()
+    self.__textWidget:render()
 
     -- Draw focus indicator
     if self.props.isFocused then
@@ -452,7 +452,7 @@ function TreeViewNode:onRender()
     if self.props.expanded then
         for _, child in ipairs(self.children) do
             if child:isVisible() then
-                child:onRender()
+                child:render()
             end
         end
     end

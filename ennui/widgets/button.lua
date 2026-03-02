@@ -148,7 +148,7 @@ function Button:__calculateContentHeight()
 end
 
 ---Render the button
-function Button:onRender()
+function Button:render()
     local bgColor
     if self.props.isDisabled then
         bgColor = self.props.disabledColor
@@ -188,7 +188,7 @@ function Button:onRender()
 
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:onRender()
+            child:render()
         end
     end
 end

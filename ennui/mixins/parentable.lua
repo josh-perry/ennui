@@ -2,8 +2,8 @@
 ---Optional hooks:
 ---  - __onAfterAddChild(child) - called after child is added
 ---  - __onAfterRemoveChild(child) - called after child is removed
----  - onMount() - called on child when added to tree
----  - onUnmount() - called on child when removed from tree
+---  - mount() - called on child when added to tree
+---  - unmount() - called on child when removed from tree
 
 ---@class ParentableMixin
 ---@field parent any Parent widget or host
@@ -19,7 +19,7 @@ function ParentableMixin.initParentable(self)
 end
 
 ---Add a child to this widget
----Calls optional hooks: __onAfterAddChild (on parent), onMount (on child)
+---Calls optional hooks: __onAfterAddChild (on parent), mount (on child)
 ---@param child any Child to add
 ---@return self
 function ParentableMixin:addChild(child)
@@ -32,15 +32,15 @@ function ParentableMixin:addChild(child)
         self:__onAfterAddChild(child)
     end
 
-    if child.onMount then
-        child:onMount()
+    if child.mount then
+        child:mount()
     end
 
     return self
 end
 
 ---Remove a child from this widget
----Calls optional hooks: __onAfterRemoveChild (on parent), onUnmount (on child)
+---Calls optional hooks: __onAfterRemoveChild (on parent), unmount (on child)
 ---@param child any Child to remove
 ---@return self
 function ParentableMixin:removeChild(child)
@@ -55,8 +55,8 @@ function ParentableMixin:removeChild(child)
                 self:__onAfterRemoveChild(child)
             end
 
-            if child.onUnmount then
-                child:onUnmount()
+            if child.unmount then
+                child:unmount()
             end
 
             break
@@ -67,7 +67,7 @@ function ParentableMixin:removeChild(child)
 end
 
 ---Remove a child by index
----Calls optional hooks: __onAfterRemoveChild (on parent), onUnmount (on child)
+---Calls optional hooks: __onAfterRemoveChild (on parent), unmount (on child)
 ---@param index number Index of child to remove
 ---@return self
 function ParentableMixin:removeChildAt(index)
@@ -82,8 +82,8 @@ function ParentableMixin:removeChildAt(index)
             self:__onAfterRemoveChild(child)
         end
 
-        if child.onUnmount then
-            child:onUnmount()
+        if child.unmount then
+            child:unmount()
         end
     end
 
@@ -91,7 +91,7 @@ function ParentableMixin:removeChildAt(index)
 end
 
 ---Clear all children
----Calls optional hooks: __onAfterRemoveChild (on parent), onUnmount (on each child)
+---Calls optional hooks: __onAfterRemoveChild (on parent), unmount (on each child)
 ---@return self
 function ParentableMixin:clearChildren()
     for _, child in ipairs(self.children) do
@@ -103,8 +103,8 @@ function ParentableMixin:clearChildren()
             self:__onAfterRemoveChild(child)
         end
 
-        if child.onUnmount then
-            child:onUnmount()
+        if child.unmount then
+            child:unmount()
         end
     end
 

@@ -1,6 +1,4 @@
 ---Mixin for event handling functionality
----Provides: on, off, once, onClick, onHover, dispatchEvent
----Used by: Widget
 
 ---@class EventEmitterMixin
 ---@field eventHandlers table Event handlers (bubble phase)
@@ -13,6 +11,7 @@ local EventEmitterMixin = {}
 function EventEmitterMixin.initEventEmitter(self)
     self.eventHandlers = {}
     self.eventCaptureHandlers = {}
+    self.__updateHandlers = nil
 end
 
 ---Add an event listener
@@ -90,6 +89,18 @@ end
 ---@return self
 function EventEmitterMixin:onHover(handler)
     return self:on("mouseEntered", handler)
+end
+
+---Add an update handler called every frame
+---@param handler fun(self: any, dt: number)
+---@return self
+function EventEmitterMixin:onUpdate(handler)
+    if not self.__updateHandlers then
+        self.__updateHandlers = {}
+    end
+
+    table.insert(self.__updateHandlers, handler)
+    return self
 end
 
 ---Dispatch an event to this widget

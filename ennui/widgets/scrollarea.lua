@@ -481,7 +481,7 @@ function ScrollArea:hitTest(x, y)
 end
 
 ---Render the scroll area
-function ScrollArea:onRender()
+function ScrollArea:render()
     local viewX = self.x + self.padding.left
     local viewY = self.y + self.padding.top
     local viewWidth = self:__getViewportWidth()
@@ -492,7 +492,7 @@ function ScrollArea:onRender()
     -- Render children
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:onRender()
+            child:render()
         end
     end
 

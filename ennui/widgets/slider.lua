@@ -228,7 +228,7 @@ function Slider:__calculateContentHeight()
 end
 
 ---Render the slider
-function Slider:onRender()
+function Slider:render()
     local trackHeight = self.props.trackHeight
     local thumbSize = self.props.thumbSize
 

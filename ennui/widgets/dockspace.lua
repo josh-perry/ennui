@@ -489,7 +489,7 @@ function DockSpace:updateTabBars()
 end
 
 ---Render the dock space and previews
-function DockSpace:onRender()
+function DockSpace:render()
     love.graphics.setColor(self.props.backgroundColor)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 
@@ -497,7 +497,7 @@ function DockSpace:onRender()
         if node:isLeaf() then
             for _, widget in ipairs(node.dockedWidgets) do
                 if widget:isVisible() then
-                    widget:onRender()
+                    widget:render()
                 end
             end
         end
@@ -505,13 +505,13 @@ function DockSpace:onRender()
 
     self.dockTree:traverse(function(node)
         if node.tabBar and node.tabBar:isVisible() then
-            node.tabBar:onRender()
+            node.tabBar:render()
         end
     end)
 
     for _, splitter in ipairs(self.splitters) do
         if splitter:isVisible() then
-            splitter:onRender()
+            splitter:render()
         end
     end
 

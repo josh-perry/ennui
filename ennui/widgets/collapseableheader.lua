@@ -279,7 +279,7 @@ function CollapseableHeader:arrange(x, y, width, height)
 end
 
 ---Update animation
-function CollapseableHeader:onUpdate(dt)
+function CollapseableHeader:update(dt)
     if self.props.animationSpeed > 0 then
         local childrenHeight = self:__calculateChildrenHeight()
         local target = self.props.expanded and childrenHeight or 0
@@ -296,7 +296,7 @@ function CollapseableHeader:onUpdate(dt)
         self.__currentHeight = self.props.expanded and childrenHeight or 0
     end
 
-    Widget.onUpdate(self, dt)
+    Widget.update(self, dt)
 end
 
 ---Handle mouse events for header
@@ -323,7 +323,7 @@ function CollapseableHeader:onKeyPressed(event)
 end
 
 ---Render the collapseable header
-function CollapseableHeader:onRender()
+function CollapseableHeader:render()
     local headerHeight = self.props.headerHeight
 
     local headerColor = self.__headerHovered and self.props.headerHoverColor or self.props.headerColor
@@ -358,7 +358,7 @@ function CollapseableHeader:onRender()
         headerHeight
     )
 
-    self.__titleWidget:onRender()
+    self.__titleWidget:render()
 
     if self.props.isFocused then
         love.graphics.setColor(0.5, 0.7, 1, 1)
@@ -377,7 +377,7 @@ function CollapseableHeader:onRender()
 
             for _, child in ipairs(self.children) do
                 if child:isVisible() then
-                    child:onRender()
+                    child:render()
                 end
             end
 

@@ -143,7 +143,7 @@ function Text:measure(availableWidth, availableHeight)
     return desiredWidth, desiredHeight
 end
 
-function Text:onRender()
+function Text:render()
     if not self.props.text or self.props.text == "" then return end
 
     love.graphics.setFont(self.props.font)

@@ -145,7 +145,7 @@ function ListBindableMixin:__reconcileList(binding)
 end
 
 ---Tear down all list bindings and stop their watchers.
----Called automatically from onUnmount on containers that use this mixin.
+---Called automatically from unmount on containers that use this mixin.
 function ListBindableMixin:cleanupListBindable()
     for _, binding in pairs(self.__listBindings) do
         if binding.watcher then

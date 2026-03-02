@@ -57,7 +57,7 @@ function Rectangle:setBorderWidth(width)
 end
 
 ---Render the rectangle
-function Rectangle:onRender()
+function Rectangle:render()
     love.graphics.setColor(self.props.color)
     love.graphics.rectangle(
         "fill",
@@ -84,7 +84,7 @@ function Rectangle:onRender()
         )
     end
 
-    Widget.onRender(self)
+    Widget.render(self)
 end
 
 return Rectangle

@@ -110,13 +110,13 @@ function ExamplePreview:arrange(x, y, w, h)
     end
 end
 
-function ExamplePreview:onUpdate(dt)
+function ExamplePreview:update(dt)
     if self.props.example then
         self.props.example.host:update(dt)
     end
 end
 
-function ExamplePreview:onRender()
+function ExamplePreview:render()
     if not self.props.example or not self.__canvas then
         return
     end

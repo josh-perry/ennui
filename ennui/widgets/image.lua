@@ -129,7 +129,7 @@ function Image:__calculateContentHeight()
 end
 
 ---Render the image
-function Image:onRender()
+function Image:render()
     if not self.props.image then
         return
     end

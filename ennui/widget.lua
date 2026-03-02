@@ -25,6 +25,7 @@ local Mixin = require(EnnuiRoot .. ".utils.mixin")
 ---@field public isTabContext boolean Whether this widget creates a new tab focus scope
 ---@field public clipContent boolean Whether to clip children to widget bounds
 ---@field private __hitTransparent boolean Whether widget passes through hit events to parent
+---@field private __subscriptions table List of cleanup functions for reactive subscriptions
 local Widget = {}
 Widget.__index = Widget
 setmetatable(Widget, {
@@ -601,6 +602,9 @@ function Widget:__makeReactiveNested(rawTable, parentKey)
     })
 end
 
+-- TODO: add a generic :unbind(propertyName) that cancels and removes the matching
+-- subscription from __subscriptions, so callers can rebind without leaking.
+
 ---Bind a widget property to a computed property
 ---The property will automatically update whenever the computed value changes
 ---@generic T : Widget
@@ -711,14 +715,14 @@ end
 ---Called when the widget is mounted to the widget tree
 ---@generic T : Widget
 ---@param self T
-function Widget:onMount()
+function Widget:mount()
     ---@cast self Widget
 end
 
 ---Called when the widget is unmounted from the widget tree
 ---@generic T : Widget
 ---@param self T
-function Widget:onUnmount()
+function Widget:unmount()
     ---@cast self Widget
     self:cleanupListBindable()
     self:__cleanupReactive()
@@ -728,11 +732,16 @@ end
 ---@generic T : Widget
 ---@param self T
 ---@param dt number Delta time in seconds
-function Widget:onUpdate(dt)
+function Widget:update(dt)
     ---@cast self Widget
+    if self.__updateHandlers then
+        for _, handler in ipairs(self.__updateHandlers) do
+            handler(self, dt)
+        end
+    end
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:onUpdate(dt)
+            child:update(dt)
         end
     end
 end
@@ -749,14 +758,14 @@ end
 ---Called to render the widget and its children
 ---@generic T : Widget
 ---@param self T
-function Widget:onRender()
+function Widget:render()
     ---@cast self Widget
     if self.clipContent then
         local prevX, prevY, prevW, prevH = Scissor.push(self.x, self.y, self.width, self.height)
 
         for _, child in ipairs(self.children) do
             if child:isVisible() then
-                child:onRender()
+                child:render()
             end
         end
 
@@ -764,7 +773,7 @@ function Widget:onRender()
     else
         for _, child in ipairs(self.children) do
             if child:isVisible() then
-                child:onRender()
+                child:render()
             end
         end
     end

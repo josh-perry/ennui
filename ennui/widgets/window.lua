@@ -414,12 +414,12 @@ function Window:__collectFocusableWidgets(widget, widgets)
     end
 end
 
----Render a widget (onRender handles children recursively)
+---Render a widget (render handles children recursively)
 ---@param widget Widget Widget to render
 ---@protected
 function Window:__renderWidget(widget)
     if widget:isVisible() then
-        widget:onRender()
+        widget:render()
     end
 end
 
@@ -478,7 +478,7 @@ function Window:__drawTitlebar()
 end
 
 ---Render the window
-function Window:onRender()
+function Window:render()
     if self.props.showTitleBar then
         self:__drawTitlebar()
     end

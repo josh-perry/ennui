@@ -254,7 +254,7 @@ end
 
 ---Update cursor blink
 ---@param dt number Delta time
-function TextInput:onUpdate(dt)
+function TextInput:update(dt)
     if self.props.isFocused then
         self.props.cursorBlinkTime = self.props.cursorBlinkTime + dt
         if self.props.cursorBlinkTime >= 0.5 then
@@ -266,7 +266,7 @@ function TextInput:onUpdate(dt)
 
     for _, child in ipairs(self.children) do
         if child:isVisible() then
-            child:onUpdate(dt)
+            child:update(dt)
         end
     end
 end
@@ -485,7 +485,7 @@ function TextInput:hitTest(x, y)
 end
 
 ---Render the text input
-function TextInput:onRender()
+function TextInput:render()
     local borderColor = self.props.isFocused and self.props.focusedBorderColor or self.props.borderColor
 
     love.graphics.setColor(self.props.inputBackgroundColor)
@@ -512,7 +512,7 @@ function TextInput:onRender()
 
     love.graphics.setScissor(newX, newY, newW, newH)
 
-    self.__textWidget:onRender()
+    self.__textWidget:render()
 
     local textX = self.__textWidget.x + self.__textWidget.padding.left
     local textY = self.__textWidget.y + self.__textWidget.padding.top
