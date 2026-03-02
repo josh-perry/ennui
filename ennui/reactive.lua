@@ -112,10 +112,6 @@ ReactiveProxy.__newindex = function(self, key, value)
     end
 end
 
-ReactiveProxy.__len = function(self)
-    return #proxyInternals[self].raw
-end
-
 ---Iterate over the proxy as an array, tracking dependencies
 ---@return fun(): integer?, any?
 function ReactiveProxy:ipairs()
@@ -147,6 +143,20 @@ function ReactiveProxy:pairs()
             return key, proxy[key]
         end
     end
+end
+
+---Count the number of elements in an array-like proxy.
+---Needed because # in Luajit doesn't trigger __len and we can't just count the underlying raw table
+---@return number # The number of elements
+function ReactiveProxy:len()
+    -- Bad
+    local i = 0
+
+    for _, _ in self:ipairs() do
+        i = i + 1
+    end
+
+    return i
 end
 
 ---@class Reactive
