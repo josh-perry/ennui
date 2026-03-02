@@ -45,11 +45,32 @@ function LayoutableMixin.initLayoutable(self)
     self.verticalAlignment = "stretch"
 end
 
+---Handle setting a size property that may be a Computed value
+---@private
+---@param propertyName string Name of the property ("preferredWidth" or "preferredHeight")
+---@param value number|string|Size|Computed The value to set
+function LayoutableMixin:__setComputedSize(propertyName, value)
+    if type(value) == "table" and type(value.get) == "function" then
+        self[propertyName] = Size.normalise(value:get())
+        self:tryInvalidateLayout()
+
+        if self.__subscriptions then
+            table.insert(self.__subscriptions, value:subscribe(function()
+                self[propertyName] = Size.normalise(value:get())
+                self:tryInvalidateLayout()
+            end))
+        end
+    else
+        self[propertyName] = Size.normalise(value)
+        self:tryInvalidateLayout()
+    end
+end
+
 ---Set size (preferred width and height)
 ---@generic T
 ---@param self T
----@param width number|string|Size Preferred width specification
----@param height number|string|Size Preferred height specification
+---@param width number|string|Size|Computed Preferred width specification
+---@param height number|string|Size|Computed Preferred height specification
 ---@return T
 function LayoutableMixin:setSize(width, height)
     ---@cast self LayoutableMixin
@@ -59,20 +80,18 @@ function LayoutableMixin:setSize(width, height)
 end
 
 ---Set preferred width
----@param width number|string|Size Preferred width specification
+---@param width number|string|Size|Computed Preferred width, or a Computed returning one
 ---@return self
 function LayoutableMixin:setPreferredWidth(width)
-    self.preferredWidth = Size.normalise(width)
-    self:tryInvalidateLayout()
+    self:__setComputedSize("preferredWidth", width)
     return self
 end
 
 ---Set preferred height
----@param height number|string|Size Preferred height specification
+---@param height number|string|Size|Computed Preferred height, or a Computed returning one
 ---@return self
 function LayoutableMixin:setPreferredHeight(height)
-    self.preferredHeight = Size.normalise(height)
-    self:tryInvalidateLayout()
+    self:__setComputedSize("preferredHeight", height)
     return self
 end
 
