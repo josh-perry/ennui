@@ -48,11 +48,11 @@ function Image:getDrawable()
     return self.props.image
 end
 
----Set image from file EnnuiRoot
----@param EnnuiRoot string EnnuiRoot to image file
+---Set image from file path
+---@param path string path to image file
 ---@return Image self
-function Image:setImagePath(EnnuiRoot)
-    local image = love.graphics.newImage(EnnuiRoot)
+function Image:setImagePath(path)
+    local image = love.graphics.newImage(path)
     return self:setDrawable(image)
 end
 

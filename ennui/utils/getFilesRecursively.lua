@@ -5,17 +5,17 @@ local function getFilesRecursively(directory)
         local items = love.filesystem.getDirectoryItems(dir)
 
         for _, item in ipairs(items) do
-            local EnnuiRoot = dir .. "/" .. item
-            local info = love.filesystem.getInfo(EnnuiRoot)
+            local path = dir .. "/" .. item
+            local info = love.filesystem.getInfo(path)
 
             if info then
                 if info.type == "file" and item:match("%.lua$") then
-                    local moduleEnnuiRoot = EnnuiRoot:gsub("%.lua$", "")
-                    moduleEnnuiRoot = moduleEnnuiRoot:gsub("/", ".")
+                    local modulepath = path:gsub("%.lua$", "")
+                    modulepath = modulepath:gsub("/", ".")
 
-                    table.insert(files, moduleEnnuiRoot)
+                    table.insert(files, modulepath)
                 elseif info.type == "directory" then
-                    scan(EnnuiRoot)
+                    scan(path)
                 end
             end
         end
