@@ -58,6 +58,10 @@ end
 
 ---Render the rectangle
 function Rectangle:render()
+    if self.width <= 0 or self.height <= 0 then
+        return
+    end
+
     love.graphics.setColor(self.props.color)
     love.graphics.rectangle(
         "fill",
