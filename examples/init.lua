@@ -15,6 +15,8 @@ local comboboxExampleHost = require("examples.combobox")
 local layoutsExampleHost = require("examples.layouts")
 local rectangleExampleHost = require("examples.rectangle")
 local stateExampleHost = require("examples.state")
+local computedExampleHost = require("examples.state-computed")
+local todoExampleHost = require("examples.state-todo")
 local windowsExampleHost = require("examples.windows")
 local groupExampleHost = require("examples.group")
 local tabbarExampleHost = require("examples.tabbar")
@@ -124,6 +126,18 @@ return {
         host = stateExampleHost,
         description = "Reactive state management and property binding demonstration.",
         tags = {"state", "reactive", "binding"}
+    },
+    {
+        name = "State - todo list",
+        host = todoExampleHost,
+        description = "Reactive todo list showing State, State.newId(), bindChildren, computedInline, computed:map, and filter binding.",
+        tags = {"state", "reactive", "binding", "list", "computed"}
+    },
+    {
+        name = "State - temperature converter",
+        host = computedExampleHost,
+        description = "Temperature converter demonstrating computed properties, formatting and binding.",
+        tags = {"computed", "reactive", "binding", "map", "format"}
     },
     {
         name = "Windows",

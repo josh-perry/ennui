@@ -97,9 +97,15 @@ end
 function Computed:map(transform)
     local source = self
 
-    return Computed.new(function()
+    local mapped = Computed.new(function()
         return transform(source:get())
     end)
+
+    source:subscribe(function()
+        mapped:update()
+    end)
+
+    return mapped
 end
 
 ---Create a new Computed that formats this computed's value using string.format
@@ -108,9 +114,15 @@ end
 function Computed:format(template)
     local source = self
 
-    return Computed.new(function()
+    local formatted = Computed.new(function()
         return template:format(source:get())
     end)
+
+    source:subscribe(function()
+        formatted:update()
+    end)
+
+    return formatted
 end
 
 return Computed
