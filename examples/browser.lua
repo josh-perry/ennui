@@ -183,7 +183,8 @@ end
 function ExamplePreview:onMouseWheel(event)
     if not self.props.example then return end
 
-    return self.props.example.host:wheelmoved(event.dx, event.dy)
+    local lx, ly = transformCoords(self, event.x, event.y)
+    return self.props.example.host:wheelmoved(event.dx, event.dy, lx, ly)
 end
 
 function ExamplePreview:onKeyPressed(event)

@@ -594,9 +594,13 @@ end
 
 ---@param dx number Horizontal scroll amount
 ---@param dy number Vertical scroll amount
-function Host:wheelmoved(dx, dy)
+---@param x number? Mouse X (defaults to love.mouse.getPosition())
+---@param y number? Mouse Y (defaults to love.mouse.getPosition())
+function Host:wheelmoved(dx, dy, x, y)
     self:__ensureLayout()
-    local x, y = love.mouse.getPosition()
+    if x == nil then
+        x, y = love.mouse.getPosition()
+    end
     local target = self:hitTest(x, y)
 
     if target and target ~= self then
