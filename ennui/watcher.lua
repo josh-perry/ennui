@@ -46,7 +46,7 @@ function Watcher.new(widget, source, callback, options)
     if self.immediate then
         self:update()
     else
-        self:evaluate()
+        self.oldValue = self:evaluate()
     end
 
     return self
