@@ -295,6 +295,7 @@ function StateScope:watch(source, callback, options)
             return self_ref.props[propName]
         end
     end
+
     return self.__root:watch(source, callback, options)
 end
 
@@ -310,13 +311,15 @@ end
 ---@param template string Template string with {propName} placeholders
 ---@return Computed The computed instance
 function StateScope:format(template)
-    local self_ref = self
+    local selfRef = self
+
     return Computed(function()
         return (template:gsub("{([^}]+)}", function(propName)
-            local value = self_ref.props[propName]
+            local value = selfRef.props[propName]
             if value ~= nil then
                 return tostring(value)
             end
+
             return "{" .. propName .. "}"
         end))
     end)
