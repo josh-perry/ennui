@@ -147,10 +147,6 @@ function DockLayoutStrategy:arrangeNode(node, x, y, width, height, dockSpaceWidg
         local contentWidth = width
         local contentHeight = height
 
-        if node.tabBar then
-            node.tabBar:setVisible(false)
-        end
-
         if shouldShowTabBar(node) then
             local tabBarHeight = 30
             if node.tabBar then
@@ -160,6 +156,8 @@ function DockLayoutStrategy:arrangeNode(node, x, y, width, height, dockSpaceWidg
 
             contentY = y + tabBarHeight
             contentHeight = height - tabBarHeight
+        elseif node.tabBar then
+            node.tabBar:setVisible(false)
         end
 
         for _, widget in ipairs(node.dockedWidgets) do
