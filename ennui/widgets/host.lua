@@ -201,12 +201,7 @@ end
 ---@param dt number Delta time in seconds
 function Host:update(dt)
     self:__ensureLayout()
-
-    for _, child in ipairs(self.children) do
-        if child:isVisible() then
-            child:update(dt)
-        end
-    end
+    Widget.update(self, dt)
 end
 
 ---@protected
@@ -337,13 +332,14 @@ function Host:__initDrag(widget, x, y, button)
         widget:undock()
     end
 
-    if widget.onDragStart then
-        local event = Event.createMouseEvent("mousePressed", x, y, button, widget, false)
-        if widget.onDragStart(event) == false then
+    local event = Event.createMouseEvent("mousePressed", x, y, button, widget, false)
+    if widget.dragStart then
+        if widget.dragStart(widget, event) == false then
             self:__clearDrag()
             return false
         end
     end
+    widget:__callHandlers("dragStart", event)
 
     return true
 end
@@ -428,20 +424,21 @@ function Host:mousereleased(x, y, button, isTouch)
 
         local dropTarget = self:__findDropTargetAt(x, y)
 
-        if dropTarget and dropTarget.onDrop then
+        if dropTarget then
             local dropEvent = Event.createMouseEvent("drop", x, y, button, dropTarget, isTouch)
-            dropTarget.onDrop(dropEvent, widget)
+            if dropTarget.drop then dropTarget.drop(dropTarget, dropEvent, widget) end
+            dropTarget:__callHandlers("drop", dropEvent, widget)
         end
 
-        if self.__dragOverWidget and self.__dragOverWidget.onDragLeave then
+        if self.__dragOverWidget then
             local leaveEvent = Event.createMouseEvent("dragLeave", x, y, button, self.__dragOverWidget, isTouch)
-            self.__dragOverWidget.onDragLeave(leaveEvent, widget)
+            if self.__dragOverWidget.dragLeave then self.__dragOverWidget.dragLeave(self.__dragOverWidget, leaveEvent, widget) end
+            self.__dragOverWidget:__callHandlers("dragLeave", leaveEvent, widget)
         end
 
-        if widget.onDragEnd then
-            local event = Event.createMouseEvent("mouseReleased", x, y, button, widget, isTouch)
-            widget.onDragEnd(event)
-        end
+        local event = Event.createMouseEvent("mouseReleased", x, y, button, widget, isTouch)
+        if widget.dragEnd then widget.dragEnd(widget, event) end
+        widget:__callHandlers("dragEnd", event)
 
         self:__clearDrag()
         self:invalidateRender()
@@ -505,10 +502,9 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             local deltaX = x - self.__lastDragX
             local deltaY = y - self.__lastDragY
 
-            if widget.onDrag then
-                local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, deltaX, deltaY)
-                widget.onDrag(event, deltaX, deltaY)
-            end
+            local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, deltaX, deltaY)
+            if widget.drag then widget.drag(widget, event, deltaX, deltaY) end
+            widget:__callHandlers("drag", event, deltaX, deltaY)
 
             self.__lastDragX = x
             self.__lastDragY = y
@@ -521,33 +517,35 @@ function Host:mousemoved(x, y, dx, dy, isTouch)
             local deltaX = x - self.__lastDragX
             local deltaY = y - self.__lastDragY
 
-            if widget.onDrag then
-                local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, deltaX, deltaY)
-                widget.onDrag(event, deltaX, deltaY)
-            end
+            local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, deltaX, deltaY)
+            if widget.drag then widget.drag(widget, event, deltaX, deltaY) end
+            widget:__callHandlers("drag", event, deltaX, deltaY)
 
             self.__lastDragX = x
             self.__lastDragY = y
         end
 
-        -- Call onDrag for position mode if handler exists
-        if self.__dragMode == "position" and widget.onDrag then
+        -- Call drag for position mode if handler exists
+        if self.__dragMode == "position" then
             local event = Event.createMouseEvent("mouseMoved", x, y, 1, widget, isTouch, dx, dy)
-            widget.onDrag(event, dx, dy)
+            if widget.drag then widget.drag(widget, event, dx, dy) end
+            widget:__callHandlers("drag", event, dx, dy)
         end
 
         local dropTarget = self:__findDropTargetAt(x, y)
 
         if dropTarget ~= self.__dragOverWidget then
-            if self.__dragOverWidget and self.__dragOverWidget.onDragLeave then
+            if self.__dragOverWidget then
                 local leaveEvent = Event.createMouseEvent("dragLeave", x, y, 1, self.__dragOverWidget, isTouch)
-                self.__dragOverWidget.onDragLeave(leaveEvent, widget)
+                if self.__dragOverWidget.dragLeave then self.__dragOverWidget.dragLeave(self.__dragOverWidget, leaveEvent, widget) end
+                self.__dragOverWidget:__callHandlers("dragLeave", leaveEvent, widget)
             end
 
             self.__dragOverWidget = dropTarget
-            if dropTarget and dropTarget.onDragOver then
+            if dropTarget then
                 local overEvent = Event.createMouseEvent("dragOver", x, y, 1, dropTarget, isTouch)
-                dropTarget.onDragOver(overEvent, widget)
+                if dropTarget.dragOver then dropTarget.dragOver(dropTarget, overEvent, widget) end
+                dropTarget:__callHandlers("dragOver", overEvent, widget)
             end
         end
 
@@ -606,10 +604,9 @@ function Host:wheelmoved(dx, dy, x, y)
     if target and target ~= self then
         local event = Event.createMouseEvent("mouseWheel", x, y, 1, target, false, dx, dy)
         self:__dispatchEvent(event)
-        return true
     end
 
-    return false
+    return target ~= nil and target ~= self
 end
 
 ---@param key string Key code
@@ -627,25 +624,27 @@ function Host:keypressed(key, scancode, isRepeat)
         return true
     end
 
+    local handled = false
     if self.focusedWidget then
         local event = Event.createKeyboardEvent("keyPressed", key, scancode, isRepeat, self.focusedWidget)
         self:__dispatchEvent(event)
-        return true
+        handled = true
     end
 
-    return false
+    return handled
 end
 
 ---@param key string Key code
 ---@param scancode string Physical key scancode
 function Host:keyreleased(key, scancode)
+    local handled = false
     if self.focusedWidget then
         local event = Event.createKeyboardEvent("keyReleased", key, scancode, false, self.focusedWidget)
         self:__dispatchEvent(event)
-        return true
+        handled = true
     end
 
-    return false
+    return handled
 end
 
 ---@param text string Text entered
@@ -658,6 +657,7 @@ function Host:textinput(text)
 
     return false
 end
+
 
 ---@param event Event Event object
 function Host:__dispatchEvent(event)

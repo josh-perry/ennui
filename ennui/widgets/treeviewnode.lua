@@ -141,6 +141,7 @@ function TreeViewNode:mount()
     self.props.level = level
 
     self:__updateIndentWidth()
+    Widget.mount(self)
 end
 
 ---Update the indent spacer width based on current level
@@ -357,7 +358,7 @@ function TreeViewNode:hitTest(x, y)
 end
 
 ---Handle click events
-function TreeViewNode:onClicked(event)
+function TreeViewNode:clicked(event)
     local rowHeight = self:__getRowHeight()
 
     -- Check if clicked on expand icon (using icon placeholder position)
@@ -381,7 +382,7 @@ function TreeViewNode:onClicked(event)
     return true
 end
 
-function TreeViewNode:onKeyPressed(event)
+function TreeViewNode:keyPressed(event)
     if event.key == "space" or event.key == "return" then
         if self:__getTreeView() then
             self:__getTreeView():selectNode(self)

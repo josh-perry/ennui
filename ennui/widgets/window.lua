@@ -292,7 +292,7 @@ end
 
 ---Handle mouse pressed
 ---@param event MouseEvent Mouse event
-function Window:onMousePressed(event)
+function Window:mousePressed(event)
     self:bringToFront()
 
     if self:isOnCloseButton(event.x, event.y) then
@@ -349,7 +349,7 @@ end
 
 ---Handle mouse moved
 ---@param event MouseEvent Mouse event
-function Window:onMouseMoved(event)
+function Window:mouseMoved(event)
     local wasHovered = self.props.closeButtonHovered
     self.props.closeButtonHovered = self:isOnCloseButton(event.x, event.y)
     if wasHovered ~= self.props.closeButtonHovered then

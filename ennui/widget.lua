@@ -347,7 +347,7 @@ function Widget:__handleEvent(event)
         end
     end
 
-    local methodName = "on" .. event.type:sub(1, 1):upper() .. event.type:sub(2)
+    local methodName = event.type
     if self[methodName] and type(self[methodName]) == "function" then
         local consumed = self[methodName](self, event)
         if consumed then
@@ -717,6 +717,7 @@ end
 ---@param self T
 function Widget:mount()
     ---@cast self Widget
+    self:__callHandlers("mount")
 end
 
 ---Called when the widget is unmounted from the widget tree
@@ -724,6 +725,7 @@ end
 ---@param self T
 function Widget:unmount()
     ---@cast self Widget
+    self:__callHandlers("unmount")
     self:cleanupListBindable()
     self:__cleanupReactive()
 end
@@ -734,11 +736,7 @@ end
 ---@param dt number Delta time in seconds
 function Widget:update(dt)
     ---@cast self Widget
-    if self.__updateHandlers then
-        for _, handler in ipairs(self.__updateHandlers) do
-            handler(self, dt)
-        end
-    end
+    self:__callHandlers("update", dt)
     for _, child in ipairs(self.children) do
         if child:isVisible() then
             child:update(dt)
@@ -751,7 +749,7 @@ end
 ---@param self T
 ---@param event MouseEvent Mouse wheel event with dx and dy
 ---@return boolean? consumed Return true to consume the event
-function Widget:onMouseWheel(event)
+function Widget:mouseWheel(event)
     ---@cast self Widget
 end
 

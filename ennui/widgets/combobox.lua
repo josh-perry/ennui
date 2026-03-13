@@ -340,7 +340,7 @@ function ComboBox:arrange(x, y, width, height)
 end
 
 ---Handle text input from child
-function ComboBox:onTextInput(event)
+function ComboBox:textInput(event)
     if self.props.isOpen then
         self:__filterItems(self.__textInput:getText())
     else
@@ -351,7 +351,7 @@ function ComboBox:onTextInput(event)
 end
 
 ---Handle key press
-function ComboBox:onKeyPressed(event)
+function ComboBox:keyPressed(event)
     if event.key == "backspace" or event.key == "delete" then
         if event.value ~= nil then
             if self.props.isOpen then
@@ -404,12 +404,12 @@ function ComboBox:onKeyPressed(event)
 end
 
 ---Handle focus gained
-function ComboBox:onFocusGained(event)
+function ComboBox:focusGained(event)
     self:open()
 end
 
 ---Handle focus lost
-function ComboBox:onFocusLost(event)
+function ComboBox:focusLost(event)
     self:close()
 end
 

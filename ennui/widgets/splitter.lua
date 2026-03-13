@@ -38,7 +38,7 @@ function Splitter.new(orientation)
     self:setDragMode("delta")
 
     -- Set up drag callback to handle splitter movement
-    self.onDrag = function(event, deltaX, deltaY)
+    self.drag = function(_, event, deltaX, deltaY)
         local delta = (self.orientation == "horizontal") and deltaX or deltaY
 
         if self.onSplitterDrag then
@@ -68,7 +68,7 @@ end
 
 ---Handle mouse entered
 ---@param event MouseEvent
-function Splitter:onMouseEntered(event)
+function Splitter:mouseEntered(event)
     self:invalidateRender()
 
     if self.orientation == "horizontal" then
@@ -80,7 +80,7 @@ end
 
 ---Handle mouse exited
 ---@param event MouseEvent
-function Splitter:onMouseExited(event)
+function Splitter:mouseExited(event)
     if not self.props.isDragging then
         self:invalidateRender()
         love.mouse.setCursor()
@@ -89,7 +89,7 @@ end
 
 ---Handle mouse moved
 ---@param event MouseEvent
-function Splitter:onMouseMoved(event)
+function Splitter:mouseMoved(event)
     if self:hitTest(event.x, event.y) then
         if not self.props.isHovered then
             self:invalidateRender()
@@ -110,7 +110,7 @@ end
 
 ---Handle mouse released
 ---@param event MouseEvent
-function Splitter:onMouseReleased(event)
+function Splitter:mouseReleased(event)
     if not self:isDragging() and not self.props.isHovered then
         love.mouse.setCursor()
     end

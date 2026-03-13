@@ -281,16 +281,16 @@ function Dropdown:arrange(x, y, width, height)
     end
 end
 
-function Dropdown:onClicked(event)
+function Dropdown:clicked(event)
     self:toggle()
     return true
 end
 
-function Dropdown:onFocusLost(event)
+function Dropdown:focusLost(event)
     self:close()
 end
 
-function Dropdown:onKeyPressed(event)
+function Dropdown:keyPressed(event)
     if event.key == "space" or event.key == "return" then
         if self.props.isOpen and self.__menu.props.hoveredIndex > 0 then
             self.props.selectedIndex = self.__menu.props.hoveredIndex

@@ -300,22 +300,22 @@ function CollapseableHeader:update(dt)
 end
 
 ---Handle mouse events for header
-function CollapseableHeader:onMouseMoved(event)
+function CollapseableHeader:mouseMoved(event)
     self.__headerHovered = self:__isInHeader(event.x, event.y)
 end
 
-function CollapseableHeader:onMouseExited(event)
+function CollapseableHeader:mouseExited(event)
     self.__headerHovered = false
 end
 
-function CollapseableHeader:onClicked(event)
+function CollapseableHeader:clicked(event)
     if self:__isInHeader(event.x, event.y) then
         self:toggle()
         return true
     end
 end
 
-function CollapseableHeader:onKeyPressed(event)
+function CollapseableHeader:keyPressed(event)
     if event.key == "space" or event.key == "return" then
         self:toggle()
         return true

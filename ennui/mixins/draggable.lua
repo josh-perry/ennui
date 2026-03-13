@@ -5,12 +5,12 @@ local EnnuiRoot = (...):sub(1, (...):len() - (".mixins.draggable"):len())
 ---@field isDraggable boolean Whether widget can be dragged
 ---@field dragMode dragMode Drag mode: "position" or "delta"
 ---@field dragHandle table? Drag handle rectangle {x, y, width, height} relative to widget
----@field onDragStart function? Drag lifecycle callback
----@field onDrag function? Drag lifecycle callback
----@field onDragEnd function? Drag lifecycle callback
----@field onDragOver function? Drop target callback
----@field onDragLeave function? Drop target callback
----@field onDrop function? Drop target callback
+---@field dragStart function? Drag lifecycle callback
+---@field drag function? Drag lifecycle callback
+---@field dragEnd function? Drag lifecycle callback
+---@field dragOver function? Drop target callback
+---@field dragLeave function? Drop target callback
+---@field drop function? Drop target callback
 local DraggableMixin = {}
 local AABB = require(EnnuiRoot .. ".utils.aabb")
 local Mixin = require(EnnuiRoot .. ".utils.mixin")
@@ -27,14 +27,14 @@ function DraggableMixin.initDraggable(self)
     self.dragMode = "position"
     self.dragHandle = nil
 
-    self.onDragStart = nil
-    self.onDrag = nil
-    self.onDragEnd = nil
+    self.dragStart = nil
+    self.drag = nil
+    self.dragEnd = nil
 
     self.isDropTarget = false
-    self.onDragOver = nil
-    self.onDragLeave = nil
-    self.onDrop = nil
+    self.dragOver = nil
+    self.dragLeave = nil
+    self.drop = nil
 end
 
 ---Configure whether this widget is draggable

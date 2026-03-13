@@ -125,11 +125,11 @@ local deltaText = Text()
 
 deltaBox:addChild(deltaText)
 
-deltaBox.onDrag = function(event, dx, dy)
+deltaBox.drag = function(_, event, dx, dy)
     deltaInfo:setText(string.format("Delta: %.1f, %.1f", dx or 0, dy or 0))
 end
 
-deltaBox.onDragEnd = function(event)
+deltaBox.dragEnd = function(_, event)
     deltaInfo:setText("Delta: 0, 0")
 end
 
@@ -161,19 +161,19 @@ local dropZone = Rectangle()
 
 dropZone:addChild(dropZoneText)
 
-dropZone.onDragOver = function(event, draggedWidget)
+dropZone.dragOver = function(_, event, draggedWidget)
     dropZoneText:setText("Drop widget here!")
     dropZoneText:setColor(0.2, 0.6, 0.2)
     dropZone:setColor(0.75, 0.9, 0.75)
 end
 
-dropZone.onDragLeave = function(event, draggedWidget)
+dropZone.dragLeave = function(_, event, draggedWidget)
     dropZoneText:setText(lastDroppedText)
     dropZoneText:setColor(0.4, 0.4, 0.4)
     dropZone:setColor(0.85, 0.85, 0.85)
 end
 
-dropZone.onDrop = function(event, draggedWidget)
+dropZone.drop = function(_, event, draggedWidget)
     for _, child in ipairs(draggedWidget.children) do
         if child.getText then
             lastDroppedText = child:getText()

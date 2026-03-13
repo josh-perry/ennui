@@ -35,7 +35,7 @@ function DockableWindow.new()
         self:setTitleBarVisibility(not newValue)
     end)
 
-    self.onDrag = function(event)
+    self.drag = function(_, event)
         if self.dockSpace then
             local zone, targetDockSpace = self.dockSpace:getDropZoneAtPoint(event.x, event.y)
 
@@ -61,7 +61,7 @@ function DockableWindow.new()
         end
     end
 
-    self.onDragEnd = function(event)
+    self.dragEnd = function(_, event)
         if self.dockPreviewZone and self.dockPreviewTarget then
             self:dockInto(self.dockPreviewTarget, self.dockPreviewZone)
             self.dockPreviewTarget:hideZonePreview()

@@ -273,7 +273,7 @@ end
 
 ---Handle text input
 ---@param event TextInputEvent Text input event
-function TextInput:onTextInput(event)
+function TextInput:textInput(event)
     if not self.props.isFocused or self.props.isDisabled then
         return
     end
@@ -295,7 +295,7 @@ end
 
 ---Handle key press
 ---@param event KeyboardEvent Keyboard event
-function TextInput:onKeyPressed(event)
+function TextInput:keyPressed(event)
     if not self.props.isFocused or self.props.isDisabled then
         return
     end
@@ -394,14 +394,14 @@ function TextInput:onKeyPressed(event)
 end
 
 ---Handle focus gained
-function TextInput:onFocusGained()
+function TextInput:focusGained()
     self.props.cursorVisible = true
     self.props.cursorBlinkTime = 0
     self:invalidateRender()
 end
 
 ---Handle focus lost
-function TextInput:onFocusLost()
+function TextInput:focusLost()
     self:clearSelection()
     self.__selectionAnchor = nil
     self:invalidateRender()
@@ -431,7 +431,7 @@ end
 
 ---Handle mouse pressed
 ---@param event MouseEvent Mouse event
-function TextInput:onMousePressed(event)
+function TextInput:mousePressed(event)
     local position  = self:__xToPosition(event.localX)
     self.props.cursorPosition = position
     self.__selectionAnchor = position
@@ -445,7 +445,7 @@ end
 
 ---Handle mouse moved (drag selection)
 ---@param event MouseEvent Mouse event
-function TextInput:onMouseMoved(event)
+function TextInput:mouseMoved(event)
     if not self.__selectionAnchor or not love.mouse.isDown(1) then
         return
     end
@@ -464,7 +464,7 @@ function TextInput:onMouseMoved(event)
 end
 
 ---Handle mouse released
-function TextInput:onMouseReleased()
+function TextInput:mouseReleased()
     self.__selectionAnchor = nil
 end
 

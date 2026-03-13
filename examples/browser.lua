@@ -159,47 +159,47 @@ local function transformCoords(self, x, y)
     return (x - ox) / scale, (y - oy) / scale
 end
 
-function ExamplePreview:onMousePressed(event)
+function ExamplePreview:mousePressed(event)
     if not self.props.example then return end
 
     local lx, ly = transformCoords(self, event.x, event.y)
     return self.props.example.host:mousepressed(lx, ly, event.button, event.isTouch)
 end
 
-function ExamplePreview:onMouseReleased(event)
+function ExamplePreview:mouseReleased(event)
     if not self.props.example then return end
 
     local lx, ly = transformCoords(self, event.x, event.y)
     return self.props.example.host:mousereleased(lx, ly, event.button, event.isTouch)
 end
 
-function ExamplePreview:onMouseMoved(event)
+function ExamplePreview:mouseMoved(event)
     if not self.props.example then return end
 
     local lx, ly = transformCoords(self, event.x, event.y)
     return self.props.example.host:mousemoved(lx, ly, event.dx, event.dy, event.isTouch)
 end
 
-function ExamplePreview:onMouseWheel(event)
+function ExamplePreview:mouseWheel(event)
     if not self.props.example then return end
 
     local lx, ly = transformCoords(self, event.x, event.y)
     return self.props.example.host:wheelmoved(event.dx, event.dy, lx, ly)
 end
 
-function ExamplePreview:onKeyPressed(event)
+function ExamplePreview:keyPressed(event)
     if not self.props.example then return end
 
     return self.props.example.host:keypressed(event.key, event.scancode, event.isRepeat)
 end
 
-function ExamplePreview:onKeyReleased(event)
+function ExamplePreview:keyReleased(event)
     if not self.props.example then return end
 
     return self.props.example.host:keyreleased(event.key, event.scancode)
 end
 
-function ExamplePreview:onTextInput(event)
+function ExamplePreview:textInput(event)
     if not self.props.example then return end
 
     return self.props.example.host:textinput(event.text)

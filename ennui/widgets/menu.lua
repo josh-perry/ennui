@@ -131,7 +131,7 @@ function Menu:hitTest(x, y)
 end
 
 ---Handle click
-function Menu:onClicked(event)
+function Menu:clicked(event)
     local index = self:getItemAtY(event.y)
     if index > 0 then
         self.props.selectedIndex = index
@@ -144,12 +144,12 @@ function Menu:onClicked(event)
 end
 
 ---Handle mouse moved
-function Menu:onMouseMoved(event)
+function Menu:mouseMoved(event)
     self.props.hoveredIndex = self:getItemAtY(event.y)
 end
 
 ---Handle mouse exited
-function Menu:onMouseExited(event)
+function Menu:mouseExited(event)
     self.props.hoveredIndex = 0
 end
 

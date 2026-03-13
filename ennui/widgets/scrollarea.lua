@@ -159,7 +159,7 @@ end
 
 ---Handle mouse wheel scrolling
 ---@param event MouseEvent
-function ScrollArea:onMouseWheel(event)
+function ScrollArea:mouseWheel(event)
     local scrolled = false
 
     if self:__needsVerticalScroll() then

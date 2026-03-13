@@ -187,7 +187,7 @@ end
 
 ---Handle mouse moved
 ---@param event MouseEvent
-function TabBar:onMouseMoved(event)
+function TabBar:mouseMoved(event)
     local tabIndex = self:getTabAtPoint(event.x, event.y)
 
     if tabIndex ~= self.hoveredTabIndex then
@@ -235,7 +235,7 @@ end
 
 ---Handle mouse exited
 ---@param event MouseEvent
-function TabBar:onMouseExited(event)
+function TabBar:mouseExited(event)
     if self.hoveredTabIndex then
         self.hoveredTabIndex = nil
         self:invalidateRender()
@@ -247,7 +247,7 @@ end
 
 ---Handle mouse pressed
 ---@param event MouseEvent
-function TabBar:onMousePressed(event)
+function TabBar:mousePressed(event)
     local tabIndex = self:getTabAtPoint(event.x, event.y)
     if not tabIndex then
         return
@@ -271,7 +271,7 @@ end
 
 ---Handle mouse released
 ---@param event MouseEvent
-function TabBar:onMouseReleased(event)
+function TabBar:mouseReleased(event)
     self.draggedTabIndex = nil
     self.isDraggingTab = false
 end

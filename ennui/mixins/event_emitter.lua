@@ -3,6 +3,7 @@
 ---@class EventEmitterMixin
 ---@field eventHandlers table Event handlers (bubble phase)
 ---@field eventCaptureHandlers table Event handlers (capture phase)
+---@field __handlers table Lifecycle and drag callback handlers
 local EventEmitterMixin = {}
 
 ---Initialize event emitter fields on an instance
@@ -11,7 +12,7 @@ local EventEmitterMixin = {}
 function EventEmitterMixin.initEventEmitter(self)
     self.eventHandlers = {}
     self.eventCaptureHandlers = {}
-    self.__updateHandlers = nil
+    self.__handlers = {}
 end
 
 ---Add an event listener
@@ -91,16 +92,172 @@ function EventEmitterMixin:onHover(handler)
     return self:on("mouseEntered", handler)
 end
 
+---Add a handler to the unified __handlers table
+---@param name string Handler name (e.g. "update", "mount", "dragStart")
+---@param fn function Handler function
+---@return self
+function EventEmitterMixin:__addHandler(name, fn)
+    if not self.__handlers[name] then
+        self.__handlers[name] = {}
+    end
+
+    table.insert(self.__handlers[name], fn)
+    return self
+end
+
+---Call all handlers registered under the given name
+---@param name string Handler name
+---@param ... any Arguments to pass to each handler
+function EventEmitterMixin:__callHandlers(name, ...)
+    local handlers = self.__handlers[name]
+
+    if handlers then
+        for _, fn in ipairs(handlers) do
+            fn(self, ...)
+        end
+    end
+end
+
+-- Lifecycle registration wrappers
+
 ---Add an update handler called every frame
 ---@param handler fun(self: any, dt: number)
 ---@return self
 function EventEmitterMixin:onUpdate(handler)
-    if not self.__updateHandlers then
-        self.__updateHandlers = {}
-    end
+    return self:__addHandler("update", handler)
+end
 
-    table.insert(self.__updateHandlers, handler)
-    return self
+---Add a mount handler called when widget is added to the tree
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onMount(handler)
+    return self:__addHandler("mount", handler)
+end
+
+---Add an unmount handler called when widget is removed from the tree
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onUnmount(handler)
+    return self:__addHandler("unmount", handler)
+end
+
+---Add a mouse wheel event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onMouseWheel(handler)
+    return self:on("mouseWheel", handler)
+end
+
+---Add a mouse pressed event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onMousePressed(handler)
+    return self:on("mousePressed", handler)
+end
+
+---Add a mouse released event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onMouseReleased(handler)
+    return self:on("mouseReleased", handler)
+end
+
+---Add a mouse moved event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onMouseMoved(handler)
+    return self:on("mouseMoved", handler)
+end
+
+---Add a mouse entered event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onMouseEntered(handler)
+    return self:on("mouseEntered", handler)
+end
+
+---Add a mouse exited event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onMouseExited(handler)
+    return self:on("mouseExited", handler)
+end
+
+---Add a key pressed event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onKeyPressed(handler)
+    return self:on("keyPressed", handler)
+end
+
+---Add a key released event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onKeyReleased(handler)
+    return self:on("keyReleased", handler)
+end
+
+---Add a text input event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onTextInput(handler)
+    return self:on("textInput", handler)
+end
+
+---Add a focus gained event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onFocusGained(handler)
+    return self:on("focusGained", handler)
+end
+
+---Add a focus lost event listener
+---@param handler fun(self: any, event: Event)
+---@return self
+function EventEmitterMixin:onFocusLost(handler)
+    return self:on("focusLost", handler)
+end
+
+---Add a drag start handler
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onDragStart(handler)
+    return self:__addHandler("dragStart", handler)
+end
+
+---Add a drag handler
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onDrag(handler)
+    return self:__addHandler("drag", handler)
+end
+
+---Add a drag end handler
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onDragEnd(handler)
+    return self:__addHandler("dragEnd", handler)
+end
+
+---Add a drag over handler
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onDragOver(handler)
+    return self:__addHandler("dragOver", handler)
+end
+
+---Add a drag leave handler
+---@param handler fun(self: any)
+---@return self
+function EventEmitterMixin:onDragLeave(handler)
+    return self:__addHandler("dragLeave", handler)
+end
+
+---Add a drop handler
+---@param handler fun(self: any, ...: any)
+---@return self
+function EventEmitterMixin:onDrop(handler)
+    return self:__addHandler("drop", handler)
 end
 
 ---Dispatch an event to this widget

@@ -1,4 +1,9 @@
 local buttonExampleHost = require("examples.button")
+local eventsLifecycleHost = require("examples.events-lifecycle")
+local eventsUpdateHost    = require("examples.events-update")
+local eventsMouseHost     = require("examples.events-mouse")
+local eventsKeyboardHost  = require("examples.events-keyboard")
+local eventsFocusHost     = require("examples.events-focus")
 local dragExampleHost = require("examples.drag")
 local jrpg = require("examples.jrpg")
 local checkboxExampleHost = require("examples.checkbox")
@@ -162,5 +167,35 @@ return {
         host = dockingExampleHost,
         description = "Dockable window system for flexible layouts.",
         tags = {"docking", "windows", "layout"}
-    }
+    },
+    {
+        name = "Events - Lifecycle",
+        host = eventsLifecycleHost,
+        description = "mount and unmount lifecycle events.",
+        tags = {"events", "lifecycle", "mount"}
+    },
+    {
+        name = "Events - Update",
+        host = eventsUpdateHost,
+        description = "onUpdate called every frame with delta time.",
+        tags = {"events", "update", "animation"}
+    },
+    {
+        name = "Events - Mouse",
+        host = eventsMouseHost,
+        description = "All mouse events: press, release, click, move, enter, exit, wheel.",
+        tags = {"events", "mouse", "interaction"}
+    },
+    {
+        name = "Events - Keyboard",
+        host = eventsKeyboardHost,
+        description = "Visual keyboard showing key presses via key events.",
+        tags = {"events", "keyboard", "input"}
+    },
+    {
+        name = "Events - Focus",
+        host = eventsFocusHost,
+        description = "focusGained and focusLost events on text input fields.",
+        tags = {"events", "focus", "input"}
+    },
 }
