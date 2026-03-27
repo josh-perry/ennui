@@ -1,6 +1,9 @@
 ---Reactive property system using proxy tables
 ---Enables automatic change detection and dependency tracking for computed properties and watchers
 
+---@class Reactive
+local Reactive = {}
+
 ---@class ProxyOptions
 ---@field onGet function? Called when property is accessed: onGet(key)
 ---@field onSet function? Called when property changes: onSet(key, newValue, oldValue)
@@ -63,6 +66,7 @@ local proxyToRaw = setmetatable({}, { __mode = "k" })
 ---@field onSet (fun(key: any, newValue: any, oldValue: any))? Top-level only: called on property change
 ---@field nestedNotify (fun(forceUpdate: boolean))? Nested only: extra callback on nested change
 ---@field makeNested (fun(t: table, key: any): ReactiveProxy)? Wraps plain tables in nested proxies; nil if not needed
+---@field __nestedCache table? Cache for nested proxies. Needed to resolve table loops.
 
 ---@type table<ReactiveProxy, ProxyInternals>
 local proxyInternals = setmetatable({}, { __mode = "k" })
@@ -84,7 +88,18 @@ ReactiveProxy.__index = function(self, key)
     end
 
     if internal.onGet then internal.onGet(key) end
-    return internal.raw[key]
+
+    local value = internal.raw[key]
+
+    if internal.makeNested and type(value) == "table" and not Reactive.isProxy(value) then
+        if not internal.__nestedCache[key] then
+            internal.__nestedCache[key] = internal.makeNested(value, internal.isNested and internal.parentKey or key)
+        end
+
+        return internal.__nestedCache[key]
+    end
+
+    return value
 end
 
 ReactiveProxy.__newindex = function(self, key, value)
@@ -96,6 +111,10 @@ ReactiveProxy.__newindex = function(self, key, value)
 
     if type(value) == "table" and proxyInternals[value] == nil and internal.makeNested then
         value = internal.makeNested(value, internal.isNested and internal.parentKey or key)
+    end
+
+    if internal.__nestedCache then
+        internal.__nestedCache[key] = nil
     end
 
     if value ~= oldValue then
@@ -158,9 +177,6 @@ function ReactiveProxy:len()
 
     return i
 end
-
----@class Reactive
-local Reactive = {}
 
 ---Push a dependency collector onto the stack
 ---@param collector any Watcher or Computed instance
@@ -244,13 +260,11 @@ function Reactive.createProxy(rawTable, options)
     ---Create a nested proxy for table values
     ---@param nestedTable table
     ---@param parentKey string
+    ---@param visited table?
     ---@return ReactiveProxy
-    local function makeNestedProxy(nestedTable, parentKey)
-        for key, value in pairs(nestedTable) do
-            if type(value) == "table" and not Reactive.isProxy(value) then
-                nestedTable[key] = makeNestedProxy(value, parentKey)
-            end
-        end
+    local function makeNestedProxy(nestedTable, parentKey, visited)
+        visited = visited or {}
+        if visited[nestedTable] then return visited[nestedTable] end
 
         local nestedProxy = setmetatable({}, ReactiveProxy)
         proxyToRaw[nestedProxy] = nestedTable
@@ -261,17 +275,11 @@ function Reactive.createProxy(rawTable, options)
             parentKey = parentKey,
             nestedNotify = options.nestedNotify,
             makeNested = makeNestedProxy,
+            __nestedCache = {},
         }
+        visited[nestedTable] = nestedProxy
 
         return nestedProxy
-    end
-
-    if options.nested then
-        for key, value in pairs(rawTable) do
-            if type(value) == "table" and not Reactive.isProxy(value) then
-                rawTable[key] = makeNestedProxy(value, key)
-            end
-        end
     end
 
     local proxy = setmetatable({}, ReactiveProxy) ---@cast proxy ReactiveProxy
@@ -283,6 +291,7 @@ function Reactive.createProxy(rawTable, options)
         onGet = options.onGet,
         onSet = options.onSet,
         makeNested = options.nested and makeNestedProxy or nil,
+        nestedCache = options.nested and {} or nil,
     }
 
     return proxy
