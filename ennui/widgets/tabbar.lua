@@ -206,6 +206,12 @@ function TabBar:mouseMoved(event)
             local host = self:getHost()
 
             ---@diagnostic disable-next-line: undefined-field
+            if widget.setDockSpace and self.parent then
+                ---@diagnostic disable-next-line: undefined-field
+                widget:setDockSpace(self.parent)
+            end
+
+            ---@diagnostic disable-next-line: undefined-field
             if widget.undock and widget.props.isDocked then
                 ---@diagnostic disable-next-line: undefined-field
                 widget:undock()

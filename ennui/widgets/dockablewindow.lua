@@ -125,6 +125,7 @@ function DockableWindow:dockInto(targetDockSpace, zone)
 
     if success then
         self.props.isDocked = true
+        self.dockSpace = targetDockSpace
         self:setTitleBarVisibility(false)
     end
 
