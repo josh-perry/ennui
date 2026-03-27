@@ -338,20 +338,20 @@ end
 ---@protected
 ---@param event Event Event object
 function Widget:__handleEvent(event)
+    local methodName = event.type
+    if self[methodName] and type(self[methodName]) == "function" then
+        local consumed = self[methodName](self, event)
+        if consumed then
+            event.consumed = true
+        end
+    end
+
     if self.eventHandlers and self.eventHandlers[event.type] then
         for _, handler in ipairs(self.eventHandlers[event.type]) do
             local consumed = handler(self, event)
             if consumed then
                 event.consumed = true
             end
-        end
-    end
-
-    local methodName = event.type
-    if self[methodName] and type(self[methodName]) == "function" then
-        local consumed = self[methodName](self, event)
-        if consumed then
-            event.consumed = true
         end
     end
 end
