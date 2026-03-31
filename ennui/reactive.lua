@@ -164,6 +164,25 @@ function ReactiveProxy:pairs()
     end
 end
 
+---Insert a value into the array-like proxy, equivalent to table.insert
+---@param positionOrValue any Position (number) when inserting at a specific index or the value to append
+---@param value any? Value to insert. If provided then positionOrValue is treated as the position
+function ReactiveProxy:insert(positionOrValue, value)
+    local raw = proxyInternals[self].raw
+
+    if value == nil then
+        self[#raw + 1] = positionOrValue
+    else
+        local position = positionOrValue
+
+        for i = #raw, position, -1 do
+            self[i + 1] = self[i]
+        end
+
+        self[position] = value
+    end
+end
+
 ---Count the number of elements in an array-like proxy.
 ---Needed because # in Luajit doesn't trigger __len and we can't just count the underlying raw table
 ---@return number # The number of elements

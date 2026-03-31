@@ -89,6 +89,110 @@ function TestReactiveList:test_pairs_counts_keys()
     lu.assertEquals(keyCount:get(), 3)
 end
 
+function TestReactiveList:test_pairs_yields_correct_values()
+    local state = State({ config = { x = 10, y = 20 } })
+
+    local collected = {}
+
+    for key, value in state:pairs("config") do
+        collected[key] = value
+    end
+
+    lu.assertEquals(collected.x, 10)
+    lu.assertEquals(collected.y, 20)
+end
+
+function TestReactiveList:test_pairs_computed_updates_on_key_change()
+    local state = State({ config = { a = 1, b = 2 } })
+
+    local sum = state:computedInline(function()
+        local total = 0
+
+        for _, value in state:pairs("config") do
+            total = total + value
+        end
+
+        return total
+    end)
+
+    lu.assertEquals(sum:get(), 3)
+    state.props.config.a = 10
+    lu.assertEquals(sum:get(), 12)
+end
+
+function TestReactiveList:test_insert_append()
+    local state = State({ items = { "a", "b" } })
+
+    state.props.items:insert("c")
+
+    lu.assertEquals(state.props.items:len(), 3)
+    lu.assertEquals(state.props.items[3], "c")
+end
+
+function TestReactiveList:test_insert_append_to_empty()
+    local state = State({ items = {} })
+
+    state.props.items:insert("a")
+
+    lu.assertEquals(state.props.items:len(), 1)
+    lu.assertEquals(state.props.items[1], "a")
+end
+
+function TestReactiveList:test_insert_positional_shifts_elements()
+    local state = State({ items = { "a", "b", "c" } })
+
+    state.props.items:insert(2, "x")
+
+    lu.assertEquals(state.props.items:len(), 4)
+    lu.assertEquals(state.props.items[1], "a")
+    lu.assertEquals(state.props.items[2], "x")
+    lu.assertEquals(state.props.items[3], "b")
+    lu.assertEquals(state.props.items[4], "c")
+end
+
+function TestReactiveList:test_insert_at_beginning()
+    local state = State({ items = { "b", "c" } })
+
+    state.props.items:insert(1, "a")
+
+    lu.assertEquals(state.props.items:len(), 3)
+    lu.assertEquals(state.props.items[1], "a")
+    lu.assertEquals(state.props.items[2], "b")
+    lu.assertEquals(state.props.items[3], "c")
+end
+
+function TestReactiveList:test_insert_triggers_watcher()
+    local state = State({ items = {} })
+    local callCount = 0
+    state:watch("items", function() callCount = callCount + 1 end)
+
+    state.props.items:insert("a")
+
+    lu.assertEquals(callCount, 1)
+end
+
+function TestReactiveList:test_insert_updates_computed()
+    local state = State({ items = { "a", "b" } })
+
+    local count = state:computedInline(function()
+        return state.props.items:len()
+    end)
+
+    lu.assertEquals(count:get(), 2)
+    state.props.items:insert("c")
+    lu.assertEquals(count:get(), 3)
+end
+
+function TestReactiveList:test_insert_table_value_is_reactive()
+    local state = State({ tasks = {} })
+
+    state.props.tasks:insert({ id = "1", done = false })
+
+    lu.assertEquals(state.props.tasks[1].id, "1")
+    state.props.tasks[1].done = true
+    lu.assertIsTrue(state.props.tasks[1].done)
+end
+
 function TestReactiveList:test_forEach_receives_scope_and_index()
     local state = State({
         players = {
