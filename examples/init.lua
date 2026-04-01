@@ -26,6 +26,7 @@ local windowsExampleHost = require("examples.windows")
 local groupExampleHost = require("examples.group")
 local tabbarExampleHost = require("examples.tabbar")
 local dockingExampleHost = require("examples.docking")
+local menubarExampleHost = require("examples.menubar")
 
 return {
     {
@@ -167,6 +168,12 @@ return {
         host = dockingExampleHost,
         description = "Dockable window system for flexible layouts.",
         tags = {"docking", "windows", "layout"}
+    },
+    {
+        name = "Menubar",
+        host = menubarExampleHost,
+        description = "Menubar with dropdown menus.",
+        tags = {"menu", "dropdownmenu", "menubar"}
     },
     {
         name = "Events - Lifecycle",

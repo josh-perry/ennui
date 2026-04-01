@@ -27,13 +27,15 @@ end
 function DropdownMenu.new()
     local self = setmetatable(Widget(), DropdownMenu) ---@cast self DropdownMenu
 
+    self.isTabContext = true
+
     self:addProperty("backgroundColor", {0.15, 0.15, 0.15, 1})
     self:addProperty("borderColor", {0.3, 0.3, 0.3, 1})
 
     self.__itemPanel = StackPanel()
         :setSize(Size.fill(), Size.auto())
         :setSpacing(0)
-        :setPadding(4, 4, 4, 4)
+        :setPadding(0, 0, 0, 0)
 
     self:addChild(self.__itemPanel)
 
@@ -53,7 +55,17 @@ function DropdownMenu:addItem(label)
     local itemButton = TextButton()
         :setText(label)
         :setSize(Size.fill(), Size.auto())
+        :setCornerRadius(0)
         :setPadding(4, 12, 4, 12)
+        :setFocusable(true)
+
+    itemButton:getTextWidget():setTextHorizontalAlignment("left")
+
+    itemButton:onClick(function()
+        if self.onItemClicked then
+            self.onItemClicked()
+        end
+    end)
 
     self.__itemPanel:addChild(itemButton)
 
@@ -102,6 +114,17 @@ function DropdownMenu:getItemPanel()
     return self.__itemPanel
 end
 
+---Bind a reactive list to menu items. Delegates to the item panel so that
+---items added via addItem in the create fn end up in the right place.
+---@param source State|StateScope
+---@param path string
+---@param config ListBindingConfig
+---@return self
+function DropdownMenu:bindChildren(source, path, config)
+    self.__itemPanel:bindChildren(source, path, config)
+    return self
+end
+
 ---Calculate content width (for auto sizing)
 ---@return number contentWidth
 function DropdownMenu:__calculateContentWidth()
@@ -118,6 +141,38 @@ end
 ---@return number contentHeight
 function DropdownMenu:__calculateContentHeight()
     return self.__itemPanel.desiredHeight + self.padding.top + self.padding.bottom
+end
+
+---Handle keyboard navigation within the menu
+function DropdownMenu:keyPressed(event)
+    local host = self.__host
+    if not host then return end
+
+    if event.key == "up" then
+        host:focusPrevious()
+        return true
+    elseif event.key == "down" then
+        host:focusNext()
+        return true
+    elseif event.key == "return" or event.key == "space" then
+        event.target:__handleEvent({ type = "clicked" })
+        return true
+    elseif event.key == "right" then
+        if self.onRequestNext then
+            self.onRequestNext()
+        end
+        return true
+    elseif event.key == "left" then
+        if self.onRequestPrevious then
+            self.onRequestPrevious()
+        end
+        return true
+    elseif event.key == "escape" then
+        if self.onRequestClose then
+            self.onRequestClose()
+        end
+        return true
+    end
 end
 
 ---Render the dropdown menu
