@@ -9,7 +9,6 @@ local Widget = require(EnnuiRoot .. ".widget")
 ---@field tabs Tab[] Array of tabs
 ---@field activeIndex number Currently active tab (1-based)
 ---@field height number Tab bar height
----@field showCloseButtons boolean Whether to show close buttons
 ---@field onTabChanged function? Callback when tab changes
 ---@field onTabClosed function? Callback when tab closed
 ---@field hoveredTabIndex number? Currently hovered tab
@@ -42,6 +41,7 @@ function TabBar.new()
     self:addProperty("canDragTabs", false)
     self:addProperty("tabBarHeight", 30)
     self:addProperty("showCloseButtons", false)
+    self:addProperty("tabCount", 0)
 
     self.onTabChanged = nil
     self.onTabClosed = nil
@@ -64,6 +64,7 @@ function TabBar:addTab(title, widget)
     end
 
     table.insert(self.tabs, {title = title, widget = widget})
+    self.props.tabCount = #self.tabs
 
     -- Add the widget as a child so it gets rendered
     self:addChild(widget)
@@ -87,6 +88,7 @@ function TabBar:clearTabs()
 
     self.tabs = {}
     self.activeIndex = 1
+    self.props.tabCount = 0
     self:invalidateRender()
     return self
 end
@@ -106,6 +108,7 @@ function TabBar:removeTab(index)
         self.activeIndex = math.max(1, #self.tabs)
     end
 
+    self.props.tabCount = #self.tabs
     self:invalidateRender()
 
     if self.onTabClosed then
@@ -139,6 +142,15 @@ function TabBar:setActiveTab(index)
         self.onTabChanged(index)
     end
 
+    return self
+end
+
+---Set whether to show close buttons on tabs
+---@param show boolean Whether to show close buttons
+---@return self
+function TabBar:setShowCloseButtons(show)
+    self.props.showCloseButtons = show
+    self:invalidateRender()
     return self
 end
 
@@ -259,7 +271,7 @@ function TabBar:mousePressed(event)
         return
     end
 
-    if self.showCloseButtons and self.hoveredTabIndex == tabIndex then
+    if self.props.showCloseButtons and self.hoveredTabIndex == tabIndex then
         local closeButtonX = self:calculateTabCloseButtonPosition(tabIndex)
         if math.abs(event.x - closeButtonX) < self.props.closeButtonSize then
             self:removeTab(tabIndex)
@@ -377,7 +389,7 @@ function TabBar:render()
         local textY = self.y + (self.props.tabBarHeight - font:getHeight()) / 2
         love.graphics.print(tab.title, textX, textY)
 
-        if self.showCloseButtons and isHovered and #self.tabs > 1 then
+        if self.props.showCloseButtons and isHovered and #self.tabs > 0 then
             self:drawCloseButton(
                 self:calculateTabCloseButtonPosition(i),
                 self.y + self.props.tabBarHeight / 2,
@@ -407,10 +419,8 @@ function TabBar:drawCloseButton(x, y, size)
     local halfSize = size / 2
 
     love.graphics.setColor(self.props.textColor)
-    love.graphics.circle("fill", x, y, halfSize - 2)
-
-    love.graphics.setColor(self.props.inactiveTabColor)
     love.graphics.setLineWidth(1.5)
+
     local offset = halfSize * 0.6
     love.graphics.line(x - offset, y - offset, x + offset, y + offset)
     love.graphics.line(x + offset, y - offset, x - offset, y + offset)
