@@ -6,6 +6,7 @@ local Widget = require(EnnuiRoot .. ".widget")
 ---@field scaleX number Horizontal scale factor
 ---@field scaleY number Vertical scale factor
 ---@field color number[] RGBA color tint
+---@field fill boolean Whether to scale the image to fill the available space (true) or draw at natural scale in the top-left (false)
 local Image = {}
 Image.__index = Image
 setmetatable(Image, {
@@ -29,6 +30,7 @@ function Image.new(drawable)
     self:addProperty("scaleX", 1)
     self:addProperty("scaleY", 1)
     self:addProperty("color", {1, 1, 1, 1})
+    self:addProperty("fill", true)
 
     self:setHitTransparent(true)
     return self
@@ -71,6 +73,14 @@ end
 function Image:setScale(scaleX, scaleY)
     self.props.scaleX = scaleX
     self.props.scaleY = scaleY or scaleX
+    return self
+end
+
+---Set whether the image scales to fill the available space
+---@param fill boolean true to scale-to-fit (centered), false to draw at natural scale from top-left
+---@return Image self
+function Image:setFill(fill)
+    self.props.fill = fill
     return self
 end
 
@@ -143,18 +153,25 @@ function Image:render()
 
     local drawableWidth, drawableHeight = self:getDrawableSize()
 
-    local scaleToFit = math.min(
-        availableWidth / drawableWidth,
-        availableHeight / drawableHeight
-    )
+    local finalScaleX, finalScaleY
+    if self.props.fill then
+        local scaleToFit = math.min(
+            availableWidth / drawableWidth,
+            availableHeight / drawableHeight
+        )
+        finalScaleX = self.props.scaleX * scaleToFit
+        finalScaleY = self.props.scaleY * scaleToFit
 
-    local finalScaleX = self.props.scaleX * scaleToFit
-    local finalScaleY = self.props.scaleY * scaleToFit
-
-    local scaledWidth = drawableWidth * scaleToFit
-    local scaledHeight = drawableHeight * scaleToFit
-    renderX = renderX + (availableWidth - scaledWidth) / 2
-    renderY = renderY + (availableHeight - scaledHeight) / 2
+        local scaledWidth = drawableWidth * scaleToFit
+        local scaledHeight = drawableHeight * scaleToFit
+        renderX = renderX + (availableWidth - scaledWidth) / 2
+        renderY = renderY + (availableHeight - scaledHeight) / 2
+    else
+        finalScaleX = self.props.scaleX
+        finalScaleY = self.props.scaleY
+        renderX = renderX + (availableWidth - drawableWidth) / 2
+        renderY = renderY + (availableHeight - drawableHeight) / 2
+    end
 
     love.graphics.draw(
         self.props.image,
