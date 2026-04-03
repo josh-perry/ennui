@@ -179,13 +179,13 @@ return {
         name = "Events - Lifecycle",
         host = eventsLifecycleHost,
         description = "mount and unmount lifecycle events.",
-        tags = {"events", "lifecycle", "mount"}
+        tags = {"events", "lifecycle", "mount", "unmount"}
     },
     {
         name = "Events - Update",
         host = eventsUpdateHost,
         description = "onUpdate called every frame with delta time.",
-        tags = {"events", "update", "animation"}
+        tags = {"events", "update", "animation", "lifecycle"}
     },
     {
         name = "Events - Mouse",
