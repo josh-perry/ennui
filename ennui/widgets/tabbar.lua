@@ -86,6 +86,13 @@ function TabBar:clearTabs()
         self.isDraggingTab = false
     end
 
+    for _, tab in ipairs(self.tabs) do
+        if tab.widget then
+            tab.widget:setVisible(false)
+            self:removeChild(tab.widget)
+        end
+    end
+
     self.tabs = {}
     self.activeIndex = 1
     self.props.tabCount = 0
@@ -102,6 +109,11 @@ function TabBar:removeTab(index)
     end
 
     local closedTab = self.tabs[index]
+    if closedTab.widget then
+        closedTab.widget:setVisible(false)
+        self:removeChild(closedTab.widget)
+    end
+
     table.remove(self.tabs, index)
 
     if self.activeIndex > #self.tabs then
