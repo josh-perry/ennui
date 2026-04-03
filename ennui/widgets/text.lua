@@ -137,8 +137,6 @@ end
 ---@return number desiredHeight
 function Text:measure(availableWidth, availableHeight)
     local desiredWidth = self:calculateDesiredWidth(availableWidth)
-    -- Temporarily clamp so calculateDesiredHeight wraps at the actual available width,
-    -- not the unbounded single-line width that auto-width produces.
     self.desiredWidth = math.min(desiredWidth, availableWidth)
 
     local desiredHeight = self:calculateDesiredHeight(availableHeight)

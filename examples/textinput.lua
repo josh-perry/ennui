@@ -37,13 +37,7 @@ local previewText = Text("Preview: ")
     :setColor(0.7, 0.9, 1)
 
 usernameInput:on("textInput", function(_, event)
-    previewText:setText("Preview: " .. usernameInput:getText())
-end)
-
-usernameInput:on("keyPressed", function(_, event)
-    if event.value then
-        previewText:setText("Preview: " .. event.value)
-    end
+    previewText:setText("Preview: " .. event.value)
 end)
 
 panel:addChild(usernameLabel)

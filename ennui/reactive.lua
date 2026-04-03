@@ -183,6 +183,21 @@ function ReactiveProxy:insert(positionOrValue, value)
     end
 end
 
+---Remove a value from the array-like proxy, equivalent to table.remove
+---@param position number Position to remove from
+---@return any The removed value
+function ReactiveProxy:remove(position)
+    local raw = proxyInternals[self].raw
+    local value = self[position]
+
+    for i = position, #raw - 1 do
+        self[i] = self[i + 1]
+    end
+
+    self[#raw] = nil
+    return value
+end
+
 ---Count the number of elements in an array-like proxy.
 ---Needed because # in Luajit doesn't trigger __len and we can't just count the underlying raw table
 ---@return number # The number of elements
