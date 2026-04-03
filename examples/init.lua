@@ -1,9 +1,9 @@
 local buttonExampleHost = require("examples.button")
 local eventsLifecycleHost = require("examples.events-lifecycle")
-local eventsUpdateHost    = require("examples.events-update")
-local eventsMouseHost     = require("examples.events-mouse")
+local eventsUpdateHost = require("examples.events-update")
+local eventsMouseHost = require("examples.events-mouse")
 local eventsKeyboardHost  = require("examples.events-keyboard")
-local eventsFocusHost     = require("examples.events-focus")
+local eventsFocusHost = require("examples.events-focus")
 local dragExampleHost = require("examples.drag")
 local jrpg = require("examples.jrpg")
 local checkboxExampleHost = require("examples.checkbox")
@@ -22,6 +22,7 @@ local rectangleExampleHost = require("examples.rectangle")
 local stateExampleHost = require("examples.state")
 local computedExampleHost = require("examples.state-computed")
 local todoExampleHost = require("examples.state-todo")
+local listsExampleHost = require("examples.state-lists")
 local windowsExampleHost = require("examples.windows")
 local groupExampleHost = require("examples.group")
 local tabbarExampleHost = require("examples.tabbar")
@@ -140,6 +141,12 @@ return {
         tags = {"state", "reactive", "binding", "list", "computed"}
     },
     {
+        name = "State - lists",
+        host = listsExampleHost,
+        description = "Message log demonstrating insert (append and prepend), ipairs, pairs, and len on reactive proxies.",
+        tags = {"state", "reactive", "list", "insert", "ipairs", "pairs", "len"}
+    },
+    {
         name = "State - temperature converter",
         host = computedExampleHost,
         description = "Temperature converter demonstrating computed properties, formatting and binding.",
@@ -204,5 +211,5 @@ return {
         host = eventsFocusHost,
         description = "focusGained and focusLost events on text input fields.",
         tags = {"events", "focus", "input"}
-    },
+    }
 }
