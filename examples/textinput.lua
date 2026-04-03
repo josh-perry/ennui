@@ -36,8 +36,10 @@ local passwordInput = TextInput()
 local previewText = Text("Preview: ")
     :setColor(0.7, 0.9, 1)
 
+local text = ""
 usernameInput:on("textInput", function(_, event)
-    previewText:setText("Preview: " .. event.value)
+    text = text .. event.text
+    previewText:setText("Preview: " .. text)
 end)
 
 panel:addChild(usernameLabel)
