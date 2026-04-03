@@ -193,6 +193,67 @@ function TestReactiveList:test_insert_table_value_is_reactive()
     lu.assertIsTrue(state.props.tasks[1].done)
 end
 
+function TestReactiveList:test_remove_last()
+    local state = State({ items = { "a", "b", "c" } })
+
+    state.props.items:remove(3)
+
+    lu.assertEquals(state.props.items:len(), 2)
+    lu.assertEquals(state.props.items[1], "a")
+    lu.assertEquals(state.props.items[2], "b")
+end
+
+function TestReactiveList:test_remove_from_middle_shifts_elements()
+    local state = State({ items = { "a", "b", "c" } })
+
+    state.props.items:remove(2)
+
+    lu.assertEquals(state.props.items:len(), 2)
+    lu.assertEquals(state.props.items[1], "a")
+    lu.assertEquals(state.props.items[2], "c")
+end
+
+function TestReactiveList:test_remove_first()
+    local state = State({ items = { "a", "b", "c" } })
+
+    state.props.items:remove(1)
+
+    lu.assertEquals(state.props.items:len(), 2)
+    lu.assertEquals(state.props.items[1], "b")
+    lu.assertEquals(state.props.items[2], "c")
+end
+
+function TestReactiveList:test_remove_returns_removed_value()
+    local state = State({ items = { "x", "y", "z" } })
+
+    local removed = state.props.items:remove(2)
+
+    lu.assertEquals(removed, "y")
+end
+
+function TestReactiveList:test_remove_triggers_watcher()
+    -- remove shifts elements one write at a time, so 2 items = 2 watcher calls
+    local state = State({ items = { "a", "b" } })
+    local callCount = 0
+    state:watch("items", function() callCount = callCount + 1 end)
+
+    state.props.items:remove(1)
+
+    lu.assertEquals(callCount, 2)
+end
+
+function TestReactiveList:test_remove_updates_computed()
+    local state = State({ items = { "a", "b", "c" } })
+
+    local count = state:computedInline(function()
+        return state.props.items:len()
+    end)
+
+    lu.assertEquals(count:get(), 3)
+    state.props.items:remove(1)
+    lu.assertEquals(count:get(), 2)
+end
+
 function TestReactiveList:test_forEach_receives_scope_and_index()
     local state = State({
         players = {
