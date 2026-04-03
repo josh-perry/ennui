@@ -31,7 +31,6 @@
 
 ---@class TextInputEvent : Event
 ---@field public text string The text entered
----@field public value string? The full text value after input
 ---@field public modifiers KeyModifiers Modifier keys held
 
 ---@class FocusEvent : Event
