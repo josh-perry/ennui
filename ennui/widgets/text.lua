@@ -50,13 +50,19 @@ function Text:getText()
     return self.props.text
 end
 
+---@overload fun(self, color: number[]): Text
 ---@param r number Red component (0-1)
 ---@param g number Green component (0-1)
 ---@param b number Blue component (0-1)
 ---@param a number? Alpha component (0-1, default 1)
 ---@return Text self
 function Text:setColor(r, g, b, a)
-    self.props.color = {r, g, b, a or 1}
+    if type(r) == "table" then
+        self.props.color = r
+    else
+        self.props.color = {r, g, b, a or 1}
+    end
+
     return self
 end
 
@@ -131,7 +137,9 @@ end
 ---@return number desiredHeight
 function Text:measure(availableWidth, availableHeight)
     local desiredWidth = self:calculateDesiredWidth(availableWidth)
-    self.desiredWidth = desiredWidth
+    -- Temporarily clamp so calculateDesiredHeight wraps at the actual available width,
+    -- not the unbounded single-line width that auto-width produces.
+    self.desiredWidth = math.min(desiredWidth, availableWidth)
 
     local desiredHeight = self:calculateDesiredHeight(availableHeight)
     desiredWidth, desiredHeight = self:__applyConstraints(desiredWidth, desiredHeight)
