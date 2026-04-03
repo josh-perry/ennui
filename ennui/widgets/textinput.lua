@@ -62,7 +62,7 @@ function TextInput.new()
         :setColor(self.props.inputTextColor[1], self.props.inputTextColor[2], self.props.inputTextColor[3], self.props.inputTextColor[4])
         :setSize(Size.fill(), Size.auto())
         :setPadding(4, 4, 4, 4)
-        :setHorizontalAlignment("center")
+        :setHorizontalAlignment("stretch")
         :setVerticalAlignment("center")
 
     self:addChild(self.__textWidget)
@@ -249,7 +249,7 @@ function TextInput:__calculateContentHeight()
             maxChildHeight = math.max(maxChildHeight, child.desiredHeight)
         end
     end
-    return maxChildHeight + self.padding.top + self.padding.bottom + 10
+    return maxChildHeight + self.padding.top + self.padding.bottom
 end
 
 ---Update cursor blink
@@ -264,11 +264,7 @@ function TextInput:update(dt)
         end
     end
 
-    for _, child in ipairs(self.children) do
-        if child:isVisible() then
-            child:update(dt)
-        end
-    end
+    Widget.update(self, dt)
 end
 
 ---Handle text input
