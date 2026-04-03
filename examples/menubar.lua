@@ -70,7 +70,7 @@ fileMenu:addItem("New"):onClick(menuItemOnClick)
 fileMenu:addItem("Open"):onClick(menuItemOnClick)
 fileMenu:addItem("Save"):onClick(menuItemOnClick)
 fileMenu:addSeparator()
-fileMenu:addItem("Exit"):onClick(love.event.quit)
+fileMenu:addItem("Exit"):onClick(function() love.event.quit() end)
 
 local editMenu = menubar:addMenu("Edit")
 editMenu:addItem("Undo"):onClick(menuItemOnClick)
