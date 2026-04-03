@@ -615,13 +615,31 @@ end
 function Host:keypressed(key, scancode, isRepeat)
     if key == "tab" then
         local shift = love.keyboard.isDown("lshift", "rshift")
+
+        if self.focusedWidget then
+            local event = Event.createKeyboardEvent("keyPressed", key, scancode, isRepeat, self.focusedWidget)
+            self:__dispatchEvent(event)
+
+            if event.consumed then
+                return true
+            end
+
+            if shift then
+                self:focusPrevious()
+            else
+                self:focusNext()
+            end
+
+            return true
+        end
+
         if shift then
             self:focusPrevious()
         else
             self:focusNext()
         end
 
-        return true
+        return self.focusedWidget ~= nil
     end
 
     local handled = false
@@ -810,7 +828,14 @@ function Host:__getFocusableWidgets(tabContext)
 
     -- TODO: move this out, generating garbage
     local function collectFocusable(widget, isRootContext)
-        if widget.isTabContext and not isRootContext then
+        -- Only enforce tab context boundaries when scoping to a specific context
+        -- When searching globally, traverse the whole tree so tab can enter a
+        -- Window even when no widget is currently focused
+        if tabContext ~= nil and widget.isTabContext and not isRootContext then
+            return
+        end
+
+        if not isRootContext and not widget:isVisible() then
             return
         end
 
